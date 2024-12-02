@@ -1,21 +1,23 @@
 // swift-tools-version: 6.0
-// The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
 
 let package = Package(
-    name: "formic",
+    name: "Formic",
     platforms: [.macOS(.v13), .iOS(.v16)],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "formic",
+            name: "Formic",
             targets: ["formic"]),
     ],
     dependencies: [
         .package(
               url: "https://github.com/apple/swift-argument-parser.git",
               .upToNextMajor(from: "1.5.0")),
+        .package(
+              url: "https://github.com/swiftlang/swift-format.git",
+              .upToNextMajor(from: "600.0.0"))
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
