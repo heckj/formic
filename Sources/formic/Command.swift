@@ -9,7 +9,20 @@ import Foundation
     import FoundationNetworking
 #endif
 
+/// A type that represents a command to invoke on a local or remote host.
 public struct Command {
+    /// Invoke a local command.
+    ///
+    /// - Parameters:
+    ///   - args: A list of strings that make up the command and any arguments.
+    ///   - returnStdOut: A Boolean value that indicates whether to return data from `STDOUT`.
+    ///   - stdIn: An option pipe to provide `STDIN`.
+    ///   - env: A dictionary of shell environment variables to apply.
+    /// - Returns: A tuple of (returnCode, Pipe)
+    /// - Throws: any errors from invoking the shell process.
+    ///
+    /// The returned Pipe is a file handle the pipe used when you opt to capture `STDOUT`.
+    /// Use Pipe.string() to read the pipe and provide the output as an optional String parsed as `UTF-8`.
     @discardableResult
     public static func shell(
         _ args: [String], returnStdOut: Bool = false, stdIn: Pipe? = nil, env: [String: String]? = nil
@@ -57,9 +70,28 @@ public struct Command {
         return (task.terminationStatus, pipe)
     }
 
+    /// Invoke a command over SSH on a remote host.
+    ///
+    /// - Parameters:
+    ///   - host: The remote host to connect to and call the shell command.
+    ///   - user: The user on the remote host to connect as
+    ///   - identityFile: The string path to an SSH identity file.
+    ///   - port: The port to use for SSH to the remote host.
+    ///   - strictHostKeyChecking: A Boolean value that indicates whether to enable strict host checking, defaults to `false`.
+    ///   - cmd: A list of strings that make up the command and any arguments.
+    /// - Returns: A tuple of (returnCode, Pipe)
+    /// - Throws: any errors from invoking the shell process.
+    ///
+    /// The returned Pipe is a file handle the pipe used when you opt to capture `STDOUT`.
+    /// Use Pipe.string() to read the pipe and provide the output as an optional String parsed as `UTF-8`.
+
     public static func remoteShell(
-        user: String, host: String, strictHostKeyChecking: Bool = false, port: Int? = nil,
-        identityFile: String? = nil, cmd: [String]
+        host: String,
+        user: String,
+        identityFile: String? = nil,
+        port: Int? = nil,
+        strictHostKeyChecking: Bool = false,
+        cmd: [String]
     ) async throws -> (Int32, String?) {
         var args: [String] = ["ssh"]
         if strictHostKeyChecking {
