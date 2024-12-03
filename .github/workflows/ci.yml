@@ -31,11 +31,11 @@ jobs:
         swift test --enable-code-coverage
     - name: Convert coverage files
       run: |
-        llvm-cov export -format="lcov" \
-          .build/debug/FormicPackageTests.xctest/Contents/MacOS/FormicPackageTests \
+        llvm-cov export --format="lcov" \
+          --instr-profile .build/debug/codecov/default.profdata \
           -ignore-filename-regex="\/Tests\/" \
           -ignore-filename-regex="\/Benchmarks\/" \
-          -instr-profile .build/debug/codecov/default.profdata > info.lcov
+          .build/debug/FormicPackageTests.xctest > info.lcov
     - name: Upload to codecov.io
       uses: codecov/codecov-action@v4
       with:
