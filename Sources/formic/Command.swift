@@ -9,6 +9,16 @@ import Foundation
     import FoundationNetworking
 #endif
 
+// For concurrency support, there are two projects that already have a nice run at this same space:
+// - https://github.com/GeorgeLyon/Shwift
+// Shwift has clearly been around the block, but it has heavier dependencies (all of SwiftNIO) that
+// make it a heavier take.
+
+// - https://github.com/Zollerboy1/SwiftCommand
+// I like the structure of SwiftCommand, but it has a few swift6 concurrency warnings about fiddling
+// with mutable buffers that are _just_ slightly concerning to me. There also doesn't appear to be a convenient
+// way to capture STDERR separately (it's mixed together).
+
 /// A type that represents a command to invoke on a local or remote host.
 public struct Command {
     /// Invoke a local command.
@@ -48,14 +58,10 @@ public struct Command {
 
         if returnStdOut {
             task.standardOutput = pipe
-        } else {
-            task.standardOutput = FileHandle.nullDevice
         }
 
         if let stdIn = stdIn {
             task.standardInput = stdIn
-        } else {
-            task.standardOutput = FileHandle.nullDevice
         }
 
         try task.run()
@@ -67,6 +73,7 @@ public struct Command {
         }
 
         task.waitUntilExit()
+
         return (task.terminationStatus, pipe)
     }
 
@@ -84,7 +91,6 @@ public struct Command {
     ///
     /// The returned Pipe is a file handle the pipe used when you opt to capture `STDOUT`.
     /// Use Pipe.string() to read the pipe and provide the output as an optional String parsed as `UTF-8`.
-
     public static func remoteShell(
         host: String,
         user: String,
@@ -92,7 +98,7 @@ public struct Command {
         port: Int? = nil,
         strictHostKeyChecking: Bool = false,
         cmd: [String]
-    ) async throws -> (Int32, String?) {
+    ) throws -> (Int32, Pipe) {
         var args: [String] = ["ssh"]
         if strictHostKeyChecking {
             args.append("-o")
@@ -116,7 +122,7 @@ public struct Command {
         // does this with significantly more finness, checking the output as it's returned and providing a pass
         // to use sshpass to authenticate, or to escalate commands with sudo and a password, before the core
         // command is invoked.
-        let x = try shell(args, returnStdOut: true)
-        return (x.0, x.1.string())
+        let rcAndPipe = try shell(args, returnStdOut: true)
+        return rcAndPipe
     }
 }
