@@ -9,6 +9,13 @@ import Foundation
     import FoundationNetworking
 #endif
 
+//func parseIP(_ ip: String) {
+//    let regexForIP = /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$/
+//    
+//    let another = /^(?:(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])(\.(?!$)|$)){4}$/
+//}
+    
+
 // For concurrency support, there are two projects that already have a nice run at this same space:
 // - https://github.com/GeorgeLyon/Shwift
 // Shwift has clearly been around the block, but it has heavier dependencies (all of SwiftNIO) that
