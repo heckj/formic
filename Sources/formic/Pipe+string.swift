@@ -12,5 +12,3 @@ extension Pipe {
         return stringValue
     }
 }
-
-
