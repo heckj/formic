@@ -17,6 +17,14 @@ My initial goals Day 1 goal targets are:
 - install and configure docker
 - wrap around 2 or more hosts that have this done and assemble a Docker swarm
 
+I want to be able to use this library to easily create command-line executables that can be run on a remote host, taking a few inputs (as minimal as possible, while still allowing some arguments), and executing a relevant playbook - or resolving state from a declared preset.
+
+Kind of open questions for me:
+
+- I'm not clear in my head yet if the declared state should be in JSON/YAML and imported, or only in code?
+
+- Do I want to go to the level of effort to enable an external "playbook" imperative sequence, using built-in commands, that can be JSON encoded (and theoretically edited for variables directly)?
+
 As I'm starting this, I'm using a local [punchlist](./punchlist.md) to keep track of what I'm working on.
 Down the road, I'll switch to GitHub issues.
 
