@@ -16,5 +16,4 @@ struct Host {
 
 struct OperatingSystem {
     static let ubuntu = "ubuntu"
-    
 }

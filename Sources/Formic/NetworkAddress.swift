@@ -1,34 +1,19 @@
 import AsyncDNSResolver
 
+/// A network address, either an IP address or a DNS name.
 public struct NetworkAddress: Sendable {
     public let address: IPv4Address
     public let dnsName: String?
-    
-    public init?(_ name: String) async {
+
+    public init?(_ name: String) {
         if let nameIsIPAddress = IPv4Address(name) {
             self.address = nameIsIPAddress
             self.dnsName = nil
             return
         }
-        
-        guard let resolver = try? AsyncDNSResolver() else {
-            print("Unable to initialize a DNS resolver")
-            return nil
-        }
-        do {
-            let result: [ARecord] = try await resolver.queryA(name: name)
-            if let firstARecordAddress = result.first?.address,
-               let ourIPv4Address = IPv4Address(firstARecordAddress.address) {
-                address = ourIPv4Address
-                dnsName = name
-                return
-            }
-        } catch {
-            print("Unable to resolve \(name) as an IPv4 address: \(error)")
-        }
         return nil
     }
-    
+
     public init(_ address: IPv4Address) {
         self.address = address
         self.dnsName = nil
@@ -41,11 +26,39 @@ public struct NetworkAddress: Sendable {
         self.init(address)
     }
 
-    init(_ address: IPv4Address, resolvedName: String) {
+    private init(_ address: IPv4Address, resolvedName: String) {
         self.address = address
         self.dnsName = resolvedName
     }
 
     public static let localhost = NetworkAddress(.localhost, resolvedName: "localhost")
-}
 
+    // MARK: Resolver
+
+    public static func resolve(_ name: String?) async -> NetworkAddress? {
+        guard let name = name else {
+            return nil
+        }
+
+        if let nameIsIPAddress = IPv4Address(name) {
+            return NetworkAddress(nameIsIPAddress)
+        }
+
+        guard let resolver = try? AsyncDNSResolver() else {
+            print("Unable to initialize a DNS resolver")
+            return nil
+        }
+
+        do {
+            let result: [ARecord] = try await resolver.queryA(name: name)
+            if let firstARecordAddress = result.first?.address,
+                let ourIPv4Address = IPv4Address(firstARecordAddress.address)
+            {
+                return NetworkAddress(ourIPv4Address, resolvedName: name)
+            }
+        } catch {
+            print("Unable to resolve \(name) as an IPv4 address: \(error)")
+        }
+        return nil
+    }
+}
