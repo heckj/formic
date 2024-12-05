@@ -21,9 +21,7 @@ let package = Package(
         ),
         .package(url: "https://github.com/Zollerboy1/SwiftCommand.git", from: "1.4.0"),
         .package(url: "https://github.com/pointfreeco/swift-parsing", from: "0.13.0"),
-        
-          .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.0.0"),
-        
+        .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.0.0"),
         .package(url: "https://github.com/swiftlang/swift-format.git",
             .upToNextMajor(from: "600.0.0"))
     ],
