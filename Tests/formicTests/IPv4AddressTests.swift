@@ -3,9 +3,7 @@ import Testing
 
 @Test("parsing ipv4 address - good address")
 func validAddressInit() async throws {
-
     let goodSample = "192.168.0.1"
-
     let first = IPv4Address(goodSample)
     #expect(first?.description == goodSample)
 
