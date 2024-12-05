@@ -1,5 +1,5 @@
-import Foundation
 import Dependencies
+import Foundation
 
 /// SSH Credentials for accessing a remote host.
 public struct SSHAccessCredentials {
@@ -18,7 +18,7 @@ public struct SSHAccessCredentials {
 
     private static func defaultIdentityFilePath() -> String? {
         @Dependency(\.localSystemAccess) var localHostAccess: any LocalSystemAccess
-        
+
         let homeDirectory = localHostAccess.homeDirectory
         let rsaPath = homeDirectory.appendingPathComponent(".ssh/id_rsa").path
         if localHostAccess.fileExists(atPath: rsaPath) {
@@ -87,7 +87,7 @@ private enum LocalSystemAccessKey: DependencyKey {
 
 extension DependencyValues {
     var localSystemAccess: LocalSystemAccess {
-    get { self[LocalSystemAccessKey.self] }
-    set { self[LocalSystemAccessKey.self] = newValue }
-  }
+        get { self[LocalSystemAccessKey.self] }
+        set { self[LocalSystemAccessKey.self] = newValue }
+    }
 }
