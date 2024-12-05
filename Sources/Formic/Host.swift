@@ -1,10 +1,5 @@
 import Foundation
 
-struct SSHAccessCredentials {
-    let username: String
-    let identityFile: String
-}
-
 struct Host {
     let os: OperatingSystem
     let remote: Bool
