@@ -44,7 +44,7 @@
     "UseSynthesizedInitializer" : true,
     "UseTripleSlashForDocumentationComments" : true,
     "UseWhereClausesInForLoops" : false,
-    "ValidateDocumentationComments" : true
+    "ValidateDocumentationComments" : false
   },
   "tabWidth" : 4
 }
