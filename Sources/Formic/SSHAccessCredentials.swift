@@ -2,7 +2,7 @@ import Dependencies
 import Foundation
 
 /// SSH Credentials for accessing a remote host.
-public struct SSHAccessCredentials {
+public struct SSHAccessCredentials: Sendable {
     public let username: String
     public let identityFile: String
 
@@ -35,32 +35,22 @@ public struct SSHAccessCredentials {
         return nil
     }
 
-    public init?(username: String) {
-        if let identityFile = Self.defaultIdentityFilePath() {
-            self.username = username
-            self.identityFile = identityFile
-        }
-        return nil
-    }
+    public init(username: String? = nil, identityFile: String? = nil) throws {
+        let username = username ?? Self.defaultUsername()
+        let identityFile = identityFile ?? Self.defaultIdentityFilePath()
 
-    public init?(identityFile: String) {
-        if let username = Self.defaultUsername() {
-            self.username = username
-            self.identityFile = identityFile
-            return
+        if let username = username, let identityFile = identityFile {
+            self.init(username: username, identityFile: identityFile)
+        } else {
+            var msg: String = ""
+            if username == nil {
+                msg.append("The local username could not be determined as a default to access a remote host. ")
+            }
+            if identityFile == nil {
+                msg.append("A local SSH identity file could not be determined as a default to access a remote host. ")
+            }
+            throw CommandError.missingSSHAccessCredentials(msg: msg)
         }
-        return nil
-    }
-
-    public init?() {
-        if let identityFile = Self.defaultIdentityFilePath(),
-            let username = Self.defaultUsername()
-        {
-            self.username = username
-            self.identityFile = identityFile
-            return
-        }
-        return nil
     }
 }
 
