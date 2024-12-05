@@ -7,7 +7,7 @@ import Testing
     .tags(.functionalTest))
 func unameFunctionalTest() async throws {
     let shellResult = try Command.localShell("uname", returnStdOut: true, returnStdErr: true)
-    
+
     // results expected on a Linux host only
     #expect(shellResult.returnCode == 0)
     #expect(shellResult.stdoutString == "Linux\n")
