@@ -9,4 +9,3 @@ cd "${THIS_SCRIPT_DIR}/.."
 
 swift package format-source-code --allow-writing-to-package-directory
 swift package lint-source-code
-swift test

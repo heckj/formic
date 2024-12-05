@@ -14,7 +14,8 @@ func validSSHCredentials() async throws {
 
 @Test("default home directory check")
 func homeDirDependencyOverride() async throws {
-
+    // Dependency injection docs:
+    // https://swiftpackageindex.com/pointfreeco/swift-dependencies/main/documentation/dependencies
     struct TestFileSystemAccess: LocalSystemAccess {
         func fileExists(atPath: String) -> Bool {
             return true
@@ -32,4 +33,71 @@ func homeDirDependencyOverride() async throws {
     try #require(testCredentials != nil)
     #expect(testCredentials?.username == "docker-user")
     #expect(testCredentials?.identityFile == "/home/docker-user/.ssh/id_rsa")
+}
+
+@Test("default home directory w/ dsa id")
+func homeDirDependencyOverrideDSA() async throws {
+    // Dependency injection docs:
+    // https://swiftpackageindex.com/pointfreeco/swift-dependencies/main/documentation/dependencies
+    struct TestFileSystemAccess: LocalSystemAccess {
+        func fileExists(atPath: String) -> Bool {
+            atPath.contains("id_dsa")
+        }
+        let homeDirectory: URL = URL(filePath: "/home/docker-user")
+        let username: String? = "docker-user"
+    }
+
+    let testCredentials: SSHAccessCredentials? = withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess()
+    } operation: {
+        SSHAccessCredentials()
+    }
+
+    try #require(testCredentials != nil)
+    #expect(testCredentials?.username == "docker-user")
+    #expect(testCredentials?.identityFile == "/home/docker-user/.ssh/id_dsa")
+}
+
+@Test("default home directory w/ ed25519 id")
+func homeDirDependencyOverrideED25519() async throws {
+    // Dependency injection docs:
+    // https://swiftpackageindex.com/pointfreeco/swift-dependencies/main/documentation/dependencies
+    struct TestFileSystemAccess: LocalSystemAccess {
+        func fileExists(atPath: String) -> Bool {
+            atPath.contains("id_ed25519")
+        }
+        let homeDirectory: URL = URL(filePath: "/home/docker-user")
+        let username: String? = "docker-user"
+    }
+
+    let testCredentials: SSHAccessCredentials? = withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess()
+    } operation: {
+        SSHAccessCredentials()
+    }
+
+    try #require(testCredentials != nil)
+    #expect(testCredentials?.username == "docker-user")
+    #expect(testCredentials?.identityFile == "/home/docker-user/.ssh/id_ed25519")
+}
+
+@Test("default home directory w/ no id")
+func homeDirDependencyOverrideNoId() async throws {
+    // Dependency injection docs:
+    // https://swiftpackageindex.com/pointfreeco/swift-dependencies/main/documentation/dependencies
+    struct TestFileSystemAccess: LocalSystemAccess {
+        func fileExists(atPath: String) -> Bool {
+            return false
+        }
+        let homeDirectory: URL = URL(filePath: "/home/docker-user")
+        let username: String? = "docker-user"
+    }
+
+    let testCredentials: SSHAccessCredentials? = withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess()
+    } operation: {
+        SSHAccessCredentials()
+    }
+
+    #expect(testCredentials == nil)
 }
