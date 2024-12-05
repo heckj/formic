@@ -1,4 +1,5 @@
 import Foundation
+import Dependencies
 
 /// SSH Credentials for accessing a remote host.
 public struct SSHAccessCredentials {
@@ -11,21 +12,24 @@ public struct SSHAccessCredentials {
     }
 
     private static func defaultUsername() -> String? {
-        return ProcessInfo.processInfo.environment["USER"]
+        @Dependency(\.localSystemAccess) var localHostAccess: any LocalSystemAccess
+        return localHostAccess.username
     }
 
     private static func defaultIdentityFilePath() -> String? {
-        let homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser
+        @Dependency(\.localSystemAccess) var localHostAccess: any LocalSystemAccess
+        
+        let homeDirectory = localHostAccess.homeDirectory
         let rsaPath = homeDirectory.appendingPathComponent(".ssh/id_rsa").path
-        if FileManager.default.fileExists(atPath: rsaPath) {
+        if localHostAccess.fileExists(atPath: rsaPath) {
             return rsaPath
         }
         let dsaPath = homeDirectory.appendingPathComponent(".ssh/id_dsa").path
-        if FileManager.default.fileExists(atPath: dsaPath) {
+        if localHostAccess.fileExists(atPath: dsaPath) {
             return dsaPath
         }
         let ed25519Path = homeDirectory.appendingPathComponent(".ssh/id_ed25519").path
-        if FileManager.default.fileExists(atPath: ed25519Path) {
+        if localHostAccess.fileExists(atPath: ed25519Path) {
             return ed25519Path
         }
         return nil
@@ -58,4 +62,32 @@ public struct SSHAccessCredentials {
         }
         return nil
     }
+}
+
+// MARK: dependency injection protocol and redirection
+
+protocol LocalSystemAccess: Sendable {
+    var username: String? { get }
+    var homeDirectory: URL { get }
+    func fileExists(atPath: String) -> Bool
+}
+
+struct LiveLocalSystemAccess: LocalSystemAccess {
+    let username = ProcessInfo.processInfo.environment["USER"]
+    let homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser
+    func fileExists(atPath: String) -> Bool {
+        FileManager.default.fileExists(atPath: atPath)
+    }
+}
+
+// register the dependency
+private enum LocalSystemAccessKey: DependencyKey {
+    static let liveValue: any LocalSystemAccess = LiveLocalSystemAccess()
+}
+
+extension DependencyValues {
+    var localSystemAccess: LocalSystemAccess {
+    get { self[LocalSystemAccessKey.self] }
+    set { self[LocalSystemAccessKey.self] = newValue }
+  }
 }
