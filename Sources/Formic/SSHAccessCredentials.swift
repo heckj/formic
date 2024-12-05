@@ -66,6 +66,8 @@ public struct SSHAccessCredentials {
 
 // MARK: dependency injection protocol and redirection
 
+// docs: https://swiftpackageindex.com/pointfreeco/swift-dependencies/main/documentation/dependencies
+
 protocol LocalSystemAccess: Sendable {
     var username: String? { get }
     var homeDirectory: URL { get }
