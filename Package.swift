@@ -19,7 +19,7 @@ let package = Package(
             url: "https://github.com/apple/swift-async-dns-resolver",
             .upToNextMajor(from: "0.1.0")
         ),
-        .package(url: "https://github.com/Zollerboy1/SwiftCommand.git", from: "1.4.0"),
+        // .package(url: "https://github.com/Zollerboy1/SwiftCommand.git", from: "1.4.0"),
         .package(url: "https://github.com/pointfreeco/swift-parsing", from: "0.13.0"),
         .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.0.0"),
         .package(url: "https://github.com/swiftlang/swift-format.git",
@@ -31,7 +31,7 @@ let package = Package(
             dependencies: [
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "AsyncDNSResolver", package: "swift-async-dns-resolver"),
-                .product(name: "SwiftCommand", package: "SwiftCommand"),
+                // .product(name: "SwiftCommand", package: "SwiftCommand"),
                 .product(name: "Parsing", package: "swift-parsing"),
                 .product(name: "Dependencies", package: "swift-dependencies"),
             ]

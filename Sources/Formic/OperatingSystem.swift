@@ -1,5 +1,4 @@
 import Foundation
-import SwiftCommand
 
 /// The kind of operating system.
 public struct OperatingSystem: QueryableState {
