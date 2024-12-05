@@ -1,40 +1,4 @@
-//#if canImport(FoundationEssentials)
-//import FoundationEssentials
-//#else
 import Foundation
-
-//#endif
-
-#if canImport(FoundationNetworking)
-    import FoundationNetworking
-#endif
-
-/// Represents the output of a shell command.
-public struct CommandOutput: Sendable {
-    public let returnCode: Int32
-    public let stdOut: Data?
-    public let stdErr: Data?
-
-    public var stdoutString: String? {
-        guard let stdOut else {
-            return nil
-        }
-        return String(data: stdOut, encoding: String.Encoding.utf8)
-    }
-
-    public var stderrString: String? {
-        guard let stdErr else {
-            return nil
-        }
-        return String(data: stdErr, encoding: String.Encoding.utf8)
-    }
-
-    init(returnCode: Int32, stdOut: Data?, stdErr: Data?) {
-        self.returnCode = returnCode
-        self.stdOut = stdOut
-        self.stdErr = stdErr
-    }
-}
 
 // For concurrency support, there are two projects that already have a nice run at this same space:
 // - https://github.com/GeorgeLyon/Shwift
@@ -48,6 +12,18 @@ public struct CommandOutput: Sendable {
 
 /// A type that represents a command to invoke on a local or remote host.
 public struct Command {
+
+    /// The command and arguments to invoke
+    public let args: [String]
+
+    /// Creatas a new command declaration.
+    /// - Parameter args: <#args description#>
+    public init(_ args: String...) {
+        self.args = args
+    }
+
+    // MARK: Core invocation mechanism, forking a local process
+
     /// Invoke a local command.
     ///
     /// - Parameters:
@@ -57,8 +33,7 @@ public struct Command {
     ///   - env: A dictionary of shell environment variables to apply.
     /// - Returns: The command output.
     /// - Throws: any errors from invoking the shell process.
-    @discardableResult
-    public static func localShell(
+    static func localShell(
         _ args: [String], returnStdOut: Bool = false, returnStdErr: Bool = false, stdIn: Pipe? = nil,
         env: [String: String]? = nil
     ) throws -> CommandOutput {
@@ -114,13 +89,7 @@ public struct Command {
         return CommandOutput(returnCode: task.terminationStatus, stdOut: stdOutData, stdErr: stdErrData)
     }
 
-    @discardableResult
-    public static func localShell(
-        _ args: String, returnStdOut: Bool = false, returnStdErr: Bool = false, stdIn: Pipe? = nil,
-        env: [String: String]? = nil
-    ) throws -> CommandOutput {
-        try self.localShell([args], returnStdOut: returnStdOut, returnStdErr: returnStdErr, stdIn: stdIn, env: env)
-    }
+    // MARK: Core remote invocation mechanism, adding arguments to run through SSH on the command line
 
     /// Invoke a command over SSH on a remote host.
     ///
@@ -133,7 +102,7 @@ public struct Command {
     ///   - cmd: A list of strings that make up the command and any arguments.
     /// - Returns: the command output.
     /// - Throws: any errors from invoking the shell process.
-    public static func remoteShell(
+    static func remoteShell(
         host: String,
         user: String,
         identityFile: String? = nil,
@@ -168,11 +137,27 @@ public struct Command {
         return rcAndPipe
     }
 
-    public static func remoteShell(host: Host, cmd: [String]) throws -> CommandOutput {
-        let sshCreds = host.sshAccessCredentials
-        let targetHostName = host.networkAddress.dnsName ?? host.networkAddress.address.description
-        return try self.remoteShell(
-            host: targetHostName, user: sshCreds.username, identityFile: sshCreds.identityFile, port: host.sshPort,
-            cmd: cmd)
+    /// Runs the command on the host you provide.
+    /// - Parameter host: The host on which to run the command.
+    /// - Returns: The command output.
+    public func run(host: Host) throws -> CommandOutput {
+        try Command.runShellCommand(host: host, args: args)
+    }
+
+    /// Runs the command on the host you provide.
+    /// - Parameters:
+    ///   - host: The host on which to run the command.
+    ///   - args: The command and arguments.
+    /// - Returns: The command output.
+    public static func runShellCommand(host: Host, args: [String]) throws -> CommandOutput {
+        if host.remote {
+            let sshCreds = host.sshAccessCredentials
+            let targetHostName = host.networkAddress.dnsName ?? host.networkAddress.address.description
+            return try Command.remoteShell(
+                host: targetHostName, user: sshCreds.username, identityFile: sshCreds.identityFile, port: host.sshPort,
+                cmd: args)
+        } else {
+            return try Command.localShell(args)
+        }
     }
 }

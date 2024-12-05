@@ -17,14 +17,7 @@ extension QueryableState {
     /// - Parameter from: The host to inspect.
     /// - Returns: The state of the resource.
     public static func queryState(from host: Host) throws -> Self {
-        let output: CommandOutput
-
-        if host.remote {
-            output = try Command.remoteShell(host: host, cmd: Self.shellcommand)
-        } else {
-            output = try Command.localShell(Self.shellcommand)
-        }
-
+        let output: CommandOutput = try Command.runShellCommand(host: host, args: Self.shellcommand)
         if output.returnCode != 0 {
             throw CommandError.commandFailed(rc: output.returnCode, errmsg: output.stderrString ?? "")
         } else {

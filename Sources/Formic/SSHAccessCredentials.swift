@@ -53,33 +53,3 @@ public struct SSHAccessCredentials: Sendable {
         }
     }
 }
-
-// MARK: dependency injection protocol and redirection
-
-// docs: https://swiftpackageindex.com/pointfreeco/swift-dependencies/main/documentation/dependencies
-
-protocol LocalSystemAccess: Sendable {
-    var username: String? { get }
-    var homeDirectory: URL { get }
-    func fileExists(atPath: String) -> Bool
-}
-
-struct LiveLocalSystemAccess: LocalSystemAccess {
-    let username = ProcessInfo.processInfo.environment["USER"]
-    let homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser
-    func fileExists(atPath: String) -> Bool {
-        FileManager.default.fileExists(atPath: atPath)
-    }
-}
-
-// register the dependency
-private enum LocalSystemAccessKey: DependencyKey {
-    static let liveValue: any LocalSystemAccess = LiveLocalSystemAccess()
-}
-
-extension DependencyValues {
-    var localSystemAccess: LocalSystemAccess {
-        get { self[LocalSystemAccessKey.self] }
-        set { self[LocalSystemAccessKey.self] = newValue }
-    }
-}
