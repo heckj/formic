@@ -1,15 +1,15 @@
 import Foundation
 
-/// SSH Credentials for accessing a remote host
+/// SSH Credentials for accessing a remote host.
 public struct SSHAccessCredentials {
     public let username: String
     public let identityFile: String
-    
+
     public init(username: String, identityFile: String) {
         self.username = username
         self.identityFile = identityFile
     }
-    
+
     private static func defaultUsername() -> String? {
         return ProcessInfo.processInfo.environment["USER"]
     }
@@ -47,10 +47,11 @@ public struct SSHAccessCredentials {
         }
         return nil
     }
-    
+
     public init?() {
         if let identityFile = Self.defaultIdentityFilePath(),
-           let username = Self.defaultUsername() {
+            let username = Self.defaultUsername()
+        {
             self.username = username
             self.identityFile = identityFile
             return
