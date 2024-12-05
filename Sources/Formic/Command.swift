@@ -141,7 +141,7 @@ public struct Command {
     /// - Parameter host: The host on which to run the command.
     /// - Returns: The command output.
     public func run(host: Host) throws -> CommandOutput {
-        try Command.runShellCommand(host: host, args: args)
+        try Command.run(host: host, args: args)
     }
 
     /// Runs the command on the host you provide.
@@ -149,7 +149,7 @@ public struct Command {
     ///   - host: The host on which to run the command.
     ///   - args: The command and arguments.
     /// - Returns: The command output.
-    public static func runShellCommand(host: Host, args: [String]) throws -> CommandOutput {
+    public static func run(host: Host, args: [String]) throws -> CommandOutput {
         if host.remote {
             let sshCreds = host.sshAccessCredentials
             let targetHostName = host.networkAddress.dnsName ?? host.networkAddress.address.description
