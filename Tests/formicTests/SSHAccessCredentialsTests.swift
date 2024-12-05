@@ -1,7 +1,8 @@
-@testable import Formic
+import Dependencies
 import Foundation
 import Testing
-import Dependencies
+
+@testable import Formic
 
 @Test("initializing asserted network credentials")
 func validSSHCredentials() async throws {
@@ -13,7 +14,7 @@ func validSSHCredentials() async throws {
 
 @Test("default home directory check")
 func homeDirDependencyOverride() async throws {
-    
+
     struct TestFileSystemAccess: LocalSystemAccess {
         func fileExists(atPath: String) -> Bool {
             return true
@@ -21,7 +22,7 @@ func homeDirDependencyOverride() async throws {
         let homeDirectory: URL = URL(filePath: "/home/docker-user")
         let username: String? = "docker-user"
     }
-    
+
     let testCredentials: SSHAccessCredentials? = withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess()
     } operation: {
