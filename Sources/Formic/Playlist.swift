@@ -39,6 +39,7 @@ public struct Playlist {
         }
     }
 
+    /// Runs the playlist synchronously for each host in order, printing out the results.
     public func runSync() throws {
         for host in hosts {
             for command in commands {

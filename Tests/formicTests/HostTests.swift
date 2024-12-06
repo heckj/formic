@@ -6,7 +6,6 @@ import Testing
 
 @Test("Host initializer")
 func initHost() async throws {
-
     struct TestFileSystemAccess: LocalSystemAccess {
         func fileExists(atPath: String) -> Bool {
             atPath.contains("id_dsa")
