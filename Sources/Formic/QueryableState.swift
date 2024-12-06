@@ -1,3 +1,6 @@
+import Dependencies
+import Foundation
+
 /// A type that can be queried using a shell command.
 public protocol QueryableState: Sendable {
     /// The shell command to use to get the state for this resource.
@@ -9,16 +12,17 @@ public protocol QueryableState: Sendable {
     /// Queries the state of the resource from the given host.
     /// - Parameter from: The host to inspect.
     /// - Returns: The state of the resource.
-    static func queryState(from: Host) throws -> Self
+    static func queryState(from: Host) throws -> (Self, Date)
 }
 
 extension QueryableState {
     /// Queries the state of the resource from the given host.
     /// - Parameter from: The host to inspect.
-    /// - Returns: The state of the resource.
-    public static func queryState(from host: Host) throws -> Self {
+    /// - Returns: The state of the resource and the time that it was last updated.
+    public static func queryState(from host: Host) throws -> (Self, Date) {
         // default implementation:
 
+        @Dependency(\.date.now) var date
         // run the command on the relevant host, capturing the output
         let output: CommandOutput = try Command.run(host: host, args: Self.shellcommand)
         // verify the return code is 0
@@ -32,7 +36,8 @@ extension QueryableState {
                         "The command \(Self.shellcommand) to \(host) did not return any output. stdError: \(output.stderrString ?? "-none-")"
                 )
             }
-            return try Self.parse(stdout)
+            let parsedState = try Self.parse(stdout)
+            return (parsedState, date)
         }
     }
 }
