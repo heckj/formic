@@ -88,7 +88,21 @@ func invalidIPAddressResolver() async throws {
 }
 
 @Test("localhost network address")
-func localhostNetworkAddress() async throws {
+func localhostNetworkAddressByStaticVar() async throws {
     #expect(NetworkAddress.localhost.address.description == "127.0.0.1")
     #expect(NetworkAddress.localhost.dnsName == "localhost")
+}
+
+@Test("localhost network address name")
+func localhostNetworkAddressByName() async throws {
+    let example = NetworkAddress("localhost")
+    #expect(example?.address.description == "127.0.0.1")
+    #expect(example?.dnsName == "localhost")
+}
+
+@Test("localhost network address name by address")
+func localhostNetworkAddressByAddress() async throws {
+    let example = NetworkAddress("127.0.0.1")
+    #expect(example?.address.description == "127.0.0.1")
+    #expect(example?.dnsName == nil)
 }
