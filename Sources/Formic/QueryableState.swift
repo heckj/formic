@@ -4,7 +4,7 @@ import Foundation
 /// A type that can be queried using a shell command.
 public protocol QueryableState: Sendable {
     /// The shell command to use to get the state for this resource.
-    static var shellcommand: [String] { get }
+    static var shellcommand: Command { get }
     /// Returns the state of the resource from the output of the shell command.
     /// - Parameter output: The string output of the shell command.
     /// - Throws: Any errors parsing the output.
@@ -24,7 +24,7 @@ extension QueryableState {
 
         @Dependency(\.date.now) var date
         // run the command on the relevant host, capturing the output
-        let output: CommandOutput = try Command.run(host: host, args: Self.shellcommand)
+        let output: CommandOutput = try shellcommand.run(host: host)
         // verify the return code is 0
         if output.returnCode != 0 {
             throw CommandError.commandFailed(rc: output.returnCode, errmsg: output.stderrString ?? "")

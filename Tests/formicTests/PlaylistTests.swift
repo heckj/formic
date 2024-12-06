@@ -12,9 +12,9 @@ func basicPlaylist() async throws {
         Formic.Playlist(
             name: "example", hosts: [.localhost],
             commands: [
-                Command("uname"),
-                Command("pwd"),
-                Command("ls", "-l"),
+                Command.shell("uname"),
+                Command.shell("pwd"),
+                Command.shell("ls", "-l"),
             ])
     }
 

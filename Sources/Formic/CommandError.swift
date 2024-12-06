@@ -6,6 +6,7 @@ public enum CommandError: LocalizedError {
     case failedToResolveHost(name: String)
     case noOutputToParse(msg: String)
     case commandFailed(rc: Int32, errmsg: String)
+    case invalidCommand(msg: String)
 
     /// The localized description.
     public var errorDescription: String? {
@@ -18,6 +19,8 @@ public enum CommandError: LocalizedError {
             "No output to parse: \(msg)"
         case .commandFailed(let rc, let errmsg):
             "Command failed with return code \(rc): \(errmsg)"
+        case .invalidCommand(let msg):
+            "Invalid command: \(msg)"
         }
     }
 }

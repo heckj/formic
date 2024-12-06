@@ -46,7 +46,7 @@ public struct Playlist {
                 let result = try command.run(host: host)
                 if result.returnCode != 0 {
                     // failure
-                    print("❌ \(command.args) (rc=\(result.returnCode))")
+                    print("❌ \(command) (rc=\(result.returnCode))")
                     if let stdout = result.stdoutString {
                         print("  out: \(stdout)")
                     }
@@ -55,7 +55,7 @@ public struct Playlist {
                     }
                 } else {
                     // success
-                    print("✅ \(command.args)")
+                    print("✅ \(command)")
                     if let stdout = result.stdoutString {
                         print("  out: \(stdout)")
                     }
