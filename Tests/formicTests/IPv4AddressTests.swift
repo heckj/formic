@@ -20,3 +20,17 @@ func failingAddressInit() async throws {
 func localHostValidation() async throws {
     #expect(IPv4Address.localhost.description == "127.0.0.1")
 }
+
+@Test("equatable ipv4 address")
+func checkIPv4AddressEquatable() async throws {
+    let first = IPv4Address("127.0.0.1")
+    let second = IPv4Address("192.168.0.1")
+    #expect(first != second)
+}
+
+@Test("hashable ipv4 address")
+func checkIPv4AddressHashable() async throws {
+    let first = IPv4Address("127.0.0.1")
+    let second = IPv4Address("192.168.0.1")
+    #expect(first?.hashValue != second.hashValue)
+}

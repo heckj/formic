@@ -34,7 +34,10 @@ func validIPv4AddressInit() async throws {
     #expect(fourth.address.description == goodSample)
 }
 
-@Test("failing initializing network address - invalid optional IPv4 address", .tags(.functionalTest))
+@Test(
+    "failing initializing network address - invalid optional IPv4 address",
+    .timeLimit(.minutes(1)),
+    .tags(.functionalTest))
 func nilOptionalIPv4Address() async throws {
     let invalid: IPv4Address? = nil
 
@@ -42,7 +45,10 @@ func nilOptionalIPv4Address() async throws {
     #expect(result == nil)
 }
 
-@Test("initializing network address - dns resolution", .tags(.functionalTest))
+@Test(
+    "initializing network address - dns resolution",
+    .timeLimit(.minutes(1)),
+    .tags(.functionalTest))
 func initNetworkAddress4() async throws {
 
     let validDNSName = "google.com"
@@ -51,7 +57,10 @@ func initNetworkAddress4() async throws {
     #expect(goodName?.dnsName == validDNSName)
 }
 
-@Test("failing initializing network address - invalid DNS name", .tags(.functionalTest))
+@Test(
+    "failing initializing network address - invalid DNS name",
+    .timeLimit(.minutes(1)),
+    .tags(.functionalTest))
 func invalidDNSNameResolution() async throws {
 
     let invalidDNSName = "indescribable.wurplefred"
@@ -66,7 +75,10 @@ func nilNameResolve() async throws {
     #expect(badName == nil)
 }
 
-@Test("failing initializing network address - invalid IPv4 address format", .tags(.functionalTest))
+@Test(
+    "failing initializing network address - invalid IPv4 address format",
+    .timeLimit(.minutes(1)),
+    .tags(.functionalTest))
 func invalidIPAddressResolver() async throws {
     let badSample1 = "256.0.0.1"
 
