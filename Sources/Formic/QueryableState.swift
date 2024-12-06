@@ -17,10 +17,15 @@ extension QueryableState {
     /// - Parameter from: The host to inspect.
     /// - Returns: The state of the resource.
     public static func queryState(from host: Host) throws -> Self {
+        // default implementation:
+
+        // run the command on the relevant host, capturing the output
         let output: CommandOutput = try Command.run(host: host, args: Self.shellcommand)
+        // verify the return code is 0
         if output.returnCode != 0 {
             throw CommandError.commandFailed(rc: output.returnCode, errmsg: output.stderrString ?? "")
         } else {
+            // then parse the output
             guard let stdout = output.stdoutString else {
                 throw CommandError.noOutputToParse(
                     msg:

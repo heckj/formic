@@ -29,3 +29,8 @@ public struct OperatingSystem: QueryableState {
         self.name = name
     }
 }
+
+// TODO: consider shifting these to a protocol that overlays QueryableState - Resource or such
+// to extend those required conformances.
+extension OperatingSystem: Hashable {}
+extension OperatingSystem: Codable {}

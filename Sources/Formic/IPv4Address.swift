@@ -93,7 +93,6 @@ extension IPv4Address: Hashable {
         hasher.combine(octets.2)
         hasher.combine(octets.3)
     }
-
 }
 
 extension IPv4Address: Codable {

@@ -26,3 +26,6 @@ public struct CommandOutput: Sendable {
         self.stdErr = stdErr
     }
 }
+
+extension CommandOutput: Hashable {}
+extension CommandOutput: Codable {}

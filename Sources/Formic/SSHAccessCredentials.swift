@@ -2,7 +2,7 @@ import Dependencies
 import Foundation
 
 /// SSH Credentials for accessing a remote host.
-public struct SSHAccessCredentials: Sendable, Codable {
+public struct SSHAccessCredentials: Sendable {
     public let username: String
     public let identityFile: String
 
@@ -55,3 +55,4 @@ public struct SSHAccessCredentials: Sendable, Codable {
 }
 
 extension SSHAccessCredentials: Hashable {}
+extension SSHAccessCredentials: Codable {}
