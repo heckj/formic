@@ -3,9 +3,10 @@
 - [x] try out Dependency from PointFree for testing
 - [x] try out SwiftCommand instead of my quick-hack over Process (async processes)
 - [ ] rough out the architecture and usage
-  - [ ] figure out arguments and options w/ swift-arg-parser
+  - [x] figure out arguments and options w/ swift-arg-parser
   - [x] flesh out Queryable for returning/updating resource types (all resources w/ state should be Queryable)
   - [ ] make a Resource protocol that extends to Codable as well
+    - [ ] make IPv4Address codable (tuples!)
   - [ ] work out what "Resolvable" protocol might look like - sequence of commands to go from one state to a desired
         end state.
   - [x] idea of "Resource" with state - protocol and/or structure?

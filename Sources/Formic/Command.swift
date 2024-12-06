@@ -11,13 +11,13 @@ import Foundation
 // way to capture STDERR separately (it's mixed together).
 
 /// A type that represents a command to invoke on a local or remote host.
-public struct Command {
+public struct Command: Sendable {
 
-    /// The command and arguments to invoke
+    /// The command and arguments to run.
     public let args: [String]
 
-    /// Creatas a new command declaration.
-    /// - Parameter args: <#args description#>
+    /// Creates a new command declaration.
+    /// - Parameter args: the command and arguments to run.
     public init(_ args: String...) {
         self.args = args
     }
