@@ -1,6 +1,6 @@
 import Foundation
 
-/// Represents the output of a shell command.
+/// The raw output of a shell command.
 public struct CommandOutput: Sendable {
     public let returnCode: Int32
     public let stdOut: Data?
