@@ -53,3 +53,5 @@ public struct SSHAccessCredentials: Sendable, Codable {
         }
     }
 }
+
+extension SSHAccessCredentials: Hashable {}

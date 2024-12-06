@@ -131,6 +131,7 @@ public struct Command: Sendable {
     /// Runs the command on the host you provide.
     /// - Parameter host: The host on which to run the command.
     /// - Returns: The command output.
+    @discardableResult
     public func run(host: Host) throws -> CommandOutput {
         try Command.run(host: host, args: args)
     }
@@ -140,6 +141,7 @@ public struct Command: Sendable {
     ///   - host: The host on which to run the command.
     ///   - args: The command and arguments.
     /// - Returns: The command output.
+    @discardableResult
     public static func run(host: Host, args: [String]) throws -> CommandOutput {
         if host.remote {
             let sshCreds = host.sshAccessCredentials
@@ -152,3 +154,6 @@ public struct Command: Sendable {
         }
     }
 }
+
+extension Command: Hashable {}
+extension Command: Codable {}
