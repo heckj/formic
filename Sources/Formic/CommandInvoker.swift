@@ -76,6 +76,9 @@ struct ProcessCommandInvoker: CommandInvoker {
     func localShell(
         cmd: [String], stdIn: Pipe? = nil, env: [String: String]? = nil
     ) throws -> CommandOutput {
+        #if DEBUG
+            print("DEBUG!! : \(cmd)")
+        #endif
         let task = Process()
         task.executableURL = URL(fileURLWithPath: "/usr/bin/env")
 
@@ -138,10 +141,10 @@ struct ProcessCommandInvoker: CommandInvoker {
             args.append(identityFile)
         }
         if let port {
-            args.append("-p")
+            args.append("-P")  // yes, it's supposed to be capital `P` for scp
             args.append("\(port)")
         }
-        args.append("-t")  // request a TTY at the remote host
+
         args.append(localPath)
         args.append("\(user)@\(host):\(remotePath)")
         // loose form:
