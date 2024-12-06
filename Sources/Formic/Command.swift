@@ -36,6 +36,7 @@ public struct Command {
     @discardableResult
     public static func run(host: Host, args: [String], env: [String: String]? = nil) throws -> CommandOutput {
         @Dependency(\.commandInvoker) var invoker: any CommandInvoker
+
         if host.remote {
             let sshCreds = host.sshAccessCredentials
             let targetHostName = host.networkAddress.dnsName ?? host.networkAddress.address.description
