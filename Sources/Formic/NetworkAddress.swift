@@ -1,3 +1,4 @@
+import ArgumentParser
 import AsyncDNSResolver
 
 /// A network address, either an IP address or a DNS name.
@@ -60,5 +61,13 @@ public struct NetworkAddress: Sendable {
             print("Unable to resolve \(name) as an IPv4 address: \(error)")
         }
         return nil
+    }
+}
+
+extension NetworkAddress: ExpressibleByArgument {
+    /// Creates a new network address from a string.
+    /// - Parameter argument: The argument to parse as a network address.
+    public init?(argument: String) {
+        self.init(argument)
     }
 }
