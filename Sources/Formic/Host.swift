@@ -71,3 +71,5 @@ extension Host: ExpressibleByArgument {
         try? self.init(argument)
     }
 }
+
+extension Host: Codable {}

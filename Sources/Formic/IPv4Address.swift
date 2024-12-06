@@ -13,6 +13,13 @@ public struct IPv4Address: LosslessStringConvertible, Sendable {
         "\(octets.0).\(octets.1).\(octets.2).\(octets.3)"
     }
 
+    enum CodingKeys: String, CodingKey {
+        case a = "a"
+        case b = "b"
+        case c = "c"
+        case d = "d"
+    }
+    
     let octets: (UInt8, UInt8, UInt8, UInt8)
 
     public init?(_ stringRep: String) {
@@ -68,3 +75,37 @@ public struct IPv4Address: LosslessStringConvertible, Sendable {
 }
 
 extension IPv4Address: ExpressibleByArgument {}
+
+extension IPv4Address: Hashable {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.octets == rhs.octets
+    }
+
+    public func hash(into hasher: inout Hasher) {
+         hasher.combine(octets.0)
+         hasher.combine(octets.1)
+         hasher.combine(octets.2)
+         hasher.combine(octets.3)
+     }
+
+}
+
+extension IPv4Address: Codable {
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        let a = try values.decode(UInt8.self, forKey: .a)
+        let b = try values.decode(UInt8.self, forKey: .b)
+        let c = try values.decode(UInt8.self, forKey: .c)
+        let d = try values.decode(UInt8.self, forKey: .d)
+        octets = (a, b, c, d)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        let (a,b,c,d) = self.octets
+        try container.encode(a, forKey: .a)
+        try container.encode(b, forKey: .b)
+        try container.encode(c, forKey: .c)
+        try container.encode(d, forKey: .d)
+    }
+}
