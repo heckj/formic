@@ -3,7 +3,9 @@ import Foundation
 import Testing
 
 @Test(
-    "uname functional test", .enabled(if: ProcessInfo.processInfo.environment.keys.contains("CI")),
+    "uname functional test",
+    .enabled(if: ProcessInfo.processInfo.environment.keys.contains("CI")),
+    .timeLimit(.minutes(1)),
     .tags(.functionalTest))
 func unameFunctionalTest() async throws {
     let shellResult = try Command.run(host: .localhost, args: ["uname"])
