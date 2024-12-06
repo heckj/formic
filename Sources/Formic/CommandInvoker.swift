@@ -32,6 +32,16 @@ protocol CommandInvoker: Sendable {
         env: [String: String]?
     ) throws -> CommandOutput
 
+    func remoteCopy(
+        host: String,
+        user: String,
+        identityFile: String?,
+        port: Int?,
+        strictHostKeyChecking: Bool,
+        localPath: String,
+        remotePath: String
+    ) throws -> CommandOutput
+
     func localShell(
         cmd: [String],
         stdIn: Pipe?,
@@ -106,6 +116,38 @@ struct ProcessCommandInvoker: CommandInvoker {
         let stdErrData = try stdErrPipe.fileHandleForReading.readToEnd()
 
         return CommandOutput(returnCode: task.terminationStatus, stdOut: stdOutData, stdErr: stdErrData)
+    }
+
+    func remoteCopy(
+        host: String,
+        user: String,
+        identityFile: String? = nil,
+        port: Int? = nil,
+        strictHostKeyChecking: Bool = false,
+        localPath: String,
+        remotePath: String
+    ) throws -> CommandOutput {
+        var args: [String] = ["scp"]
+
+        if strictHostKeyChecking {
+            args.append("-o")
+            args.append("StrictHostKeyChecking=no")
+        }
+        if let identityFile {
+            args.append("-i")
+            args.append(identityFile)
+        }
+        if let port {
+            args.append("-p")
+            args.append("\(port)")
+        }
+        args.append("-t")  // request a TTY at the remote host
+        args.append(localPath)
+        args.append("\(user)@\(host):\(remotePath)")
+        // loose form:
+        // scp -o StrictHostKeyChecking=no get-docker.sh "docker-user@${IP_ADDRESS}:get-docker.sh"
+        let rcAndPipe = try localShell(cmd: args)
+        return rcAndPipe
     }
 
     /// Invoke a command over SSH on a remote host.

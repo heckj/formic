@@ -4,7 +4,7 @@ import Foundation
 public struct OperatingSystem: QueryableState {
     public let name: String  // state
 
-    public static let shellcommand: [String] = ["uname"]
+    public static let shellcommand: Command = Command.shell("uname")
     public static func parse(_ output: String) throws -> OperatingSystem {
         switch output {
         case "Darwin\n":

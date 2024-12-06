@@ -10,7 +10,7 @@ func testResourceBuildingBlocks() async throws {
     let shellResult = try withDependencies {
         $0.commandInvoker = TestCommandInvoker(command: ["uname"], presentOutput: "Linux\n")
     } operation: {
-        try Command.run(host: .localhost, args: OperatingSystem.shellcommand)
+        try OperatingSystem.shellcommand.run(host: .localhost)
     }
 
     // results proxied for a linux host

@@ -4,6 +4,13 @@ import Foundation
 @testable import Formic
 
 struct TestCommandInvoker: CommandInvoker {
+    func remoteCopy(
+        host: String, user: String, identityFile: String?, port: Int?, strictHostKeyChecking: Bool, localPath: String,
+        remotePath: String
+    ) throws -> Formic.CommandOutput {
+        return CommandOutput(returnCode: 0, stdOut: "".data(using: .utf8), stdErr: nil)
+    }
+
     var proxyResults: [[String]: CommandOutput]
     func remoteShell(
         host: String, user: String, identityFile: String?, port: Int?, strictHostKeyChecking: Bool, cmd: [String],
