@@ -71,3 +71,5 @@ extension NetworkAddress: ExpressibleByArgument {
         self.init(argument)
     }
 }
+
+extension NetworkAddress: Codable {} 

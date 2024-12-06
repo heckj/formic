@@ -6,7 +6,7 @@
   - [x] figure out arguments and options w/ swift-arg-parser
   - [x] flesh out Queryable for returning/updating resource types (all resources w/ state should be Queryable)
   - [ ] make a Resource protocol that extends to Codable as well
-    - [ ] make IPv4Address codable (tuples!)
+    - [x] make IPv4Address codable (tuples!)
   - [ ] work out what "Resolvable" protocol might look like - sequence of commands to go from one state to a desired
         end state.
   - [x] idea of "Resource" with state - protocol and/or structure?
