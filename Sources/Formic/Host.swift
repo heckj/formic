@@ -43,12 +43,13 @@ public struct Host: Sendable {
     ///   - sshIdentityFile: The ssh identity file, defaults to standard key locations for ssh.
     public static func resolve(
         _ name: String, sshPort: Int = 22, sshUser: String? = nil, sshIdentityFile: String? = nil
-    ) async throws -> Host? {
+    ) async throws -> Host {
         let creds = try SSHAccessCredentials(username: sshUser, identityFile: sshIdentityFile)
         if let address = await NetworkAddress.resolve(name) {
             return Host(remote: false, address: address, sshPort: sshPort, sshAccessCredentials: creds)
+        } else {
+            throw CommandError.failedToResolveHost(name: name)
         }
-        return nil
     }
 }
 

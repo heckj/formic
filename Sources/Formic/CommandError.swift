@@ -5,6 +5,7 @@ public enum CommandError: LocalizedError {
     case missingSSHAccessCredentials(msg: String)
     case noOutputToParse(msg: String)
     case commandFailed(rc: Int32, errmsg: String)
+    case failedToResolveHost(name: String)
 
     /// The localized description.
     public var errorDescription: String? {
@@ -15,6 +16,8 @@ public enum CommandError: LocalizedError {
             "No output to parse: \(msg)"
         case .commandFailed(let rc, let errmsg):
             "Command failed with return code \(rc): \(errmsg)"
+        case .failedToResolveHost(let name):
+            "Failed to resolve \(name) as a valid internet host."
         }
     }
 }
