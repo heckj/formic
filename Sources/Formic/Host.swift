@@ -1,3 +1,4 @@
+import ArgumentParser
 import Foundation
 
 /// A local or remote host.
@@ -59,5 +60,13 @@ extension Host: CustomStringConvertible {
         } else {
             return "localhost"
         }
+    }
+}
+
+extension Host: ExpressibleByArgument {
+    /// Creates a new host from a string.
+    /// - Parameter argument: The argument to parse as a host.
+    public init?(argument: String) {
+        try? self.init(argument)
     }
 }

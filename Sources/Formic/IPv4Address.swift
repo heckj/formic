@@ -1,3 +1,4 @@
+import ArgumentParser
 import RegexBuilder
 
 /// An IPv4 address.
@@ -65,3 +66,5 @@ public struct IPv4Address: LosslessStringConvertible, Sendable {
 
     public static let localhost = IPv4Address((127, 0, 0, 1))
 }
+
+extension IPv4Address: ExpressibleByArgument {}
