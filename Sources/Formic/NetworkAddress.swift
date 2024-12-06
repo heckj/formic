@@ -72,4 +72,4 @@ extension NetworkAddress: ExpressibleByArgument {
     }
 }
 
-extension NetworkAddress: Codable {} 
+extension NetworkAddress: Codable {}

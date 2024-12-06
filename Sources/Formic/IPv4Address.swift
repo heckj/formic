@@ -19,7 +19,7 @@ public struct IPv4Address: LosslessStringConvertible, Sendable {
         case c = "c"
         case d = "d"
     }
-    
+
     let octets: (UInt8, UInt8, UInt8, UInt8)
 
     public init?(_ stringRep: String) {
@@ -77,20 +77,28 @@ public struct IPv4Address: LosslessStringConvertible, Sendable {
 extension IPv4Address: ExpressibleByArgument {}
 
 extension IPv4Address: Hashable {
+    /// Returns a Boolean value that indicates whether two IPv4 addresses are equal.
+    /// - Parameters:
+    ///   - lhs: the first address to compare.
+    ///   - rhs: the second address to compare.
     public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.octets == rhs.octets
     }
 
+    /// Calculates the hash value for the IPv4 address.
+    /// - Parameter hasher: The hasher to combine the values with.
     public func hash(into hasher: inout Hasher) {
-         hasher.combine(octets.0)
-         hasher.combine(octets.1)
-         hasher.combine(octets.2)
-         hasher.combine(octets.3)
-     }
+        hasher.combine(octets.0)
+        hasher.combine(octets.1)
+        hasher.combine(octets.2)
+        hasher.combine(octets.3)
+    }
 
 }
 
 extension IPv4Address: Codable {
+    /// Creates an IPv4 address from a decoder.
+    /// - Parameter decoder: The decoder to read data from.
     public init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         let a = try values.decode(UInt8.self, forKey: .a)
@@ -99,10 +107,12 @@ extension IPv4Address: Codable {
         let d = try values.decode(UInt8.self, forKey: .d)
         octets = (a, b, c, d)
     }
-    
+
+    /// Encodes an IPv4 address to a decoder.
+    /// - Parameter encoder: the encoder to write data to.
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        let (a,b,c,d) = self.octets
+        let (a, b, c, d) = self.octets
         try container.encode(a, forKey: .a)
         try container.encode(b, forKey: .b)
         try container.encode(c, forKey: .c)
