@@ -54,7 +54,9 @@ public struct Host: Sendable {
     ///
     ///   Use the name `localhost` to ensure all commands are run locally.
     ///   Use the name `127.0.0.1` to access a remote host through a port forwarding setup.
-    public init(_ networkAddresss: NetworkAddress, sshPort: Int = 22, sshUser: String? = nil, sshIdentityFile: String? = nil) throws {
+    public init(
+        _ networkAddresss: NetworkAddress, sshPort: Int = 22, sshUser: String? = nil, sshIdentityFile: String? = nil
+    ) throws {
         let creds = try SSHAccessCredentials(username: sshUser, identityFile: sshIdentityFile)
         if networkAddresss.dnsName == "localhost" {
             self.init(remote: false, address: networkAddresss, sshPort: sshPort, sshAccessCredentials: creds)
