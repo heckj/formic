@@ -73,4 +73,5 @@ extension Host: ExpressibleByArgument {
     }
 }
 
+extension Host: Hashable {}
 extension Host: Codable {}
