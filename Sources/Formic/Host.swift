@@ -31,8 +31,9 @@ public struct Host: Sendable {
         let creds = try SSHAccessCredentials(username: sshUser, identityFile: sshIdentityFile)
         if let address = NetworkAddress(name) {
             self.init(remote: false, address: address, sshPort: sshPort, sshAccessCredentials: creds)
+        } else {
+            return nil
         }
-        return nil
     }
 
     /// Creates a new host using DNS name resolution.

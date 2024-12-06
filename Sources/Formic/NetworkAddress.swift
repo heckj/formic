@@ -7,7 +7,11 @@ public struct NetworkAddress: Sendable {
     public let dnsName: String?
 
     public init?(_ name: String) {
-        if let nameIsIPAddress = IPv4Address(name) {
+        if name == "localhost" {
+            self.address = .localhost
+            self.dnsName = "localhost"
+            return
+        } else if let nameIsIPAddress = IPv4Address(name) {
             self.address = nameIsIPAddress
             self.dnsName = nil
             return
