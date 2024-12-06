@@ -29,12 +29,13 @@ public struct Command {
     /// - Parameters:
     ///   - args: A list of strings that make up the command and any arguments.
     ///   - returnStdOut: A Boolean value that indicates whether to return data from `STDOUT`.
-    ///   - stdIn: An option pipe to provide `STDIN`.
+    ///   - returnStdErr: A Boolean value that indicates whether to return data from `STDERR`.
+    ///   - stdIn: An optional Pipe to provide `STDIN`.
     ///   - env: A dictionary of shell environment variables to apply.
     /// - Returns: The command output.
     /// - Throws: any errors from invoking the shell process.
     static func localShell(
-        _ args: [String], returnStdOut: Bool = false, returnStdErr: Bool = false, stdIn: Pipe? = nil,
+        _ args: [String], stdIn: Pipe? = nil,
         env: [String: String]? = nil
     ) throws -> CommandOutput {
         let task = Process()
@@ -56,18 +57,8 @@ public struct Command {
 
         let stdOutPipe = Pipe()
         let stdErrPipe = Pipe()
-
-        if returnStdOut {
-            task.standardOutput = stdOutPipe
-        } else {
-            task.standardOutput = FileHandle.nullDevice
-        }
-
-        if returnStdErr {
-            task.standardError = stdErrPipe
-        } else {
-            task.standardError = FileHandle.nullDevice
-        }
+        task.standardOutput = stdOutPipe
+        task.standardError = stdErrPipe
 
         if let stdIn = stdIn {
             task.standardInput = stdIn
@@ -133,7 +124,7 @@ public struct Command {
         // does this with significantly more finness, checking the output as it's returned and providing a pass
         // to use sshpass to authenticate, or to escalate commands with sudo and a password, before the core
         // command is invoked.
-        let rcAndPipe = try localShell(args, returnStdOut: true, returnStdErr: true)
+        let rcAndPipe = try localShell(args)
         return rcAndPipe
     }
 
