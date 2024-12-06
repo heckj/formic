@@ -99,6 +99,7 @@ public struct Host: Sendable {
     ///   - sshPort: the ssh port, defaults to `22`.
     ///   - sshUser: the ssh user, defaults to the username of the current user.
     ///   - sshIdentityFile: The ssh identity file, defaults to standard key locations for ssh.
+    ///   - strictHostKeyChecking: A Boolean value that indicates whether to enable strict host checking during SSH connections.
     ///
     ///   Use the name `localhost` to ensure all commands are run locally.
     ///   Use the name `127.0.0.1` to access a remote host through a port forwarding setup.
