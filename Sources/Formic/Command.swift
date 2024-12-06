@@ -2,13 +2,13 @@ import Foundation
 
 // For concurrency support, there are two projects that already have a nice run at this same space:
 // - https://github.com/GeorgeLyon/Shwift
-// Shwift has clearly been around the block, but it has heavier dependencies (all of SwiftNIO) that
+// Shwift has clearly been around the block, but has heavier dependencies (all of SwiftNIO) that
 // make it a heavier take.
 
 // - https://github.com/Zollerboy1/SwiftCommand
 // I like the structure of SwiftCommand, but it has a few swift6 concurrency warnings about fiddling
-// with mutable buffers that are _just_ slightly concerning to me. There also doesn't appear to be a convenient
-// way to capture STDERR separately (it's mixed together).
+// with mutable buffers that are _just_ slightly concerning to me. There also doesn't appear to
+// be a convenient way to capture STDERR separately (it's mixed together).
 
 /// A type that represents a command to invoke on a local or remote host.
 public struct Command: Sendable {
@@ -28,15 +28,12 @@ public struct Command: Sendable {
     ///
     /// - Parameters:
     ///   - args: A list of strings that make up the command and any arguments.
-    ///   - returnStdOut: A Boolean value that indicates whether to return data from `STDOUT`.
-    ///   - returnStdErr: A Boolean value that indicates whether to return data from `STDERR`.
     ///   - stdIn: An optional Pipe to provide `STDIN`.
     ///   - env: A dictionary of shell environment variables to apply.
     /// - Returns: The command output.
     /// - Throws: any errors from invoking the shell process.
     static func localShell(
-        _ args: [String], stdIn: Pipe? = nil,
-        env: [String: String]? = nil
+        _ args: [String], stdIn: Pipe? = nil, env: [String: String]? = nil
     ) throws -> CommandOutput {
         let task = Process()
         task.executableURL = URL(fileURLWithPath: "/usr/bin/env")
