@@ -23,9 +23,9 @@
 
 ## Public API notes/ideas
 
-No, I haven't thought this through completely, but it's a starting point.
+No, I haven't thought this through completely, it's a starting point.
 
-At a high level, I want to enable maybe a type that is either an [AsyncParsableCommand](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.0/documentation/argumentparser/asyncparsablecommand) or can be easily invoked from within one. 
+At a high level, I might want to enable maybe a type that is either an [AsyncParsableCommand](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.0/documentation/argumentparser/asyncparsablecommand) or can be easily invoked from within one. 
 - could make a top-level command your overall playbook, and have additive elements that invoke playbooks with subcommands if that's useful? (https://swiftpackageindex.com/apple/swift-argument-parser/1.5.0/documentation/argumentparser/commandsandsubcommands)
 
 an example declarative playlist:
