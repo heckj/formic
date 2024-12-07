@@ -1,9 +1,8 @@
 import Dependencies
 import Foundation
 
-// MARK: dependency injection protocol and redirection
-
-// docs: https://swiftpackageindex.com/pointfreeco/swift-dependencies/main/documentation/dependencies
+// Dependency injection docs:
+// https://swiftpackageindex.com/pointfreeco/swift-dependencies/main/documentation/dependencies
 
 /// Protocol for shimming in dependencies for accessing the local system.
 protocol LocalSystemAccess: Sendable {

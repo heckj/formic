@@ -29,16 +29,10 @@ They would ideally taking a few inputs (as minimal as possible, while still allo
 
 ### Commands
 
+- ``Host``
 - ``Command``
 - ``CommandOutput``
 - ``CommandError``
-
-### Hosts
-
-- ``Host``
-- ``NetworkAddress``
-- ``IPv4Address``
-- ``SSHAccessCredentials``
 
 ### Declarative Resources
 
