@@ -1,8 +1,8 @@
 import Foundation
 
 /// The kind of operating system.
-public struct OperatingSystem: QueryableState {
-    public let name: String  // state
+public struct OperatingSystem: QueryableResource {
+    public let name: String
 
     public static let shellcommand: Command = .shell("uname")
     public static func parse(_ output: String) throws -> OperatingSystem {
