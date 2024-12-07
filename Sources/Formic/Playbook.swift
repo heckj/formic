@@ -1,7 +1,7 @@
 import Foundation
 
-/// A type that runs imperative commands against a collection of hosts.
-public struct Playlist {
+/// A type that holds a sequence of imperative commands to run against one or more hosts.
+public struct Playbook {
     /// The name of the playlist.
     public let name: String
     /// The hosts to run the commands on.
@@ -68,5 +68,5 @@ public struct Playlist {
     }
 }
 
-extension Playlist: Hashable {}
-extension Playlist: Codable {}
+extension Playbook: Hashable {}
+extension Playbook: Codable {}
