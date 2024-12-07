@@ -11,10 +11,12 @@ import Parsing
 //    - `Codable`, `Hashable`
 //
 // 1 - a declarative structure to represent what we want it to be
-//    - ??
 //    - name
-//    - state (present|absent)
-//
+//      - state (present|absent)
+//    ? additional state/information (not declarable, but shown?)
+//      - version
+//      - architecture
+//      - description
 // 2 - a way query the current state - "QueryableState"
 //    - `shellcommand`, `parse(_ output: String) -> Self`, used by
 //      `queryState(from host: Host) throws -> (Self, Date)`
@@ -38,7 +40,23 @@ import Parsing
 //ii  docker-ce      5:27.3.1-1~ubuntu.24.04~noble arm64        Docker: the open-source application container engine
 
 /// The kind of operating system.
-public struct DebianPackage: QueryableState {
+public struct DebianPackage: QueryableResource {
+
+    public enum DeclarativeState: String, Sendable, Codable {
+        case present
+        case absent
+    }
+
+    public enum InformationKey: String, Sendable, Codable {
+        case version
+        case architecture
+        case description
+    }
+
+    public var name: String
+    public var state: DeclarativeState
+    public var infodetails: [InformationKey: String]
+
     public static let shellcommand: Command = .shell("dpkg", "-l")
 
     // borrow from https://github.com/kellyjonbrazil/jc
@@ -51,3 +69,7 @@ public struct DebianPackage: QueryableState {
     }
 
 }
+
+// there's stuff I want to just "ask about" and report on, and stuff I want to "change"
+// QueryableResource vs. DeclaredResource
+// for both state and information bits that I query - I want to track "when I last asked" - when it was last updated.
