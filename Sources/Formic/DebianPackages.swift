@@ -42,20 +42,20 @@ import Parsing
 /// The kind of operating system.
 public struct DebianPackage: QueryableResource {
 
-    public enum declarative_state: String, Sendable, Codable {
+    public enum DeclarativeState: String, Sendable, Codable {
         case present
         case absent
     }
 
-    public enum informationKey: String, Sendable, Codable {
+    public enum InformationKey: String, Sendable, Codable {
         case version
         case architecture
         case description
     }
 
     public var name: String
-    public var state: declarative_state
-    public var infodetails: [informationKey: String]
+    public var state: DeclarativeState
+    public var infodetails: [InformationKey: String]
 
     public static let shellcommand: Command = .shell("dpkg", "-l")
 
