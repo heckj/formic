@@ -12,6 +12,8 @@ import Parsing
 //
 // 1 - a declarative structure to represent what we want it to be
 //    - ??
+//    - name
+//    - state (present|absent)
 //
 // 2 - a way query the current state - "QueryableState"
 //    - `shellcommand`, `parse(_ output: String) -> Self`, used by
@@ -24,6 +26,16 @@ import Parsing
 // 4 - the actions to take to make those changes
 //
 // 5 - a way to test the state of the resource (various diagnostic levels?)
+
+// ex:
+// > `docker-user@ubuntu:~$ dpkg -l docker-ce`
+//
+//Desired=Unknown/Install/Remove/Purge/Hold
+//| Status=Not/Inst/Conf-files/Unpacked/halF-conf/Half-inst/trig-aWait/Trig-pend
+//|/ Err?=(none)/Reinst-required (Status,Err: uppercase=bad)
+//||/ Name           Version                       Architecture Description
+//+++-==============-=============================-============-====================================================
+//ii  docker-ce      5:27.3.1-1~ubuntu.24.04~noble arm64        Docker: the open-source application container engine
 
 /// The kind of operating system.
 public struct DebianPackage: QueryableState {
