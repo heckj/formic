@@ -17,7 +17,7 @@ public protocol QueryableState: Sendable {
 
 extension QueryableState {
     /// Queries the state of the resource from the given host.
-    /// - Parameter from: The host to inspect.
+    /// - Parameter host: The host to inspect.
     /// - Returns: The state of the resource and the time that it was last updated.
     public static func queryState(from host: Host) throws -> (Self, Date) {
         // default implementation:

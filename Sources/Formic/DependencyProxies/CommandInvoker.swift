@@ -21,6 +21,9 @@ import Foundation
 // with mutable buffers that are _just_ slightly concerning to me. There also doesn't appear to
 // be a convenient way to capture STDERR separately (it's mixed together).
 
+// Dependency injection docs:
+// https://swiftpackageindex.com/pointfreeco/swift-dependencies/main/documentation/dependencies
+
 protocol CommandInvoker: Sendable {
     func remoteShell(
         host: String,

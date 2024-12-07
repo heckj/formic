@@ -5,8 +5,6 @@ import Foundation
 public struct Host: Sendable {
     let remote: Bool
 
-    // needed for remote access via SSH
-
     /// The network address.
     public let networkAddress: NetworkAddress
     /// The port to use for SSH access.
@@ -33,17 +31,17 @@ public struct Host: Sendable {
     }
 
     /// Creates a new host without attempting DNS resolution.
+    ///
+    /// The initializer may return nil if the name isn't a valid network address.
+    /// Use the name `localhost` to ensure all commands are run locally.
+    /// Use the name `127.0.0.1` to access a remote host through a port forwarding setup.
+    ///
     /// - Parameters:
     ///   - name: The network address of the host.
     ///   - sshPort: the ssh port, defaults to `22`.
     ///   - sshUser: the ssh user, defaults to the username of the current user.
     ///   - sshIdentityFile: The ssh identity file, defaults to standard key locations for ssh.
     ///   - strictHostKeyChecking: A Boolean value that indicates whether to enable strict host checking during SSH connections.
-    ///
-    ///   The initializer may return nil if the name isn't a valid network address.
-    ///
-    ///   Use the name `localhost` to ensure all commands are run locally.
-    ///   Use the name `127.0.0.1` to access a remote host through a port forwarding setup.
     public init?(
         _ name: String, sshPort: Int = 22, sshUser: String? = nil, sshIdentityFile: String? = nil,
         strictHostKeyChecking: Bool = false
@@ -65,15 +63,16 @@ public struct Host: Sendable {
     }
 
     /// Creates a new host using the NetworkAddress you provide.
+    ///
+    /// Use the name `localhost` to ensure all commands are run locally.
+    /// Use the name `127.0.0.1` to access a remote host through port forwarding.
+    ///
     /// - Parameters:
     ///   - networkAddresss: The network address of the host.
     ///   - sshPort: the ssh port, defaults to `22`.
     ///   - sshUser: the ssh user, defaults to the username of the current user.
     ///   - sshIdentityFile: The ssh identity file, defaults to standard key locations for ssh.
     ///   - strictHostKeyChecking: A Boolean value that indicates whether to enable strict host checking during SSH connections.
-    ///
-    ///   Use the name `localhost` to ensure all commands are run locally.
-    ///   Use the name `127.0.0.1` to access a remote host through a port forwarding setup.
     public init(
         _ networkAddresss: NetworkAddress,
         sshPort: Int = 22,
@@ -94,14 +93,16 @@ public struct Host: Sendable {
     }
 
     /// Creates a new host using DNS name resolution.
+    ///
+    /// Use the name `localhost` to ensure all commands are run locally.
+    /// Use the name `127.0.0.1` to access a remote host through port forwarding.
+    ///
     /// - Parameters:
     ///   - name: The DNS name or network address of the host.
     ///   - sshPort: the ssh port, defaults to `22`.
     ///   - sshUser: the ssh user, defaults to the username of the current user.
     ///   - sshIdentityFile: The ssh identity file, defaults to standard key locations for ssh.
-    ///
-    ///   Use the name `localhost` to ensure all commands are run locally.
-    ///   Use the name `127.0.0.1` to access a remote host through a port forwarding setup.
+    ///   - strictHostKeyChecking: A Boolean value that indicates whether to enable strict host checking during SSH connections.
     public static func resolve(
         _ name: String,
         sshPort: Int = 22,

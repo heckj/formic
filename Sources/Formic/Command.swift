@@ -3,9 +3,8 @@ import Foundation
 
 /// A command to run on a local or remote host.
 ///
-/// When you invoke a command, use ``run(host:)`` or ``run(host:args:)``, a process is forked locally
-/// and the output, both `STDOUT` and `STDERR` collected when the process is finished. The combination
-/// is returned as ``CommandOutput``.
+/// Use ``run(host:)`` to invoke the command. The system forks a process and collects the output, both `STDOUT` and `STDERR`, when it finishes.
+/// The combination is returned as ``CommandOutput``.
 public struct Command: Sendable {
     /// The command and arguments to run.
     public let args: [String]
