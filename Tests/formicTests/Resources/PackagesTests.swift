@@ -29,13 +29,14 @@ let bigSample = """
     ii  dash                          0.5.12-6ubuntu5                   arm64        POSIX-compliant shell
     ii  dbus                          1.14.10-4ubuntu4.1                arm64        simple interprocess messaging system (system message bus)
     ii  dbus-bin                      1.14.10-4ubuntu4.1                arm64        simple interprocess messaging system (command line utilities)
+    
     """
 
 @Test("package parsing - one line")
 func verifyParsingOneLine() async throws {
     let sample =
         "ii  apt                           2.7.14build2                      arm64        commandline package manager\n"
-    let result = try PackageStatus().parse(sample)
+    let result = try DpkgState.PackageStatus().parse(sample)
     print(result)
 }
 
@@ -50,130 +51,13 @@ func veriyHeaderParse() async throws {
         what?
         """
     var x: Substring = headerSample[...]
-    try DpkgHeader().parse(&x)
+    try DpkgState.DpkgHeader().parse(&x)
     #expect(x == "what?")
 }
 
 @Test("package parsing - dpkg output")
 func verifyParsingMultilineOutputString() async throws {
-    let result = try PackageList().parse(bigSample)
-    print(result)
-}
-
-// https://swiftpackageindex.com/pointfreeco/swift-parsing#user-content-getting-started
-// https://pointfreeco.github.io/swift-parsing/0.10.0/documentation/parsing/
-
-struct DpkgHeader: Parser {
-    var body: some Parser<Substring, Void> {
-        Skip {
-            PrefixThrough("========")
-        }
-        Skip {
-            PrefixUpTo("\n")
-        }
-        Skip {
-            Prefix { $0.isNewline }
-        }
-    }
-}
-
-struct PackageList: Parser {
-    var body:
-        some Parser<
-            Substring,
-            [(
-                PackageCodes.DesiredState, PackageCodes.StatusCode, PackageCodes.ErrCode, Substring, Substring,
-                Substring, Substring
-            )]
-        >
-    {
-        DpkgHeader()
-        Many(1...) {
-            PackageStatus()
-        } separator: {
-            "\n"
-        }
-    }
-}
-
-// individual lines
-
-struct PackageCodes: Parser {
-    enum DesiredState: String {
-        case unknown = "u"
-        case install = "i"
-        case remove = "r"
-        case purge = "p"
-        case hold = "h"
-    }
-    enum StatusCode: String {
-        case notInstalled = "n"
-        case installed = "i"
-        case configFiles = "c"
-        case unpacked = "u"
-        case failedConfig = "f"
-        case halfInstalled = "h"
-        case triggerAwait = "w"
-        case triggerPending = "t"
-    }
-    enum ErrCode: String {
-        case reinstall = "r"
-        case none = " "
-    }
-    var body: some Parser<Substring, (DesiredState, StatusCode, ErrCode)> {
-        OneOf {
-            DesiredState.unknown.rawValue.map { DesiredState.unknown }
-            DesiredState.install.rawValue.map { DesiredState.install }
-            DesiredState.remove.rawValue.map { DesiredState.remove }
-            DesiredState.purge.rawValue.map { DesiredState.purge }
-            DesiredState.hold.rawValue.map { DesiredState.hold }
-        }
-        OneOf {
-            StatusCode.notInstalled.rawValue.map { StatusCode.notInstalled }
-            StatusCode.installed.rawValue.map { StatusCode.installed }
-            StatusCode.configFiles.rawValue.map { StatusCode.configFiles }
-            StatusCode.unpacked.rawValue.map { StatusCode.unpacked }
-            StatusCode.halfInstalled.rawValue.map { StatusCode.halfInstalled }
-            StatusCode.triggerAwait.rawValue.map { StatusCode.triggerAwait }
-            StatusCode.triggerPending.rawValue.map { StatusCode.triggerPending }
-        }
-        OneOf {
-            ErrCode.reinstall.rawValue.map { ErrCode.reinstall }
-            ErrCode.none.rawValue.map { ErrCode.none }
-        }
-    }
-}
-
-struct PackageStatus: Parser {
-    var body:
-        some Parser<
-            Substring,
-            (
-                PackageCodes.DesiredState, PackageCodes.StatusCode, PackageCodes.ErrCode, Substring, Substring,
-                Substring, Substring
-            )
-        >
-    {
-        PackageCodes()
-        Skip {
-            // whitespace
-            Prefix { $0.isWhitespace }
-        }
-        Prefix { !$0.isWhitespace }  // package name
-        Skip {
-            // whitespace
-            Prefix { $0.isWhitespace }
-        }
-        Prefix { !$0.isWhitespace }  // version
-        Skip {
-            // whitespace
-            Prefix { $0.isWhitespace }
-        }
-        Prefix { !$0.isWhitespace }  //architecture
-        Skip {
-            // whitespace
-            Prefix { $0.isWhitespace }
-        }
-        Rest().map(Substring.init)  // description
-    }
+    let result: [DpkgState] = try DpkgState.PackageList().parse(bigSample)
+    //print(result)
+    #expect(result.count == 19)
 }
