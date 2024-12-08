@@ -2,7 +2,7 @@ import Dependencies
 import Foundation
 
 /// A type that can be queried using a shell command.
-public protocol QueryableState: Sendable {
+public protocol QueryableResource: Sendable {
     /// The shell command to use to get the state for this resource.
     static var shellcommand: Command { get }
     /// Returns the state of the resource from the output of the shell command.
@@ -15,7 +15,7 @@ public protocol QueryableState: Sendable {
     static func queryState(from: Host) throws -> (Self, Date)
 }
 
-extension QueryableState {
+extension QueryableResource {
     /// Queries the state of the resource from the given host.
     /// - Parameter host: The host to inspect.
     /// - Returns: The state of the resource and the time that it was last updated.
