@@ -29,19 +29,22 @@ let bigSample = """
     ii  dash                          0.5.12-6ubuntu5                   arm64        POSIX-compliant shell
     ii  dbus                          1.14.10-4ubuntu4.1                arm64        simple interprocess messaging system (system message bus)
     ii  dbus-bin                      1.14.10-4ubuntu4.1                arm64        simple interprocess messaging system (command line utilities)
-    
     """
 
 @Test("package parsing - one line")
 func verifyParsingOneLine() async throws {
     let sample =
-        "ii  apt                           2.7.14build2                      arm64        commandline package manager\n"
+        "ii  apt                           2.7.14build2                      arm64        commandline package manager"
     let result = try DpkgState.PackageStatus().parse(sample)
     print(result)
+    #expect(result.name == "apt")
+    #expect(result.version == "2.7.14build2")
+    #expect(result.architecture == "arm64")
+    #expect(result.description == "commandline package manager")
 }
 
 @Test("matching the header")
-func veriyHeaderParse() async throws {
+func verifyHeaderParse() async throws {
     let headerSample = """
         Desired=Unknown/Install/Remove/Purge/Hold
         | Status=Not/Inst/Conf-files/Unpacked/halF-conf/Half-inst/trig-aWait/Trig-pend
