@@ -169,8 +169,9 @@ extension DpkgState {
                     //Prefix { $0.isWhitespace }
                 }
                 // description
-                PrefixUpTo("\n").map(String.init)
-                "\n"
+                Prefix {
+                    $0 != "\n"
+                }.map(String.init)
             }
         }
     }
@@ -194,6 +195,8 @@ extension DpkgState {
             DpkgState.DpkgHeader()
             Many(1...) {
                 PackageStatus()
+            } separator: {
+                "\n"
             }
         }
     }
