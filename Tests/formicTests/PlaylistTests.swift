@@ -9,7 +9,7 @@ func basicPlaylist() async throws {
     let playlist = withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess()
     } operation: {
-        Formic.Playlist(
+        Formic.Playbook(
             name: "example", hosts: [.localhost],
             commands: [
                 Command.shell("uname"),
