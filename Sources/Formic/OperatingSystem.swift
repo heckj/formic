@@ -25,9 +25,9 @@ public struct OperatingSystem: QueryableResource {
 
     /// Creates a new instance of OperatingSystem with name you provide.
     /// - Parameter name: The name of the operating system
-//    init(name: String) {
-//        self.name = name
-//    }
+    //    init(name: String) {
+    //        self.name = name
+    //    }
 }
 
 // TODO: consider shifting these to a protocol that overlays QueryableState - Resource or such
