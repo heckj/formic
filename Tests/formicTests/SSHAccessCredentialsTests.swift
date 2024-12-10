@@ -1,6 +1,7 @@
 import Dependencies
 import Foundation
 import Testing
+import AsyncDNSResolver
 
 @testable import Formic
 
@@ -22,6 +23,9 @@ func homeDirDependencyOverride() async throws {
         }
         let homeDirectory: URL = URL(filePath: "/home/docker-user")
         let username: String? = "docker-user"
+        func queryA(name: String) async throws -> [ARecord] {
+            return []
+        }
     }
 
     let testCredentials: Formic.Host.SSHAccessCredentials = try withDependencies { dependencyValues in
@@ -45,6 +49,10 @@ func homeDirDependencyOverrideDSA() async throws {
         }
         let homeDirectory: URL = URL(filePath: "/home/docker-user")
         let username: String? = "docker-user"
+        func queryA(name: String) async throws -> [ARecord] {
+            return []
+        }
+
     }
 
     let testCredentials: Formic.Host.SSHAccessCredentials? = try withDependencies { dependencyValues in
@@ -68,6 +76,10 @@ func homeDirDependencyOverrideED25519() async throws {
         }
         let homeDirectory: URL = URL(filePath: "/home/docker-user")
         let username: String? = "docker-user"
+        func queryA(name: String) async throws -> [ARecord] {
+            return []
+        }
+
     }
 
     let testCredentials: Formic.Host.SSHAccessCredentials = try withDependencies { dependencyValues in
