@@ -1,7 +1,7 @@
+import AsyncDNSResolver
 import Dependencies
 import Foundation
 import Testing
-import AsyncDNSResolver
 
 @testable import Formic
 
