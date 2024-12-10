@@ -3,19 +3,47 @@ import Foundation
 
 // Resource pieces and operating on them:
 
-/// A persist-able, storable resource.
+/// A type of resource that can be updated from a remote and supports collections and persistence.
 public protocol Resource: Codable, Hashable, Sendable {
     // IMPLEMENTATION NOTE:
     // Requirement 0 - persist-able and comparable
     //    - `Codable`, `Hashable`
     // (I want to be able to persist a "last known state" - or the information needed to determine
     // its state - and be able to read it back in again in another "run".)
+
+    // 2 - a way query the current state - "QueryableState"
+    //    - `shellcommand`, `parse(_ output: String) -> Self`, used by
+    //      `queryState(from host: Host) throws -> (Self, Date)`
+    // Working from some initial implementations, I've broken this up into multiple protocols.
+    // The baseline is a resource that, given an instance, you can query for the latest state
+    // and associated details that might go along with the current state.
+    //
+    // There's a difference between resources that you only need to provide a "host" to get details
+    // about, and resources that you need to provide a name or other identifier.
+    // The first I've called "SingularResource" - the example is OperatingSystem providing a baseline.
+    // The second I've called "NamedResource" - the example is a DebianPackage.
+    // To accommodate lists of resources within a single host, I went with "CollectionQueryableResource".
+    //
+    // (I think a single command will do what we need for resources within an OS, but for resources
+    // that span multiple hosts, we might need something more complex)
+
+    /// The shell command to use to get the state for this resource.
+    var inquiry: Command { get }
+    /// Returns the state of the resource from the output of the shell command.
+    /// - Parameter output: The string output of the shell command.
+    /// - Throws: Any errors parsing the output.
+    static func parse(_ output: String) throws -> Self
+    /// Queries the state of the resource from the given host.
+    /// - Parameter from: The host to inspect.
+    /// - Returns: The state of the resource.
+    func queryResource(from: Host) throws -> (Self, Date)
+
 }
 
 /// Resource or Declarative state type that presents a description through rawValue.
 ///
 /// (like an enum)
-public protocol StringInfoKey: RawRepresentable, CustomStringConvertible, Sendable, Hashable, Codable {}
+protocol StringInfoKey: RawRepresentable, CustomStringConvertible, Sendable, Hashable, Codable {}
 extension StringInfoKey {
     /// The description of the key.
     public var description: RawValue { rawValue }
@@ -23,8 +51,8 @@ extension StringInfoKey {
 // ^ makes using enums as resource information keys a bit easier by avoiding each implementation
 // having it's own CustomStringConvertible representation.
 
-/// A resource that exposes a stringly-based interface.
-public protocol StringlyAvailableResourceInformation<ResourceInformationKey>: Resource {
+/// A type of resource that exposes a stringly-based interface.
+protocol StringlyAvailableResourceInformation<ResourceInformationKey>: Resource {
     associatedtype ResourceInformationKey: StringInfoKey
     /// Returns the string information for the key you provide.
     /// - Parameter key: The resource information key.
@@ -62,37 +90,7 @@ public protocol StringlyAvailableResourceInformation<ResourceInformationKey>: Re
     //
 }
 
-// 2 - a way query the current state - "QueryableState"
-//    - `shellcommand`, `parse(_ output: String) -> Self`, used by
-//      `queryState(from host: Host) throws -> (Self, Date)`
-// Working from some initial implementations, I've broken this up into multiple protocols.
-// The baseline is a resource that, given an instance, you can query for the latest state
-// and associated details that might go along with the current state.
-//
-// There's a difference between resources that you only need to provide a "host" to get details
-// about, and resources that you need to provide a name or other identifier.
-// The first I've called "SingularResource" - the example is OperatingSystem providing a baseline.
-// The second I've called "NamedResource" - the example is a DebianPackage.
-// To accommodate lists of resources within a single host, I went with "CollectionQueryableResource".
-//
-// (I think a single command will do what we need for resources within an OS, but for resources
-// that span multiple hosts, we might need something more complex)
-
-/// A Resource that can be queried and updated from a remote host using a command.
-public protocol QueryableResource: Resource {
-    /// The shell command to use to get the state for this resource.
-    var inquiry: Command { get }
-    /// Returns the state of the resource from the output of the shell command.
-    /// - Parameter output: The string output of the shell command.
-    /// - Throws: Any errors parsing the output.
-    static func parse(_ output: String) throws -> Self
-    /// Queries the state of the resource from the given host.
-    /// - Parameter from: The host to inspect.
-    /// - Returns: The state of the resource.
-    func queryResource(from: Host) throws -> (Self, Date)
-}
-
-extension QueryableResource {
+extension Resource {
     /// Queries the state of the resource from the given host.
     /// - Parameter host: The host to inspect.
     /// - Returns: The state of the resource and the time that it was last updated.
@@ -119,15 +117,15 @@ extension QueryableResource {
     }
 }
 
-/// A resource that exposes a declarative state.
-public protocol StatefulResource<DeclarativeStateType>: QueryableResource {
+/// A type of resource that exposes a declarative state.
+public protocol StatefulResource<DeclarativeStateType>: Resource {
     associatedtype DeclarativeStateType: CustomStringConvertible, Sendable, Hashable, Codable
     /// The state of this resource.
     var state: DeclarativeStateType { get }
 }
 
-/// A resource that can be identified from from a host.
-public protocol SingularResource: QueryableResource {
+/// A type of single resource that can be identified from from a host without a name or identifier.
+public protocol SingularResource: Resource {
     /// The shell command to use to get the state for this resource.
     static var singularInquiry: Command { get }
     /// Returns a resource for the host you provide.
@@ -164,7 +162,7 @@ extension SingularResource {
 }
 
 /// A resource that can be identifier from a host with a name you provide.
-public protocol NamedResource: QueryableResource {
+public protocol NamedResource: Resource {
     /// Returns a resource for the host you provide.
     /// - Parameter name: The name of the resource to find.
     /// - Parameter host: The host to inspect for the resource.
@@ -172,7 +170,7 @@ public protocol NamedResource: QueryableResource {
 }
 
 /// A collection of resources that can be found and queried from a host.
-public protocol CollectionQueryableResource: QueryableResource {
+public protocol CollectionQueryableResource: Resource {
     /// The shell command to use to get the state for this resource.
     static var collectionInquiry: Command { get }
     /// Returns a list of resources from the string output from a command.
