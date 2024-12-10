@@ -1,7 +1,7 @@
 import Foundation
 
 /// A type that holds a sequence of imperative commands to run against one or more hosts.
-public struct Playbook {
+public struct Playbook: Sendable {
     /// The name of the playlist.
     public let name: String
     /// The hosts to run the commands on.
@@ -44,6 +44,7 @@ public struct Playbook {
         for host in hosts {
             for command in commands {
                 let result = try command.run(host: host)
+                // TODO: add check to see if Command declaration says to ignore the failure.
                 if result.returnCode != 0 {
                     // failure
                     print("❌ \(command) (rc=\(result.returnCode))")
