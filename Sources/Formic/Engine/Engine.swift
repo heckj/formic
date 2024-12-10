@@ -2,17 +2,67 @@
 public actor Engine {
     let clock: ContinuousClock
     var states: [Playbook: PlaybookRunState]
+    var currentState: [Playbook: PlaybookResult]
+    var operatingMode: EngineOperationMode
+    enum EngineOperationMode {
+        case ongoing
+        case stepping
+        // when in stepping mode, only process is "readyForNext" is true.
+        // expected behavior is that the user calls step() to advance to the next
+        // available step.
+        case stopped
+    }
+    var readyForNext: Bool
+
     // async stream of playbook results as it executes?
 
-    // start/stop controls for the engine?
-    // list of playbooks that are running?
     // ability to cancel a playbook in progress?
 
-    func run(_ playbook: Playbook) throws -> PlaybookResult {
-        fatalError()
+    // MARK: Operating mode and scheduling
+
+    func start(stepping: Bool = false) {
+        if stepping {
+            operatingMode = .stepping
+        } else {
+            operatingMode = .ongoing
+        }
+        readyForNext = false
     }
 
-    nonisolated func run(command: Command, host: Host) async throws -> CommandExecutionResult {
+    func step() {
+        if operatingMode == .stepping {
+            readyForNext = true
+        }
+    }
+
+    func stop() {
+        operatingMode = .stopped
+    }
+
+    func schedule(_ playbook: Playbook) -> PlaybookResult {
+        states[playbook] = .scheduled
+        let scheduled = PlaybookResult(state: .scheduled, playbook: playbook, results: [])
+        currentState[playbook] = scheduled
+        return scheduled
+    }
+
+    func status(_ playbook: Playbook) -> PlaybookResult? {
+        guard let state = states[playbook], let output = currentState[playbook] else {
+            return nil
+        }
+        return PlaybookResult(state: state, playbook: playbook, results: output.results)
+    }
+
+    // MARK: Run Ongoing
+
+    // MARK: Run Once - no scheduling
+
+    /// Runs a single command against a single host.
+    /// - Parameters:
+    ///   - command: The command to run.
+    ///   - host: The host on which to run the command.
+    /// - Returns: The result of the command execution.
+    public nonisolated func run(command: Command, host: Host) async throws -> CommandExecutionResult {
         // `nonisolated` + `async` means run on a cooperative thread pool and return the result
         // remove the `nonisolated` keyword to run in the actor's context.
         let start = clock.now
@@ -21,8 +71,12 @@ public actor Engine {
         return CommandExecutionResult(command: command, host: host, output: commandOutput, duration: duration)
     }
 
-    init(states: [Playbook: PlaybookRunState]) {
-        self.clock = ContinuousClock()
-        self.states = states
+    /// Creates a new engine.
+    public init() {
+        clock = ContinuousClock()
+        states = [:]
+        currentState = [:]
+        operatingMode = .stopped
+        readyForNext = false
     }
 }
