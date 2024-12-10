@@ -1,8 +1,8 @@
 /// An engine that runs playbooks and exposes the results.
 public actor Engine {
     let clock: ContinuousClock
-    var states: [Playbook: PlaybookRunState]
-    var currentState: [Playbook: PlaybookResult]
+    var states: [Playbook.ID: PlaybookRunState]
+    var currentState: [Playbook.ID: PlaybookResult]
     var operatingMode: EngineOperationMode
     enum EngineOperationMode {
         case ongoing
@@ -40,14 +40,14 @@ public actor Engine {
     }
 
     func schedule(_ playbook: Playbook) -> PlaybookResult {
-        states[playbook] = .scheduled
+        states[playbook.id] = .scheduled
         let scheduled = PlaybookResult(state: .scheduled, playbook: playbook, results: [])
-        currentState[playbook] = scheduled
+        currentState[playbook.id] = scheduled
         return scheduled
     }
 
     func status(_ playbook: Playbook) -> PlaybookResult? {
-        guard let state = states[playbook], let output = currentState[playbook] else {
+        guard let state = states[playbook.id], let output = currentState[playbook.id] else {
             return nil
         }
         return PlaybookResult(state: state, playbook: playbook, results: output.results)
