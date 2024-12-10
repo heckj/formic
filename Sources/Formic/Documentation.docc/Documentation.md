@@ -17,7 +17,7 @@ Quite a is inspired by [Ansible](https://github.com/ansible/ansible), with a goa
 
 ### Imperative
 
-- ``Playlist``
+- ``Playbook``
 
 ### Commands
 
@@ -26,7 +26,19 @@ Quite a is inspired by [Ansible](https://github.com/ansible/ansible), with a goa
 - ``CommandOutput``
 - ``CommandError``
 
-### Declarative Resources
+### Resources
 
 - ``OperatingSystem``
-- ``QueryableState``
+- ``DebianPackage``
+
+- ``Resource``
+- ``StatefulResource``
+
+### Singular Resources
+
+- ``SingularResource``
+
+### Collections of Resources
+
+- ``CollectionQueryableResource``
+- ``NamedResource``
