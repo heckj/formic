@@ -11,6 +11,8 @@ public struct Command: Sendable {
     /// Environment variables the system sets when it runs the command.
     public let env: [String: String]?
 
+    //TODO: add a declaration to "ignore" the RC of the command - ignoreFailure
+
     // I'm special-casing Command using this sort of wonky hack to keep the
     // ergonomics of types that USE Commands easier to work with. If I switch
     // this out to a protocol and use `any Command`, I loose Equatable and Codable
