@@ -7,8 +7,8 @@ assignees: ''
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+**Describe the issue**
+A clear and concise description of what the behavior is that's unexpected or wrong.
 
 **To Reproduce**
 Steps to reproduce the behavior:
@@ -20,10 +20,14 @@ Steps to reproduce the behavior:
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+**Version**
+What version (or branch, or tag) of the library are you using?
+
+**Current OS**
+What operating system is the being run from? (`uname -a` and the output of `cat /etc/-lsb-release` if the target is Linux)
+
+**Target OS**
+What operating system is the code interacting with? (`uname -a` and the output of `cat /etc/lsb-release` if the target is Linux)
 
 **Additional context**
 Add any other context about the problem here.
