@@ -1,5 +1,6 @@
 import Dependencies
 import Foundation
+import AsyncDNSResolver
 
 @testable import Formic
 
@@ -62,5 +63,46 @@ struct TestCommandInvoker: CommandInvoker {
             stdErr:
                 presentOutput.data(using: .utf8))
         return TestCommandInvoker(existingResult)
+    }
+}
+
+struct TestFileSystemAccess: LocalSystemAccess {
+    
+    enum SSHId {
+        case rsa
+        case dsa
+        case ed25519
+    }
+    let sshIDToMatch: SSHId
+    let mockDNSresolution: [String: [String]]
+        
+    func fileExists(atPath: String) -> Bool {
+        switch sshIDToMatch {
+        case .rsa:
+            atPath.contains("id_rsa")
+        case .dsa:
+            atPath.contains("id_dsa")
+        case .ed25519:
+            atPath.contains("id_ed25519")
+        }
+    }
+    let homeDirectory: URL = URL(filePath: "/home/docker-user")
+    let username: String? = "docker-user"
+    func queryA(name: String) async throws -> [ARecord] {
+        if let returnValues = mockDNSresolution[name] {
+            return returnValues.map { ARecord(address: .init(address: $0), ttl: 999) }
+        } else {
+            return []
+        }
+    }
+    
+    init(sshIdMatch: SSHId = .dsa) {
+        sshIDToMatch = sshIdMatch
+        mockDNSresolution = [:]
+    }
+    
+    init(dnsName: String, ipAddressesToUse: [String], sshIdMatch: SSHId = .dsa) {
+        mockDNSresolution = [dnsName: ipAddressesToUse]
+        sshIDToMatch = sshIdMatch
     }
 }
