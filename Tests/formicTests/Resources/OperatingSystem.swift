@@ -37,10 +37,12 @@ func testOperatingSystemKindParser() async throws {
     #expect(try parser.parse("Darwin") == .macOS)
     #expect(try parser.parse("macOS") == .macOS)
     #expect(try parser.parse("linux") == .linux)
-    
-    #expect(throws: (any Error).self, performing: {
-        try parser.parse("FreeBSD")
-    })
+
+    #expect(
+        throws: (any Error).self,
+        performing: {
+            try parser.parse("FreeBSD")
+        })
 }
 
 @Test("verify string based initializer for OperatingSystem")
