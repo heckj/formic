@@ -1,5 +1,6 @@
 import ArgumentParser
 import AsyncDNSResolver
+import Dependencies
 
 extension Host {
     /// A network address, either an IP address or a DNS name.
@@ -42,6 +43,9 @@ extension Host {
         // MARK: Resolver
 
         public static func resolve(_ name: String?) async -> NetworkAddress? {
+            
+            @Dependency(\.localSystemAccess) var localSystem: any LocalSystemAccess
+            
             guard let name = name else {
                 return nil
             }
@@ -50,13 +54,8 @@ extension Host {
                 return NetworkAddress(nameIsIPAddress)
             }
 
-            guard let resolver = try? AsyncDNSResolver() else {
-                print("Unable to initialize a DNS resolver")
-                return nil
-            }
-
             do {
-                let result: [ARecord] = try await resolver.queryA(name: name)
+                let result: [ARecord] = try await localSystem.queryA(name: name)
                 if let firstARecordAddress = result.first?.address,
                     let ourIPv4Address = IPv4Address(firstARecordAddress.address)
                 {

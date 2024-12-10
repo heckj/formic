@@ -1,3 +1,4 @@
+import AsyncDNSResolver
 import Dependencies
 import Foundation
 import Testing
@@ -5,11 +6,28 @@ import Testing
 @testable import Formic
 
 struct TestFileSystemAccess: LocalSystemAccess {
+    let mockDNSresolution: [String: [String]]
+        
     func fileExists(atPath: String) -> Bool {
         atPath.contains("id_dsa")
     }
     let homeDirectory: URL = URL(filePath: "/home/docker-user")
     let username: String? = "docker-user"
+    func queryA(name: String) async throws -> [ARecord] {
+        if let returnValues = mockDNSresolution[name] {
+            return returnValues.map { ARecord(address: .init(address: $0), ttl: 999) }
+        } else {
+            return []
+        }
+    }
+    
+    init() {
+        mockDNSresolution = [:]
+    }
+    
+    init(dnsName: String, ipAddressesToUse: [String]) {
+        mockDNSresolution = [dnsName: ipAddressesToUse]
+    }
 }
 
 @Test("Host initializer")

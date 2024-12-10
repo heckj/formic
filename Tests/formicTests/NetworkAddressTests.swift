@@ -1,4 +1,5 @@
-import Formic
+@testable import Formic
+import Dependencies
 import Testing
 
 @Test("initializing network address")
@@ -45,27 +46,31 @@ func nilOptionalIPv4Address() async throws {
     #expect(result == nil)
 }
 
-@Test(
-    "initializing network address - dns resolution",
-    .timeLimit(.minutes(1)),
-    .tags(.functionalTest))
+@Test("initializing network address - dns resolution")
 func initNetworkAddress4() async throws {
 
     let validDNSName = "google.com"
+    
+    let goodName = await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess(dnsName: validDNSName, ipAddressesToUse: ["8.8.8.8"])
+    } operation: {
+        await Host.NetworkAddress.resolve(validDNSName)
+    }
 
-    let goodName = await Host.NetworkAddress.resolve(validDNSName)
     #expect(goodName?.dnsName == validDNSName)
 }
 
-@Test(
-    "failing initializing network address - invalid DNS name",
-    .timeLimit(.minutes(1)),
-    .tags(.functionalTest))
+@Test("failing initializing network address - invalid DNS name")
 func invalidDNSNameResolution() async throws {
 
     let invalidDNSName = "indescribable.wurplefred"
 
-    let badName = await Host.NetworkAddress.resolve(invalidDNSName)
+    let badName = await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess()
+    } operation: {
+        await Host.NetworkAddress.resolve(invalidDNSName)
+    }
+
     #expect(badName == nil)
 }
 
@@ -75,15 +80,17 @@ func nilNameResolve() async throws {
     #expect(badName == nil)
 }
 
-@Test(
-    "failing initializing network address - invalid IPv4 address format",
-    .timeLimit(.minutes(1)),
-    .tags(.functionalTest))
+@Test("failing initializing network address - invalid IPv4 address format")
 func invalidIPAddressResolver() async throws {
     let badSample1 = "256.0.0.1"
 
     // parsing path, checks IP v4 pattern first, but bad IP address is an invalid address
-    let second = await Host.NetworkAddress.resolve(badSample1)
+    let second = await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess()
+    } operation: {
+        await Host.NetworkAddress.resolve(badSample1)
+    }
+    
     #expect(second == nil)
 }
 
