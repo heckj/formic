@@ -17,19 +17,8 @@ func validSSHCredentials() async throws {
 func homeDirDependencyOverride() async throws {
     // Dependency injection docs:
     // https://swiftpackageindex.com/pointfreeco/swift-dependencies/main/documentation/dependencies
-    struct TestFileSystemAccess: LocalSystemAccess {
-        func fileExists(atPath: String) -> Bool {
-            return true
-        }
-        let homeDirectory: URL = URL(filePath: "/home/docker-user")
-        let username: String? = "docker-user"
-        func queryA(name: String) async throws -> [ARecord] {
-            return []
-        }
-    }
-
     let testCredentials: Formic.Host.SSHAccessCredentials = try withDependencies { dependencyValues in
-        dependencyValues.localSystemAccess = TestFileSystemAccess()
+        dependencyValues.localSystemAccess = TestFileSystemAccess(sshIdMatch: .rsa)
     } operation: {
         try Host.SSHAccessCredentials()
     }
@@ -41,22 +30,9 @@ func homeDirDependencyOverride() async throws {
 
 @Test("default home directory w/ dsa id")
 func homeDirDependencyOverrideDSA() async throws {
-    // Dependency injection docs:
-    // https://swiftpackageindex.com/pointfreeco/swift-dependencies/main/documentation/dependencies
-    struct TestFileSystemAccess: LocalSystemAccess {
-        func fileExists(atPath: String) -> Bool {
-            atPath.contains("id_dsa")
-        }
-        let homeDirectory: URL = URL(filePath: "/home/docker-user")
-        let username: String? = "docker-user"
-        func queryA(name: String) async throws -> [ARecord] {
-            return []
-        }
-
-    }
 
     let testCredentials: Formic.Host.SSHAccessCredentials? = try withDependencies { dependencyValues in
-        dependencyValues.localSystemAccess = TestFileSystemAccess()
+        dependencyValues.localSystemAccess = TestFileSystemAccess(sshIdMatch: .dsa)
     } operation: {
         try Host.SSHAccessCredentials()
     }
@@ -70,20 +46,8 @@ func homeDirDependencyOverrideDSA() async throws {
 func homeDirDependencyOverrideED25519() async throws {
     // Dependency injection docs:
     // https://swiftpackageindex.com/pointfreeco/swift-dependencies/main/documentation/dependencies
-    struct TestFileSystemAccess: LocalSystemAccess {
-        func fileExists(atPath: String) -> Bool {
-            atPath.contains("id_ed25519")
-        }
-        let homeDirectory: URL = URL(filePath: "/home/docker-user")
-        let username: String? = "docker-user"
-        func queryA(name: String) async throws -> [ARecord] {
-            return []
-        }
-
-    }
-
     let testCredentials: Formic.Host.SSHAccessCredentials = try withDependencies { dependencyValues in
-        dependencyValues.localSystemAccess = TestFileSystemAccess()
+        dependencyValues.localSystemAccess = TestFileSystemAccess(sshIdMatch: .ed25519)
     } operation: {
         try Host.SSHAccessCredentials()
     }
