@@ -43,9 +43,9 @@ extension Host {
         // MARK: Resolver
 
         public static func resolve(_ name: String?) async -> NetworkAddress? {
-            
+
             @Dependency(\.localSystemAccess) var localSystem: any LocalSystemAccess
-            
+
             guard let name = name else {
                 return nil
             }

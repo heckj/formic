@@ -1,6 +1,7 @@
-@testable import Formic
 import Dependencies
 import Testing
+
+@testable import Formic
 
 @Test("initializing network address")
 func validIPv4AddressAsStringInit() async throws {
@@ -50,7 +51,7 @@ func nilOptionalIPv4Address() async throws {
 func initNetworkAddress4() async throws {
 
     let validDNSName = "google.com"
-    
+
     let goodName = await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess(dnsName: validDNSName, ipAddressesToUse: ["8.8.8.8"])
     } operation: {
@@ -90,7 +91,7 @@ func invalidIPAddressResolver() async throws {
     } operation: {
         await Host.NetworkAddress.resolve(badSample1)
     }
-    
+
     #expect(second == nil)
 }
 

@@ -1,6 +1,6 @@
+import AsyncDNSResolver
 import Dependencies
 import Foundation
-import AsyncDNSResolver
 
 // Dependency injection docs:
 // https://swiftpackageindex.com/pointfreeco/swift-dependencies/main/documentation/dependencies
@@ -24,7 +24,7 @@ struct LiveLocalSystemAccess: LocalSystemAccess {
     func queryA(name: String) async throws -> [ARecord] {
         let resolver = try AsyncDNSResolver()
         return try await resolver.queryA(name: name)
-    }    
+    }
 }
 
 // registers the dependency

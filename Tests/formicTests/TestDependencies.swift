@@ -1,6 +1,6 @@
+import AsyncDNSResolver
 import Dependencies
 import Foundation
-import AsyncDNSResolver
 
 @testable import Formic
 
@@ -67,7 +67,7 @@ struct TestCommandInvoker: CommandInvoker {
 }
 
 struct TestFileSystemAccess: LocalSystemAccess {
-    
+
     enum SSHId {
         case rsa
         case dsa
@@ -75,7 +75,7 @@ struct TestFileSystemAccess: LocalSystemAccess {
     }
     let sshIDToMatch: SSHId
     let mockDNSresolution: [String: [String]]
-        
+
     func fileExists(atPath: String) -> Bool {
         switch sshIDToMatch {
         case .rsa:
@@ -95,12 +95,12 @@ struct TestFileSystemAccess: LocalSystemAccess {
             return []
         }
     }
-    
+
     init(sshIdMatch: SSHId = .dsa) {
         sshIDToMatch = sshIdMatch
         mockDNSresolution = [:]
     }
-    
+
     init(dnsName: String, ipAddressesToUse: [String], sshIdMatch: SSHId = .dsa) {
         mockDNSresolution = [dnsName: ipAddressesToUse]
         sshIDToMatch = sshIdMatch
