@@ -1,7 +1,8 @@
 import Foundation
 
 /// A type that holds a sequence of imperative commands to run against one or more hosts.
-public struct Playbook: Sendable {
+public struct Playbook: Identifiable, Sendable {
+    public let id: UUID
     /// The name of the playlist.
     public let name: String
     /// The hosts to run the commands on.
@@ -18,6 +19,7 @@ public struct Playbook: Sendable {
         self.name = name
         self.hosts = hosts
         self.commands = commands
+        id = UUID()
     }
 
     /// Creates a new playlist.
@@ -26,6 +28,7 @@ public struct Playbook: Sendable {
     ///   - hosts: The host names to resolve into hosts.
     ///   - commands: The commands to invoke on the hosts.
     public init(name: String, hosts: [String], commands: [Command]) async {
+        id = UUID()
         self.name = name
         self.commands = commands
         self.hosts = []
