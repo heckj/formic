@@ -10,7 +10,7 @@
   - [x] idea of Hosts that reflect Operating Systems running somewhere, with things to configure on them.
   - [x] declaration structure for Command
 - [x] Playlist (struct of commands invoked in sequence)
-- [ ] add some Dependency injection support while using the DNS resolver to speed up the base line tests
+- [x] add some Dependency injection support while using the DNS resolver to speed up the base line tests
 - [ ] Resources
   - [x] OperatingSystem
   - [x] Packages
