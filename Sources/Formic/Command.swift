@@ -10,6 +10,8 @@ public struct Command: Sendable {
     public let args: [String]
     /// Environment variables the system sets when it runs the command.
     public let env: [String: String]?
+    public let retryOnFailure: Bool
+    public let backoff: Backoff
 
     //TODO: add a declaration to "ignore" the RC of the command - ignoreFailure
 
@@ -25,10 +27,15 @@ public struct Command: Sendable {
     }
     let commandType: CommandType
 
-    private init(args: [String], env: [String: String]?, commandType: CommandType) {
+    private init(
+        args: [String], env: [String: String]?, commandType: CommandType, retryOnFailure: Bool = false,
+        backoff: Backoff = .default
+    ) {
         self.args = args
         self.env = env
         self.commandType = commandType
+        self.retryOnFailure = retryOnFailure
+        self.backoff = backoff
     }
 
     /// Creates a new command declaration that runs a shell command.
