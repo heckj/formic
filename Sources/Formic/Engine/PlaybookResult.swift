@@ -2,7 +2,7 @@
 public struct PlaybookResult: Sendable, Hashable, Codable {
     public let state: PlaybookRunState
     public let playbook: Playbook  // would like the name, but the rest is kind of redundant...
-    public let results: [CommandExecutionResult]
+    public let results: [Host: [Command.ID: CommandExecutionResult]]
     public var success: Bool {
         // if all commands are successful (except when ignored),
         // and all commands have been run for each host in the playbook

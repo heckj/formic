@@ -9,8 +9,16 @@ func shellCommandDeclarationTest() async throws {
     #expect(command.args == ["uname"])
     #expect(command.env == nil)
     #expect(command.backoff == .default)
+    #expect(command.id != nil)
 
     #expect(command.description == "uname")
+}
+
+@Test("unique command ids by instance (Identifiable)")
+func verifyIdentifiableCommands() async throws {
+    let command1 = Command.shell("uname")
+    let command2 = Command.shell("uname")
+    try #require(command1.id != command2.id)
 }
 
 @Test("initializing a shell command with all options")

@@ -8,6 +8,8 @@ public struct CommandExecutionResult: Sendable, Hashable, Codable {
     public let output: CommandOutput
     /// The duration of the command.
     public let duration: Duration
+    /// The number of retries needed for this command.
+    public let retries: Int
 }
 
 extension CommandExecutionResult {

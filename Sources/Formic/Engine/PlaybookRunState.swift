@@ -6,6 +6,8 @@ public enum PlaybookRunState: Sendable, Hashable, Codable {
     case running
     /// The playbook is finished.
     case complete
-    /// The playbook was terminated before completion.
-    case terminated
+    /// The playbook was terminated before completion due to a failed command.
+    case failed
+    /// The playbook was terminated before completion due to cancellation.
+    case cancelled
 }

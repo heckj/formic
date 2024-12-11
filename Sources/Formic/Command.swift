@@ -5,13 +5,14 @@ import Foundation
 ///
 /// Use ``run(host:)`` to invoke the command. The system forks a process and collects the output, both `STDOUT` and `STDERR`, when it finishes.
 /// The combination is returned as ``CommandOutput``.
-public struct Command: Sendable {
+public struct Command: Sendable, Identifiable {
     /// The command and arguments to run.
     public let args: [String]
     /// Environment variables the system sets when it runs the command.
     public let env: [String: String]?
     public let retryOnFailure: Bool
     public let backoff: Backoff
+    public let id: UUID
 
     //TODO: add a declaration to "ignore" the RC of the command - ignoreFailure
 
@@ -36,6 +37,7 @@ public struct Command: Sendable {
         self.commandType = commandType
         self.retryOnFailure = retryOnFailure
         self.backoff = backoff
+        id = UUID()
     }
 
     /// Creates a new command declaration that runs a shell command.
