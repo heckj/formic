@@ -26,14 +26,20 @@ extension CommandExecutionResult {
         case .silent(emoji: let includeEmoji):
             // Reports only failure.
             if output.returnCode != 0 {
-                if includeEmoji {
-                    stringOutput.append("❌ ")
-                }
-                stringOutput.append("return code: \(output.returnCode)")
-                if let errorOutput = output.stderrString {
-                    stringOutput.append("\nSTDERR: \(errorOutput)")
+                if command.ignoreFailure {
+                    if includeEmoji {
+                        stringOutput.append("⚠️")
+                    }
                 } else {
-                    stringOutput.append(" No STDERR output.")
+                    if includeEmoji {
+                        stringOutput.append("❌ ")
+                    }
+                    stringOutput.append("return code: \(output.returnCode)")
+                    if let errorOutput = output.stderrString {
+                        stringOutput.append("\nSTDERR: \(errorOutput)")
+                    } else {
+                        stringOutput.append("\nNo STDERR output.")
+                    }
                 }
             } else {
                 if includeEmoji {
@@ -44,9 +50,13 @@ extension CommandExecutionResult {
             // Reports host and command with an indication of command success or failure.
             if output.returnCode != 0 {
                 if includeEmoji {
-                    stringOutput.append("❌ ")
+                    if command.ignoreFailure {
+                        stringOutput.append("⚠️ ")
+                    } else {
+                        stringOutput.append("❌ ")
+                    }
                 }
-                stringOutput.append("command: \(command), rc=\(output.returnCode)")
+                stringOutput.append("command: \(command), rc=\(output.returnCode), retries=\(retries)")
                 if let errorOutput = output.stderrString {
                     stringOutput.append("\nSTDERR: \(errorOutput)")
                 } else {
@@ -56,16 +66,20 @@ extension CommandExecutionResult {
                 if includeEmoji {
                     stringOutput.append("✅ ")
                 }
-                stringOutput.append("command: \(output.returnCode), rc=\(output.returnCode)")
+                stringOutput.append("command: \(output.returnCode), rc=\(output.returnCode), retries=\(retries)")
             }
         case .verbose(emoji: let includeEmoji):
             // Reports host, command, duration, the result code, and stdout on success, or stderr on failure.
             if output.returnCode != 0 {
                 if includeEmoji {
-                    stringOutput.append("❌ ")
+                    if command.ignoreFailure {
+                        stringOutput.append("⚠️ ")
+                    } else {
+                        stringOutput.append("❌ ")
+                    }
                 }
                 stringOutput.append("[\(formattedDuration)] ")
-                stringOutput.append("command: \(command), rc=\(output.returnCode)")
+                stringOutput.append("command: \(command), rc=\(output.returnCode), retries=\(retries)")
                 if let errorOutput = output.stderrString {
                     stringOutput.append("\nSTDERR: \(errorOutput)")
                 } else {
@@ -76,7 +90,7 @@ extension CommandExecutionResult {
                     stringOutput.append("✅ ")
                 }
                 stringOutput.append("[\(formattedDuration)] ")
-                stringOutput.append("command: \(command), rc=\(output.returnCode)")
+                stringOutput.append("command: \(command), rc=\(output.returnCode), retries=\(retries)")
                 if let stdoutOutput = output.stdoutString {
                     stringOutput.append("\nSTDOUT: \(stdoutOutput)")
                 } else {
@@ -87,13 +101,17 @@ extension CommandExecutionResult {
             // Reports host, command, duration, the result code, stdout, and stderr returned from the command.
             if includeEmoji {
                 if output.returnCode != 0 {
-                    stringOutput.append("❌ ")
+                    if command.ignoreFailure {
+                        stringOutput.append("⚠️ ")
+                    } else {
+                        stringOutput.append("❌ ")
+                    }
                 } else {
                     stringOutput.append("✅ ")
                 }
             }
             stringOutput.append("[\(formattedDuration)] ")
-            stringOutput.append("command: \(command), rc=\(output.returnCode)")
+            stringOutput.append("command: \(command), rc=\(output.returnCode), retries=\(retries)")
             if let errorOutput = output.stderrString {
                 stringOutput.append("\nSTDERR: \(errorOutput)")
             } else {

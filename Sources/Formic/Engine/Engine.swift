@@ -40,7 +40,7 @@ public actor Engine {
         }
     }
 
-    func createHostRunnerIfNeeded(host: Host, delay: Duration) {
+    internal func createHostRunnerIfNeeded(host: Host, delay: Duration) {
         if runners[host] == nil {
             //let runner = HostRunner(host: host, operatingMode: .ongoing, engine: self)
             runners[host] = Task {
@@ -50,7 +50,6 @@ public actor Engine {
                 }
                 self.runners[host] = nil
             }
-
         }
     }
 
@@ -167,11 +166,13 @@ public actor Engine {
         }
     }
 
-    // MARK: Run Once - no inherent scheduling coordination
+    // MARK: Running API
 
     /// Runs the next command available for the host you provide.
     /// - Parameter host: The host to interact with.
     public nonisolated func step(for host: Host) async throws {
+        // `nonisolated` + `async` means run on a cooperative thread pool and return the result
+        // remove the `nonisolated` keyword to run in the actor's context.
         let availableCommands = await availableCommandsForHost(host: host)
         if let (nextCommand, playbookId) = availableCommands.first {
             //get and run
