@@ -5,11 +5,16 @@ import Foundation
 ///
 /// Use ``run(host:)`` to invoke the command. The system forks a process and collects the output, both `STDOUT` and `STDERR`, when it finishes.
 /// The combination is returned as ``CommandOutput``.
-public struct Command: Sendable {
+public struct Command: Sendable, Identifiable {
     /// The command and arguments to run.
     public let args: [String]
     /// Environment variables the system sets when it runs the command.
     public let env: [String: String]?
+    public let retryOnFailure: Bool
+    public let backoff: Backoff
+    public let id: UUID
+
+    //TODO: add a declaration to "ignore" the RC of the command - ignoreFailure
 
     // I'm special-casing Command using this sort of wonky hack to keep the
     // ergonomics of types that USE Commands easier to work with. If I switch
@@ -23,25 +28,37 @@ public struct Command: Sendable {
     }
     let commandType: CommandType
 
-    private init(args: [String], env: [String: String]?, commandType: CommandType) {
+    private init(
+        args: [String], env: [String: String]?, commandType: CommandType, retryOnFailure: Bool,
+        backoff: Backoff
+    ) {
         self.args = args
         self.env = env
         self.commandType = commandType
+        self.retryOnFailure = retryOnFailure
+        self.backoff = backoff
+        id = UUID()
     }
 
     /// Creates a new command declaration that runs a shell command.
     /// - Parameter args: the command and arguments to run.
     /// - Parameter env: An optional dictionary of environment variables the system sets when it runs the command.
-    public static func shell(_ args: String..., env: [String: String]? = nil) -> Command {
-        Command(args: args, env: env, commandType: .shell)
+    public static func shell(
+        _ args: String..., env: [String: String]? = nil, retryOnFailure: Bool = false,
+        backoff: Backoff = .default
+    ) -> Command {
+        Command(args: args, env: env, commandType: .shell, retryOnFailure: retryOnFailure, backoff: backoff)
     }
 
     /// Creates a new command declaration that copies a file to a remote host.
     /// - Parameters:
     ///   - from: The path of the file to copy.
     ///   - to: The path to copy the file to.
-    public static func remoteCopy(from: String, to: String) -> Command {
-        Command(args: [from, to], env: nil, commandType: .scp)
+    public static func remoteCopy(
+        from: String, to: String, retryOnFailure: Bool = false,
+        backoff: Backoff = .default
+    ) -> Command {
+        Command(args: [from, to], env: nil, commandType: .scp, retryOnFailure: retryOnFailure, backoff: backoff)
     }
 
     /// Runs the command on the host you provide.
