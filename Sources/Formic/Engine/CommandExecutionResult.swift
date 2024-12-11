@@ -4,6 +4,8 @@ public struct CommandExecutionResult: Sendable, Hashable, Codable {
     public let command: Command
     /// The host for the command.
     public let host: Host
+    /// The ID of the playbook that the command is part of, if any.
+    public let playbookId: Playbook.ID?
     /// The output from the command.
     public let output: CommandOutput
     /// The duration of the command.
