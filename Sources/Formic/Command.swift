@@ -10,11 +10,10 @@ public struct Command: Sendable, Identifiable {
     public let args: [String]
     /// Environment variables the system sets when it runs the command.
     public let env: [String: String]?
+    public let ignoreFailure: Bool
     public let retryOnFailure: Bool
     public let backoff: Backoff
     public let id: UUID
-
-    //TODO: add a declaration to "ignore" the RC of the command - ignoreFailure
 
     // I'm special-casing Command using this sort of wonky hack to keep the
     // ergonomics of types that USE Commands easier to work with. If I switch
@@ -29,13 +28,14 @@ public struct Command: Sendable, Identifiable {
     let commandType: CommandType
 
     private init(
-        args: [String], env: [String: String]?, commandType: CommandType, retryOnFailure: Bool,
-        backoff: Backoff
+        args: [String], env: [String: String]?, commandType: CommandType, ignoreFailure: Bool,
+        retryOnFailure: Bool, backoff: Backoff
     ) {
         self.args = args
         self.env = env
         self.commandType = commandType
         self.retryOnFailure = retryOnFailure
+        self.ignoreFailure = ignoreFailure
         self.backoff = backoff
         id = UUID()
     }
@@ -44,10 +44,12 @@ public struct Command: Sendable, Identifiable {
     /// - Parameter args: the command and arguments to run.
     /// - Parameter env: An optional dictionary of environment variables the system sets when it runs the command.
     public static func shell(
-        _ args: String..., env: [String: String]? = nil, retryOnFailure: Bool = false,
+        _ args: String..., env: [String: String]? = nil, ignoreFailure: Bool = false, retryOnFailure: Bool = false,
         backoff: Backoff = .default
     ) -> Command {
-        Command(args: args, env: env, commandType: .shell, retryOnFailure: retryOnFailure, backoff: backoff)
+        Command(
+            args: args, env: env, commandType: .shell, ignoreFailure: ignoreFailure, retryOnFailure: retryOnFailure,
+            backoff: backoff)
     }
 
     /// Creates a new command declaration that copies a file to a remote host.
@@ -55,10 +57,12 @@ public struct Command: Sendable, Identifiable {
     ///   - from: The path of the file to copy.
     ///   - to: The path to copy the file to.
     public static func remoteCopy(
-        from: String, to: String, retryOnFailure: Bool = false,
+        from: String, to: String, ignoreFailure: Bool = false, retryOnFailure: Bool = false,
         backoff: Backoff = .default
     ) -> Command {
-        Command(args: [from, to], env: nil, commandType: .scp, retryOnFailure: retryOnFailure, backoff: backoff)
+        Command(
+            args: [from, to], env: nil, commandType: .scp, ignoreFailure: ignoreFailure, retryOnFailure: retryOnFailure,
+            backoff: backoff)
     }
 
     /// Runs the command on the host you provide.

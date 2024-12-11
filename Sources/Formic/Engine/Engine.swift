@@ -4,39 +4,91 @@ public actor Engine {
     var playbooks: [Playbook.ID: Playbook]
     var states: [Playbook.ID: PlaybookRunState]
     var commandResults: [Host: [Command.ID: CommandExecutionResult]]
-    var runners: [Host: HostRunner]
+    var runners: [Host: Task<Void, any Error>]
 
-    // async stream of playbook results as it executes?
+    // TODO: potentially "stream" the results to observers using an asyncStream
+    // either generally, or a stream per playbook stored?
+    // - define the stream (or collection of streams) here and add in appropriate
+    // yielding in the acceptResult method
 
     // MARK: Operating mode and scheduling
 
-    func schedule(_ playbook: Playbook) -> PlaybookResult {
+    /// Run a playbook.
+    /// - Parameter playbook: The playbook to run.
+    /// - Parameter delay: The delay between steps.
+    /// - Parameter startRunner: A Boolean value that indicates whether to start the runner.
+    public func schedule(_ playbook: Playbook, delay: Duration = .seconds(1), startRunner: Bool = true) {
         for host in playbook.hosts {
             if commandResults[host] == nil {
                 commandResults[host] = [:]
             }
         }
+        // store a copy of the playbook
         playbooks[playbook.id] = playbook
+        // set the initial state of the playbook
         states[playbook.id] = .scheduled
 
-        var hostResults: [Host: [Command.ID: CommandExecutionResult]] = [:]
         for host in playbook.hosts {
-            hostResults[host] = [:]
-            createHostRunnerIfNeeded(host: host)
+            // initialize empty result set for each host listed in the playbook, if needed
+            if commandResults[host] == nil {
+                commandResults[host] = [:]
+            }
+            // start a runner for each host listed in the playbook
+            if startRunner {
+                createHostRunnerIfNeeded(host: host, delay: delay)
+            }
         }
-        let scheduled = PlaybookResult(state: .scheduled, playbook: playbook, results: hostResults)
-        return scheduled
     }
 
-    func createHostRunnerIfNeeded(host: Host) {
+    func createHostRunnerIfNeeded(host: Host, delay: Duration) {
         if runners[host] == nil {
-            let runner = HostRunner(host: host, operatingMode: .ongoing, engine: self)
-            runners[host] = runner
+            //let runner = HostRunner(host: host, operatingMode: .ongoing, engine: self)
+            runners[host] = Task {
+                while !Task.isCancelled {
+                    try await step(for: host)
+                    try await Task.sleep(for: delay)
+                }
+                self.runners[host] = nil
+            }
+
         }
     }
 
-    func status(_ playbook: Playbook) -> PlaybookResult? {
-        guard let state = states[playbook.id] else {
+    /// Cancels ongoing processing for the host you provide.
+    /// - Parameter host: The host to cancel processing for.
+    public func cancel(_ playbookId: Playbook.ID) {
+        if let state = states[playbookId] {
+            switch state {
+            case .scheduled, .running:
+                states[playbookId] = .cancelled
+            case .complete, .failed, .cancelled:
+                break
+            }
+        }
+    }
+
+    /// Cancels ongoing processing for the host you provide.
+    /// - Parameter host: The host to cancel processing for.
+    public func cancelRunner(for host: Host) {
+        if let runner = runners[host] {
+            runner.cancel()
+        }
+        // runners[host] = nil
+    }
+
+    /// Returns a Boolean value that indicates whether there is active processing for the host you provide.
+    /// - Parameter host: The host to check.
+    public func status(_ host: Host) -> Bool {
+        return runners[host] != nil
+    }
+
+    /// Returns the current state of the playbook you provide.
+    /// - Parameter playbookId: The ID of the playbook to check.
+    /// - Returns: The current state of the execution of the playbook.
+    public func status(_ playbookId: Playbook.ID) -> PlaybookResult? {
+        guard let playbook = playbooks[playbookId],
+            let state = states[playbookId]
+        else {
             return nil
         }
         var hostResults: [Host: [Command.ID: CommandExecutionResult]] = [:]
@@ -59,13 +111,13 @@ public actor Engine {
         return PlaybookResult(state: state, playbook: playbook, results: hostResults)
     }
 
-    // MARK: HostRunners API
+    // MARK: Coordination API
 
-    func availableCommandsForHost(host: Host) -> [Command] {
-        var availableCommands: [Command] = []
+    func availableCommandsForHost(host: Host) -> [(Command, Playbook.ID)] {
+        var availableCommands: [(Command, Playbook.ID)] = []
         // list of playbooks that are either scheduled or running
         // but not terminated, failed, or cancelled.
-        let availablePlaybookIDs: [Playbook.ID] = playbooks.keys.filter { id in
+        let availablePlaybookIds: [Playbook.ID] = playbooks.keys.filter { id in
             // return true for isIncluded
             guard let playbookStatus = states[id] else {
                 return false
@@ -75,20 +127,23 @@ public actor Engine {
             }
             return false
         }
-        for playbookID in availablePlaybookIDs {
-            guard let playbook = playbooks[playbookID] else {
+        for playbookId in availablePlaybookIds {
+            guard let playbook = playbooks[playbookId] else {
                 continue
             }
             let completedCommandIDs: [Command.ID] = commandResults[host]?.keys.map { $0 } ?? []
             let remainingCommands: [Command] = playbook.commands.filter { command in
                 return !completedCommandIDs.contains(command.id)
             }
-            availableCommands.append(contentsOf: remainingCommands)
+            for command in remainingCommands {
+                availableCommands.append((command, playbookId))
+            }
         }
         return availableCommands
     }
 
     func acceptResult(host: Host, result: CommandExecutionResult) {
+        // store the result
         if var hostResultDict: [Command.ID: CommandExecutionResult] = commandResults[host] {
             assert(hostResultDict[result.command.id] == nil, "Duplicate command result")
             hostResultDict[result.command.id] = result
@@ -97,16 +152,43 @@ public actor Engine {
             // dictionary doesn't exist, create it and add result
             commandResults[host] = [result.command.id: result]
         }
+        // If the result has a playbook associated with it, update the playbook state
+        if let playbookId = result.playbookId {
+            // if the result is failure, terminate the playbook unless its marked to be ignored
+            if result.output.returnCode != 0 && !result.command.ignoreFailure {
+                states[playbookId] = .failed
+            } else {
+                if result.command == playbooks[playbookId]?.commands.last {
+                    states[playbookId] = .complete
+                }
+            }
+            // TODO: potentially "stream" the results to observers using an asyncStream
+            // either generally, or a stream per playbook stored?
+        }
     }
 
     // MARK: Run Once - no inherent scheduling coordination
+
+    /// Runs the next command available for the host you provide.
+    /// - Parameter host: The host to interact with.
+    public nonisolated func step(for host: Host) async throws {
+        let availableCommands = await availableCommandsForHost(host: host)
+        if let (nextCommand, playbookId) = availableCommands.first {
+            //get and run
+            let commandResult = try await run(command: nextCommand, host: host, playbookId: playbookId)
+            await acceptResult(host: host, result: commandResult)
+        }
+    }
 
     /// Runs a single command against a single host.
     /// - Parameters:
     ///   - command: The command to run.
     ///   - host: The host on which to run the command.
+    ///   - playbookId: The ID of the playbook the command is part of.
     /// - Returns: The result of the command execution.
-    public nonisolated func run(command: Command, host: Host) async throws -> CommandExecutionResult {
+    public nonisolated func run(command: Command, host: Host, playbookId: Playbook.ID? = nil) async throws
+        -> CommandExecutionResult
+    {
         // `nonisolated` + `async` means run on a cooperative thread pool and return the result
         // remove the `nonisolated` keyword to run in the actor's context.
         let start = clock.now
@@ -114,7 +196,7 @@ public actor Engine {
         let commandOutput = try command.run(host: host)
         let duration = clock.now - start
         return CommandExecutionResult(
-            command: command, host: host, output: commandOutput, duration: duration, retries: 0)
+            command: command, host: host, playbookId: playbookId, output: commandOutput, duration: duration, retries: 0)
     }
 
     /// Creates a new engine.
