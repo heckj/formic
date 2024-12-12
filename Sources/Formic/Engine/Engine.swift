@@ -54,7 +54,7 @@ public actor Engine {
     }
 
     /// Cancels ongoing processing for the host you provide.
-    /// - Parameter host: The host to cancel processing for.
+    ///- Parameter playbookId: the Id of the playbook to cancel.
     public func cancel(_ playbookId: Playbook.ID) {
         if let state = states[playbookId] {
             switch state {

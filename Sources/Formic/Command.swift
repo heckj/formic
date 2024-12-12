@@ -41,8 +41,13 @@ public struct Command: Sendable, Identifiable {
     }
 
     /// Creates a new command declaration that runs a shell command.
-    /// - Parameter args: the command and arguments to run.
-    /// - Parameter env: An optional dictionary of environment variables the system sets when it runs the command.
+    /// - Parameters:
+    ///   - args: the command and arguments to run.
+    ///   - env: An optional dictionary of environment variables the system sets when it runs the command.
+    ///   - ignoreFailure: A Boolean value that indicates whether a failing command should fail a playbook.
+    ///   - retryOnFailure: A Boolean value that indicates whether the system should retry a failed command.
+    ///   - backoff: The strategy used to delay when retrying a failed command.
+    /// - Returns: The command declaration.
     public static func shell(
         _ args: String..., env: [String: String]? = nil, ignoreFailure: Bool = false, retryOnFailure: Bool = false,
         backoff: Backoff = .default
@@ -56,6 +61,9 @@ public struct Command: Sendable, Identifiable {
     /// - Parameters:
     ///   - from: The path of the file to copy.
     ///   - to: The path to copy the file to.
+    ///   - ignoreFailure: A Boolean value that indicates whether a failing command should fail a playbook.
+    ///   - retryOnFailure: A Boolean value that indicates whether the system should retry a failed command.
+    ///   - backoff: The strategy used to delay when retrying a failed command.
     public static func remoteCopy(
         from: String, to: String, ignoreFailure: Bool = false, retryOnFailure: Bool = false,
         backoff: Backoff = .default
