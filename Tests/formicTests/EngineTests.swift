@@ -346,4 +346,39 @@ func testPlaybookStatusAfterStep() async throws {
     let dictOfResultsforHost: [Command.ID: CommandExecutionResult] = try #require(resultsFromPbStatus[fakeHost])
     #expect(dictOfResultsforHost.count == 1)
     #expect(dictOfResultsforHost[cmd1.id]?.command == cmd1)
+
+    await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess()
+        dependencyValues.commandInvoker = mockCmdInvoker
+    } operation: {
+        await engine.step(for: fakeHost)
+    }
+
+    let finalPbStatus: PlaybookStatus = try #require(await engine.status(playbook.id))
+    #expect(finalPbStatus.state == .complete)
+}
+
+@Test("using Schedule, default mode, creates a runner for the hosts of the playbook scheduled")
+func testPlaybookRunnerIsCreatedOnSchedule() async throws {
+    typealias Host = Formic.Host
+    let engine = Engine()
+
+    let fakeHost = try await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess(
+            dnsName: "somewhere.com", ipAddressesToUse: ["8.8.8.8"])
+    } operation: {
+        try await Host.resolve("somewhere.com")
+    }
+
+    let playbook = Playbook(name: "example", hosts: [fakeHost], commands: [])
+
+    await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess()
+    } operation: {
+        await engine.schedule(playbook, delay: .microseconds(1), startRunner: true)
+    }
+
+    #expect(await engine.runners.count == 1)
+    await engine.cancelRunner(for: fakeHost)
+    #expect(await engine.runners.count == 0)
 }
