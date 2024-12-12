@@ -162,12 +162,36 @@ public actor Engine {
                 states[playbookId] = .failed
             } else {
                 if result.command == playbooks[playbookId]?.commands.last {
-                    states[playbookId] = .complete
+                    // check for completion
+                    if playbookComplete(playbookId: playbookId) {
+                        states[playbookId] = .complete
+                    }
                 }
             }
             // TODO: potentially "stream" the results to observers using an asyncStream
             // either generally, or a stream per playbook stored?
         }
+    }
+
+    func playbookComplete(playbookId: Playbook.ID) -> Bool {
+        guard let originalPlaybook = playbooks[playbookId] else {
+            return false
+        }
+        for host in originalPlaybook.hosts {
+            guard let commandResultsForHost = commandResults[host],
+                commandResultsForHost.count == originalPlaybook.commands.count
+            else {
+                return false
+            }
+            // host has all commands reported from original playbook
+            let anyFailure = commandResultsForHost.contains { (id: Command.ID, result: CommandExecutionResult) in
+                result.output.returnCode != 0 && !result.command.ignoreFailure
+            }
+            if anyFailure {
+                return false
+            }
+        }
+        return true
     }
 
     func handleCommandException(playbookId: Playbook.ID, host: Host, command: Command, exception: any Error) {
