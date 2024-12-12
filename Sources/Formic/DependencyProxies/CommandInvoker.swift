@@ -76,6 +76,10 @@ struct ProcessCommandInvoker: CommandInvoker {
     ///   - env: A dictionary of shell environment variables to apply.
     /// - Returns: The command output.
     /// - Throws: any errors from invoking the shell process.
+    ///
+    /// Errors exposed source from [Process.run()](https://developer.apple.com/documentation/foundation/process/2890105-run),
+    /// followed by attempting to read the Pipe() outputs (fileHandleForReading.readToEnd()).
+    /// The types of errors thrown from those locations aren't undocumented.
     func localShell(
         cmd: [String], stdIn: Pipe? = nil, env: [String: String]? = nil
     ) throws -> CommandOutput {
