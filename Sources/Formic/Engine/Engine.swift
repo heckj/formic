@@ -153,6 +153,10 @@ public actor Engine {
         }
         // If the result has a playbook associated with it, update the playbook state
         if let playbookId = result.playbookId {
+            // advance the state to running if it wasn't before
+            if states[playbookId] == .scheduled {
+                states[playbookId] = .running
+            }
             // if the result is failure, terminate the playbook unless its marked to be ignored
             if result.output.returnCode != 0 && !result.command.ignoreFailure {
                 states[playbookId] = .failed
