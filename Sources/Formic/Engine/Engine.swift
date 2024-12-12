@@ -84,7 +84,7 @@ public actor Engine {
     /// Returns the current state of the playbook you provide.
     /// - Parameter playbookId: The ID of the playbook to check.
     /// - Returns: The current state of the execution of the playbook.
-    public func status(_ playbookId: Playbook.ID) -> PlaybookResult? {
+    public func status(_ playbookId: Playbook.ID) -> PlaybookStatus? {
         guard let playbook = playbooks[playbookId],
             let state = states[playbookId]
         else {
@@ -107,7 +107,7 @@ public actor Engine {
             }
             hostResults[host] = resultsForHost
         }
-        return PlaybookResult(state: state, playbook: playbook, results: hostResults)
+        return PlaybookStatus(state: state, playbook: playbook, results: hostResults)
     }
 
     // MARK: Coordination API
