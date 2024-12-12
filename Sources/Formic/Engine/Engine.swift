@@ -45,7 +45,7 @@ public actor Engine {
             //let runner = HostRunner(host: host, operatingMode: .ongoing, engine: self)
             runners[host] = Task {
                 while !Task.isCancelled {
-                    try await step(for: host)
+                    await step(for: host)
                     try await Task.sleep(for: delay)
                 }
                 self.runners[host] = nil
@@ -170,18 +170,37 @@ public actor Engine {
         }
     }
 
+    func handleCommandException(playbookId: Playbook.ID, host: Host, command: Command, exception: any Error) {
+        // store the result
+        let exceptionReport = CommandExecutionResult(
+            command: command, host: host, playbookId: playbookId, output: .empty, duration: .nanoseconds(0), retries: 0,
+            exception: exception.localizedDescription)
+        if var hostResultDict: [Command.ID: CommandExecutionResult] = commandResults[host] {
+            assert(hostResultDict[command.id] == nil, "Duplicate command result")
+            hostResultDict[command.id] = exceptionReport
+            commandResults[host] = hostResultDict
+        } else {
+            // dictionary doesn't exist, create it and add result
+            commandResults[host] = [command.id: exceptionReport]
+        }
+        states[playbookId] = .failed
+    }
     // MARK: Running API
 
     /// Runs the next command available for the host you provide.
     /// - Parameter host: The host to interact with.
-    public nonisolated func step(for host: Host) async throws {
+    public nonisolated func step(for host: Host) async {
         // `nonisolated` + `async` means run on a cooperative thread pool and return the result
         // remove the `nonisolated` keyword to run in the actor's context.
         let availableCommands = await availableCommandsForHost(host: host)
         if let (nextCommand, playbookId) = availableCommands.first {
             //get and run
-            let commandResult = try await run(command: nextCommand, host: host, playbookId: playbookId)
-            await acceptResult(host: host, result: commandResult)
+            do {
+                let commandResult = try await run(command: nextCommand, host: host, playbookId: playbookId)
+                await acceptResult(host: host, result: commandResult)
+            } catch {
+                await handleCommandException(playbookId: playbookId, host: host, command: nextCommand, exception: error)
+            }
         }
     }
 
@@ -201,7 +220,8 @@ public actor Engine {
         let commandOutput = try command.run(host: host)
         let duration = clock.now - start
         return CommandExecutionResult(
-            command: command, host: host, playbookId: playbookId, output: commandOutput, duration: duration, retries: 0)
+            command: command, host: host, playbookId: playbookId, output: commandOutput, duration: duration, retries: 0,
+            exception: nil)
     }
 
     /// Creates a new engine.

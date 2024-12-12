@@ -30,6 +30,11 @@ public struct CommandOutput: Sendable {
         self.stdOut = stdOut
         self.stdErr = stdErr
     }
+
+    /// A null output with no useful information.
+    public static var empty: CommandOutput {
+        CommandOutput(returnCode: 0, stdOut: nil, stdErr: nil)
+    }
 }
 
 extension CommandOutput: Hashable {}
