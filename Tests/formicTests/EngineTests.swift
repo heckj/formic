@@ -265,3 +265,41 @@ func testEngineScheduleStepWithLaterException() async throws {
     #expect(finalResult.host == fakeHost)
     #expect(finalResult.exception == "Unknown error: Process failed in something")
 }
+
+@Test("requesting state after single step")
+func testPlaybookStatusAfterStep() async throws {
+    typealias Host = Formic.Host
+    let engine = Engine()
+    let cmd1 = Command.shell("uname")
+    let cmd2 = Command.shell("whoami")
+
+    let fakeHost = try await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess(
+            dnsName: "somewhere.com", ipAddressesToUse: ["8.8.8.8"])
+    } operation: {
+        try await Host.resolve("somewhere.com")
+    }
+
+    let playbook = Playbook(name: "example", hosts: [fakeHost], commands: [cmd1, cmd2])
+    let mockCmdInvoker = TestCommandInvoker()
+        .addSuccess(command: ["uname"], presentOutput: "Linux\n")
+        .addSuccess(command: ["whoami"], presentOutput: "docker-user")
+
+    await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess()
+        dependencyValues.commandInvoker = mockCmdInvoker
+    } operation: {
+        await engine.schedule(playbook, delay: .microseconds(1), startRunner: false)
+        await engine.step(for: fakeHost)
+    }
+
+    let pbStatus: PlaybookStatus = try #require(await engine.status(playbook.id))
+    #expect(pbStatus.playbook == playbook)
+    #expect(pbStatus.state == .running)
+    #expect(!pbStatus.results.isEmpty)
+    let resultsFromPbStatus = pbStatus.results
+    #expect(resultsFromPbStatus.count == 1)
+    let dictOfResultsforHost: [Command.ID: CommandExecutionResult] = try #require(resultsFromPbStatus[fakeHost])
+    #expect(dictOfResultsforHost.count == 1)
+    #expect(dictOfResultsforHost[cmd1.id]?.command == cmd1)
+}
