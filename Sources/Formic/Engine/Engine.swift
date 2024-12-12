@@ -6,10 +6,26 @@ public actor Engine {
     var commandResults: [Host: [Command.ID: CommandExecutionResult]]
     var runners: [Host: Task<Void, any Error>]
 
-    // TODO: potentially "stream" the results to observers using an asyncStream
-    // either generally, or a stream per playbook stored?
-    // - define the stream (or collection of streams) here and add in appropriate
-    // yielding in the acceptResult method
+    /// An asynchronous stream of state updates for playbooks.
+    public nonisolated let playbookStateUpdates: AsyncStream<(Playbook.ID, PlaybookRunState)>
+    let stateContinuation: AsyncStream<(Playbook.ID, PlaybookRunState)>.Continuation
+
+    /// An asynchronous stream of command execution results.
+    public nonisolated let commandUpdates: AsyncStream<(CommandExecutionResult)>
+    let commandContinuation: AsyncStream<(CommandExecutionResult)>.Continuation
+
+    /// Creates a new engine.
+    public init() {
+        clock = ContinuousClock()
+        states = [:]
+        commandResults = [:]
+        runners = [:]
+        playbooks = [:]
+
+        // assemble the streams and continuations
+        (playbookStateUpdates, stateContinuation) = AsyncStream.makeStream(of: (Playbook.ID, PlaybookRunState).self)
+        (commandUpdates, commandContinuation) = AsyncStream.makeStream(of: CommandExecutionResult.self)
+    }
 
     // MARK: Operating mode and scheduling
 
@@ -27,6 +43,7 @@ public actor Engine {
         playbooks[playbook.id] = playbook
         // set the initial state of the playbook
         states[playbook.id] = .scheduled
+        stateContinuation.yield((playbook.id, .scheduled))
 
         for host in playbook.hosts {
             // initialize empty result set for each host listed in the playbook, if needed
@@ -60,6 +77,7 @@ public actor Engine {
             switch state {
             case .scheduled, .running:
                 states[playbookId] = .cancelled
+                stateContinuation.yield((playbookId, .cancelled))
             case .complete, .failed, .cancelled:
                 break
             }
@@ -156,21 +174,24 @@ public actor Engine {
             // advance the state to running if it wasn't before
             if states[playbookId] == .scheduled {
                 states[playbookId] = .running
+                stateContinuation.yield((playbookId, .running))
             }
             // if the result is failure, terminate the playbook unless its marked to be ignored
             if result.output.returnCode != 0 && !result.command.ignoreFailure {
                 states[playbookId] = .failed
+                stateContinuation.yield((playbookId, .failed))
             } else {
                 if result.command == playbooks[playbookId]?.commands.last {
                     // check for completion
                     if playbookComplete(playbookId: playbookId) {
                         states[playbookId] = .complete
+                        stateContinuation.yield((playbookId, .complete))
                     }
                 }
             }
-            // TODO: potentially "stream" the results to observers using an asyncStream
-            // either generally, or a stream per playbook stored?
         }
+        // stream the result as well
+        commandContinuation.yield(result)
     }
 
     func playbookComplete(playbookId: Playbook.ID) -> Bool {
@@ -208,7 +229,11 @@ public actor Engine {
             commandResults[host] = [command.id: exceptionReport]
         }
         states[playbookId] = .failed
+        stateContinuation.yield((playbookId, .failed))
+        // stream the result as well
+        commandContinuation.yield(exceptionReport)
     }
+
     // MARK: Running API
 
     /// Runs the next command available for the host you provide.
@@ -246,14 +271,5 @@ public actor Engine {
         return CommandExecutionResult(
             command: command, host: host, playbookId: playbookId, output: commandOutput, duration: duration, retries: 0,
             exception: nil)
-    }
-
-    /// Creates a new engine.
-    public init() {
-        clock = ContinuousClock()
-        states = [:]
-        commandResults = [:]
-        runners = [:]
-        playbooks = [:]
     }
 }
