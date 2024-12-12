@@ -98,7 +98,6 @@ func testEngineScheduleStep() async throws {
     #expect(await engine.playbooks[playbook.id] == playbook)
     #expect(await engine.states.count == 1)
     let playbookRunState = try #require(await engine.states[playbook.id])
-    print(playbookRunState)
     #expect(playbookRunState == .running)
 
     // and verify the results of the first command are recorded
@@ -109,4 +108,55 @@ func testEngineScheduleStep() async throws {
     #expect(singleResult.playbookId == playbook.id)
     #expect(singleResult.host == fakeHost)
     #expect(singleResult.retries == 0)
+}
+
+@Test("engine schedule w/ step function")
+func testEngineScheduleStepWithFailure() async throws {
+    typealias Host = Formic.Host
+    let engine = Engine()
+    let cmd1 = Command.shell("uname")
+    let cmd2 = Command.shell("whoami")
+
+    let fakeHost = try await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess(
+            dnsName: "somewhere.com", ipAddressesToUse: ["8.8.8.8"])
+    } operation: {
+        try await Host.resolve("somewhere.com")
+    }
+
+    let playbook = Playbook(name: "example", hosts: [fakeHost], commands: [cmd1, cmd2])
+    let mockCmdInvoker = TestCommandInvoker()
+        .addSuccess(command: ["uname"], presentOutput: "Linux\n")
+        .addFailure(command: ["whoami"], presentOutput: "zsh: command not found: whoami")
+
+    try await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess()
+        dependencyValues.commandInvoker = mockCmdInvoker
+    } operation: {
+        await engine.schedule(playbook, delay: .microseconds(1), startRunner: false)
+        try await engine.step(for: fakeHost)
+        try await engine.step(for: fakeHost)
+    }
+
+    #expect(await engine.runners.count == 0)
+    #expect(await engine.playbooks.count == 1)
+    #expect(await engine.playbooks[playbook.id] == playbook)
+    #expect(await engine.states.count == 1)
+
+    let playbookRunState = try #require(await engine.states[playbook.id])
+    #expect(playbookRunState == .failed)
+
+    #expect(await engine.commandResults.count == 1)
+
+    // and verify the results of the first command are recorded
+    let currentResults: [Command.ID: CommandExecutionResult] = try await #require(engine.commandResults[fakeHost])
+    #expect(currentResults.count == 2)
+    let finalResult: CommandExecutionResult = try #require(currentResults[cmd2.id])
+    #expect(finalResult.command == cmd2)
+    #expect(finalResult.playbookId == playbook.id)
+    #expect(finalResult.host == fakeHost)
+    #expect(finalResult.retries == 0)
+
+    #expect(finalResult.output.returnCode == -1)
+    #expect(finalResult.output.stderrString == "zsh: command not found: whoami")
 }
