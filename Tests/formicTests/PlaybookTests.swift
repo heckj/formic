@@ -24,14 +24,14 @@ func testPlaybookSimpleDeclaration() async throws {
 @Test("test playbook creating with hostname resolution")
 func asyncPlaybookInit() async throws {
     typealias IPv4Address = Formic.Host.IPv4Address
-    
+
     let playbook = await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess(
             dnsName: "somewhere.com", ipAddressesToUse: ["8.8.8.8"])
     } operation: {
         await Playbook(name: "basic", hosts: ["somewhere.com"], commands: [])
     }
-    
+
     #expect(playbook.name == "basic")
     #expect(playbook.hosts.count == 1)
     #expect(playbook.hosts[0].networkAddress.address == IPv4Address("8.8.8.8"))
