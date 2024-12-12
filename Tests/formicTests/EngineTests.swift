@@ -382,3 +382,91 @@ func testPlaybookRunnerIsCreatedOnSchedule() async throws {
     await engine.cancelRunner(for: fakeHost)
     #expect(await engine.runners.count == 0)
 }
+
+@Test("verify playbook state stream")
+func testPlaybookStateStream() async throws {
+    typealias Host = Formic.Host
+    let engine = Engine()
+    let cmd1 = Command.shell("uname")
+    let cmd2 = Command.shell("whoami")
+
+    let fakeHost = try await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess(
+            dnsName: "somewhere.com", ipAddressesToUse: ["8.8.8.8"])
+    } operation: {
+        try await Host.resolve("somewhere.com")
+    }
+
+    let playbook = Playbook(name: "example", hosts: [fakeHost], commands: [cmd1, cmd2])
+    let mockCmdInvoker = TestCommandInvoker()
+        .addSuccess(command: ["uname"], presentOutput: "Linux\n")
+        .throwError(command: ["whoami"], errorToThrow: TestError.unknown(msg: "Process failed in something"))
+
+    let stateStream: AsyncStream<(Playbook.ID, PlaybookRunState)> = engine.playbookStateUpdates
+    var streamIterator = stateStream.makeAsyncIterator()
+
+    try await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess()
+        dependencyValues.commandInvoker = mockCmdInvoker
+    } operation: {
+        await engine.schedule(playbook, delay: .microseconds(1), startRunner: false)
+
+        var (id, state) = try #require(await streamIterator.next())
+        #expect(id == playbook.id)
+        #expect(state == .scheduled)
+
+        await engine.step(for: fakeHost)
+
+        (id, state) = try #require(await streamIterator.next())
+        #expect(id == playbook.id)
+        #expect(state == .running)
+
+        await engine.step(for: fakeHost)
+        (id, state) = try #require(await streamIterator.next())
+        #expect(id == playbook.id)
+        #expect(state == .failed)
+    }
+}
+
+@Test("verify playbook command result stream")
+func testPlaybookCommandResultStream() async throws {
+    typealias Host = Formic.Host
+    let engine = Engine()
+    let cmd1 = Command.shell("uname")
+    let cmd2 = Command.shell("whoami")
+
+    let fakeHost = try await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess(
+            dnsName: "somewhere.com", ipAddressesToUse: ["8.8.8.8"])
+    } operation: {
+        try await Host.resolve("somewhere.com")
+    }
+
+    let playbook = Playbook(name: "example", hosts: [fakeHost], commands: [cmd1, cmd2])
+    let mockCmdInvoker = TestCommandInvoker()
+        .addSuccess(command: ["uname"], presentOutput: "Linux\n")
+        .throwError(command: ["whoami"], errorToThrow: TestError.unknown(msg: "Process failed in something"))
+
+    let stateStream: AsyncStream<CommandExecutionResult> = engine.commandUpdates
+    var streamIterator = stateStream.makeAsyncIterator()
+
+    try await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess()
+        dependencyValues.commandInvoker = mockCmdInvoker
+    } operation: {
+        await engine.schedule(playbook, delay: .microseconds(1), startRunner: false)
+
+        await engine.step(for: fakeHost)
+
+        var result: CommandExecutionResult = try #require(await streamIterator.next())
+        #expect(result.playbookId == playbook.id)
+        #expect(result.exception == nil)
+        #expect(result.command == cmd1)
+
+        await engine.step(for: fakeHost)
+        result = try #require(await streamIterator.next())
+        #expect(result.playbookId == playbook.id)
+        #expect(result.exception != nil)
+        #expect(result.command == cmd2)
+    }
+}
