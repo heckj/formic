@@ -72,7 +72,7 @@ public actor Engine {
         if let runner = runners[host] {
             runner.cancel()
         }
-        // runners[host] = nil
+        runners[host] = nil
     }
 
     /// Returns a Boolean value that indicates whether there is active processing for the host you provide.
