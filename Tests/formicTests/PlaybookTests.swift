@@ -21,29 +21,18 @@ func testPlaybookSimpleDeclaration() async throws {
     #expect(playbook.commands[2].args == ["ls", "-l"])
 }
 
-@Test("example run of a simple playlist")
-func basicPlaybook() async throws {
-
-    let playbook = withDependencies { dependencyValues in
-        dependencyValues.localSystemAccess = TestFileSystemAccess()
+@Test("test playbook creating with hostname resolution")
+func asyncPlaybookInit() async throws {
+    typealias IPv4Address = Formic.Host.IPv4Address
+    
+    let playbook = await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess(
+            dnsName: "somewhere.com", ipAddressesToUse: ["8.8.8.8"])
     } operation: {
-        Playbook(
-            name: "example", hosts: [.localhost],
-            commands: [
-                Command.shell("uname"),
-                Command.shell("pwd"),
-                Command.shell("ls", "-l"),
-            ])
+        await Playbook(name: "basic", hosts: ["somewhere.com"], commands: [])
     }
-
-    #expect(playbook.name == "example")
+    
+    #expect(playbook.name == "basic")
     #expect(playbook.hosts.count == 1)
-    #expect(playbook.hosts[0].remote == false)
-    #expect(playbook.commands.count == 3)
-
-    try withDependencies {
-        $0.commandInvoker = TestCommandInvoker()
-    } operation: {
-        try playbook.runSync()
-    }
+    #expect(playbook.hosts[0].networkAddress.address == IPv4Address("8.8.8.8"))
 }
