@@ -4,8 +4,8 @@
 
 ### Creating a Command
 
-- ``Command/shell(_:env:)``
-- ``Command/remoteCopy(from:to:)``
+- ``Command/shell(_:env:ignoreFailure:retryOnFailure:backoff:)``
+- ``Command/remoteCopy(from:to:ignoreFailure:retryOnFailure:backoff:)``
 - ``Command/init(from:)``
 
 ### Inspecting Commands
