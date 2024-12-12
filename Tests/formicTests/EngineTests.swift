@@ -162,6 +162,50 @@ func testEngineScheduleStepWithFailure() async throws {
     #expect(finalResult.output.stderrString == "zsh: command not found: whoami")
 }
 
+@Test("playbook complete w/ step function")
+func testPlaybookComplete() async throws {
+    typealias Host = Formic.Host
+    let engine = Engine()
+    let cmd1 = Command.shell("uname")
+    let cmd2 = Command.shell("whoami")
+
+    let fakeHost = try await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess(
+            dnsName: "somewhere.com", ipAddressesToUse: ["8.8.8.8"])
+    } operation: {
+        try await Host.resolve("somewhere.com")
+    }
+
+    let playbook = Playbook(name: "example", hosts: [fakeHost, .localhost], commands: [cmd1, cmd2])
+    let mockCmdInvoker = TestCommandInvoker()
+        .addSuccess(command: ["uname"], presentOutput: "Linux\n")
+        .addSuccess(command: ["whoami"], presentOutput: "zsh: command not found: whoami")
+
+    await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess()
+        dependencyValues.commandInvoker = mockCmdInvoker
+    } operation: {
+        #expect(await engine.playbookComplete(playbookId: playbook.id) == false)
+        await engine.schedule(playbook, delay: .microseconds(1), startRunner: false)
+        #expect(await engine.playbookComplete(playbookId: playbook.id) == false)
+        await engine.step(for: fakeHost)
+        #expect(await engine.playbookComplete(playbookId: playbook.id) == false)
+        await engine.step(for: fakeHost)
+        #expect(await engine.playbookComplete(playbookId: playbook.id) == false)
+        await engine.step(for: .localhost)
+        #expect(await engine.playbookComplete(playbookId: playbook.id) == false)
+        await engine.step(for: .localhost)
+        #expect(await engine.playbookComplete(playbookId: playbook.id) == true)
+    }
+}
+
+@Test("playbook result for non-existant playbook")
+func testUnknownPlaybookComplete() async throws {
+    let engine = Engine()
+    let unregisteredPlaybook = await Playbook(name: "unknown", hosts: [], commands: [])
+    #expect(await engine.playbookComplete(playbookId: unregisteredPlaybook.id) == false)
+}
+
 @Test("engine schedule w/ immediate error using step function")
 func testEngineScheduleStepWithImmediateError() async throws {
     typealias Host = Formic.Host
