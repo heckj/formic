@@ -33,7 +33,7 @@ extension Host {
             self.init(address)
         }
 
-        private init(_ address: IPv4Address, resolvedName: String) {
+        internal init(_ address: IPv4Address, resolvedName: String) {
             self.address = address
             self.dnsName = resolvedName
         }
