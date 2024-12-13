@@ -24,7 +24,7 @@ public struct CommandOutput: Sendable {
         }
         return String(data: stdErr, encoding: String.Encoding.utf8)
     }
-    
+
     /// Create a new command output.
     /// - Parameters:
     ///   - returnCode: The return code

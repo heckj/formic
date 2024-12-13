@@ -1,5 +1,5 @@
 /// The state of execution for a playbook.
-public enum PlaybookRunState: Sendable, Hashable, Codable {
+public enum PlaybookState: Sendable, Hashable, Codable {
     /// The playbook is scheduled to run, but hasn't yet started.
     ///
     /// This is the initial state.
