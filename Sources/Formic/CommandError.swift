@@ -2,12 +2,19 @@ import Foundation
 
 /// An error that occurs when running a command.
 public enum CommandError: LocalizedError {
+    /// Failure due to missing SSH access credentials.
     case missingSSHAccessCredentials(msg: String)
+    /// Failure due to inability to resolve a host.
     case failedToResolveHost(name: String)
+    /// Failure due to no output to parse.
     case noOutputToParse(msg: String)
+    /// Failure due to a command failing.
     case commandFailed(rc: Int32, errmsg: String)
+    /// Failure due to an invalid command.
     case invalidCommand(msg: String)
+    /// Failure due to a command timeout exceeding.
     case timeoutExceeded(cmd: Command)
+    /// Failure due to no output from a command
     case noOutputFromCommand(cmd: Command)
 
     /// The localized description.
