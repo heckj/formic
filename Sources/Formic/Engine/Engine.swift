@@ -272,28 +272,55 @@ public actor Engine {
     {
         // `nonisolated` + `async` means run on a cooperative thread pool and return the result
         // remove the `nonisolated` keyword to run in the actor's context.
-        let start = clock.now
+        var shouldAttemptRetry: Bool = false
+        var numberOfRetries: Int = -1
+        var maxRetries: Int = 0
+        var durationOfLastAttempt: Duration = .zero
+        var outputOfLastAttempt: CommandOutput = .empty
+        var retryDelayStrategy: Backoff.Strategy = .none
 
-        // TODO: handle failure and retry logic
-        let commandOutput = try await withThrowingTaskGroup(of: CommandOutput.self, returning: CommandOutput.self) {
-            group in
-            group.addTask {
-                return try await command.run(host: host)
-            }
-            group.addTask {
-                try await Task.sleep(for: command.executionTimeout)
-                try Task.checkCancellation()
-                throw CommandError.timeoutExceeded(cmd: command)
-            }
-            guard let output = try await group.next() else {
-                throw CommandError.noOutputFromCommand(cmd: command)
-            }
-            group.cancelAll()
-            return output
+        if case .retryOnFailure(let backoffSetting) = command.retry {
+            shouldAttemptRetry = true
+            maxRetries = backoffSetting.maxRetries
+            retryDelayStrategy = backoffSetting.strategy
         }
-        let duration = clock.now - start
+
+        repeat {
+            numberOfRetries += 1
+            let start = clock.now
+            outputOfLastAttempt = try await withThrowingTaskGroup(of: CommandOutput.self, returning: CommandOutput.self)
+            {
+                group in
+                group.addTask {
+                    return try await command.run(host: host)
+                }
+                group.addTask {
+                    try await Task.sleep(for: command.executionTimeout)
+                    try Task.checkCancellation()
+                    throw CommandError.timeoutExceeded(cmd: command)
+                }
+                guard let output = try await group.next() else {
+                    throw CommandError.noOutputFromCommand(cmd: command)
+                }
+                group.cancelAll()
+                return output
+            }
+            durationOfLastAttempt = clock.now - start
+
+            if outputOfLastAttempt.returnCode == 0 {
+                return CommandExecutionResult(
+                    command: command, host: host, playbookId: playbookId, output: outputOfLastAttempt,
+                    duration: durationOfLastAttempt, retries: numberOfRetries,
+                    exception: nil)
+            } else {
+                let delay = retryDelayStrategy.delay(for: numberOfRetries)
+                try await Task.sleep(for: delay)
+            }
+        } while shouldAttemptRetry && numberOfRetries < maxRetries
+
         return CommandExecutionResult(
-            command: command, host: host, playbookId: playbookId, output: commandOutput, duration: duration, retries: 0,
+            command: command, host: host, playbookId: playbookId, output: outputOfLastAttempt,
+            duration: durationOfLastAttempt, retries: numberOfRetries,
             exception: nil)
     }
 }

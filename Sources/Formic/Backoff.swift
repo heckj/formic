@@ -1,5 +1,10 @@
 import Foundation
 
+public enum RetrySetting: Sendable, Hashable, Codable {
+    case none
+    case retryOnFailure(Backoff)
+}
+
 /// The backoff settings for a command.
 public struct Backoff: Sendable, Hashable, Codable {
 
@@ -12,37 +17,37 @@ public struct Backoff: Sendable, Hashable, Codable {
     public enum Strategy: Sendable, Hashable, Codable {
         // precomputed fibonacci backoffs for up to 16 attempts
         // max delay of ~5 minutes seemed completely reasonable
-        static let fibBackoffs: [Double] = [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610]
-        static let exponentialBackoffs: [Double] = [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
+        static let fibBackoffs: [Int] = [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610]
+        static let exponentialBackoffs: [Int] = [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
         /// No delay, retry immediately.
         case none
         /// Always delay by the same amount.
-        case constant(delay: TimeInterval)
+        case constant(delay: Duration)
         /// Increment delay by a constant amount, up to a max interval.
-        case linear(increment: TimeInterval, maxDelay: TimeInterval)
+        case linear(increment: Duration, maxDelay: Duration)
         /// Increment delay by a backoff increasing using a fibonacci sequence, up to a max interval.
-        case fibonacci(maxDelay: TimeInterval)
+        case fibonacci(maxDelay: Duration)
         /// Increment delay by a backoff increasing using a exponential sequence, up to a max interval.
-        case exponential(maxDelay: TimeInterval)
+        case exponential(maxDelay: Duration)
 
-        func delay(for attempt: Int) -> TimeInterval {
+        func delay(for attempt: Int) -> Duration {
             switch self {
             case .none:
-                return 0
+                return .zero
             case .constant(let delay):
                 return delay
             case .linear(let increment, let maxDelay):
-                return min(Double(attempt) * increment, maxDelay)
+                return min(increment * attempt, maxDelay)
             case .fibonacci(let maxDelay):
                 if attempt >= Self.fibBackoffs.count {
-                    return min(610, maxDelay)
+                    return min(.seconds(610), maxDelay)
                 }
-                return min(Self.fibBackoffs[attempt], maxDelay)
+                return min(.seconds(Self.fibBackoffs[attempt]), maxDelay)
             case .exponential(let maxDelay):
                 if attempt >= Self.exponentialBackoffs.count {
-                    return min(512, maxDelay)
+                    return min(.seconds(512), maxDelay)
                 }
-                return min(Self.exponentialBackoffs[attempt], maxDelay)
+                return min(.seconds(Self.exponentialBackoffs[attempt]), maxDelay)
             }
         }
     }
@@ -60,6 +65,6 @@ public struct Backoff: Sendable, Hashable, Codable {
     ///
     /// Attempt up to 3 retries, with a growing backoff with a maximum of 60 seconds.
     public static var `default`: Backoff {
-        Backoff(maxRetries: 3, strategy: .fibonacci(maxDelay: 10))
+        Backoff(maxRetries: 3, strategy: .fibonacci(maxDelay: .seconds(10)))
     }
 }
