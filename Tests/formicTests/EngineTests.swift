@@ -14,7 +14,7 @@ func initEngine() async throws {
     #expect(await engine.states.isEmpty)
 
     // external/public API
-    #expect(await engine.status(.localhost) == false)
+    #expect(await engine.runnerOperating(for: .localhost) == false)
     #expect(await engine.status(UUID()) == nil)
 
     // internal pieces
@@ -402,7 +402,7 @@ func testPlaybookStateStream() async throws {
         .addSuccess(command: ["uname"], presentOutput: "Linux\n")
         .throwError(command: ["whoami"], errorToThrow: TestError.unknown(msg: "Process failed in something"))
 
-    let stateStream: AsyncStream<(Playbook.ID, PlaybookRunState)> = engine.playbookStateUpdates
+    let stateStream: AsyncStream<(Playbook.ID, PlaybookRunState)> = engine.playbookUpdates
     var streamIterator = stateStream.makeAsyncIterator()
 
     try await withDependencies { dependencyValues in

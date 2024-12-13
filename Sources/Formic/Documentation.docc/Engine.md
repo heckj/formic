@@ -9,12 +9,18 @@
 ### Running Playbooks
 
 - ``schedule(_:delay:startRunner:)``
-- ``status(_:)-2x8yf``
+- ``step(for:)``
 - ``cancel(_:)``
+
+### Receiving Updates from the Engine
+
+- ``commandUpdates``
+- ``playbookUpdates``
+- ``status(_:)``
 
 ### Inspecting the Engine
 
-- ``status(_:)-71oxz``
+- ``runnerOperating(for:)``
 
 ### Controlling the Engine
 
