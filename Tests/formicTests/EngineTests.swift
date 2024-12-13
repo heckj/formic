@@ -499,3 +499,33 @@ func testCommandTimeout() async throws {
             }
         })
 }
+
+@Test("verify retry works as expected")
+func testCommandRetry() async throws {
+    typealias Host = Formic.Host
+    let engine = Engine()
+    let cmd1 = Command.shell("uname", retry: .retryOnFailure(.default))
+
+    let fakeHost = try await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess(
+            dnsName: "somewhere.com", ipAddressesToUse: ["8.8.8.8"])
+    } operation: {
+        try await Host.resolve("somewhere.com")
+    }
+
+    let mockCmdInvoker = TestCommandInvoker()
+        .addFailure(command: ["uname"], presentOutput: "not tellin!")
+
+    let result = try await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess()
+        dependencyValues.commandInvoker = mockCmdInvoker
+    } operation: {
+        return try await engine.run(command: cmd1, host: fakeHost)
+    }
+
+    #expect(result.command == cmd1)
+    #expect(result.output.returnCode == -1)
+    #expect(result.output.stderrString == "not tellin!")
+    #expect(result.retries == 3)
+    print(result)
+}
