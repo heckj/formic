@@ -2,7 +2,7 @@
 public actor Engine {
     let clock: ContinuousClock
     var playbooks: [Playbook.ID: Playbook]
-    var states: [Playbook.ID: PlaybookRunState]
+    var states: [Playbook.ID: PlaybookState]
     var commandResults: [Host: [Command.ID: CommandExecutionResult]]
     var runners: [Host: Task<Void, any Error>]
 
@@ -11,8 +11,8 @@ public actor Engine {
     /// You can request the state of a playbook by calling the ``status(_:)`` method
     /// or watch a stream of the command results as they process by reading the ``commandUpdates``
     /// stream.
-    public nonisolated let playbookUpdates: AsyncStream<(Playbook.ID, PlaybookRunState)>
-    let stateContinuation: AsyncStream<(Playbook.ID, PlaybookRunState)>.Continuation
+    public nonisolated let playbookUpdates: AsyncStream<(Playbook.ID, PlaybookState)>
+    let stateContinuation: AsyncStream<(Playbook.ID, PlaybookState)>.Continuation
 
     /// An asynchronous stream of command execution results.
     public nonisolated let commandUpdates: AsyncStream<(CommandExecutionResult)>
@@ -27,7 +27,7 @@ public actor Engine {
         playbooks = [:]
 
         // assemble the streams and continuations
-        (playbookUpdates, stateContinuation) = AsyncStream.makeStream(of: (Playbook.ID, PlaybookRunState).self)
+        (playbookUpdates, stateContinuation) = AsyncStream.makeStream(of: (Playbook.ID, PlaybookState).self)
         (commandUpdates, commandContinuation) = AsyncStream.makeStream(of: CommandExecutionResult.self)
     }
 

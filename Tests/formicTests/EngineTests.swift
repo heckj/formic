@@ -403,7 +403,7 @@ func testPlaybookStateStream() async throws {
         .addSuccess(command: ["uname"], presentOutput: "Linux\n")
         .throwError(command: ["whoami"], errorToThrow: TestError.unknown(msg: "Process failed in something"))
 
-    let stateStream: AsyncStream<(Playbook.ID, PlaybookRunState)> = engine.playbookUpdates
+    let stateStream: AsyncStream<(Playbook.ID, PlaybookState)> = engine.playbookUpdates
     var streamIterator = stateStream.makeAsyncIterator()
 
     try await withDependencies { dependencyValues in
