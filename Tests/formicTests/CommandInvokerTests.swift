@@ -9,7 +9,7 @@ import Testing
     .timeLimit(.minutes(1)),
     .tags(.functionalTest))
 func invokeBasicCommandLocally() async throws {
-    let shellResult = try ProcessCommandInvoker().localShell(cmd: ["uname"], stdIn: nil, env: nil)
+    let shellResult = try await ProcessCommandInvoker().localShell(cmd: ["uname"], stdIn: nil, env: nil)
 
     // results expected on a Linux host only
     #expect(shellResult.returnCode == 0)

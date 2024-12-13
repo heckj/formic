@@ -7,6 +7,8 @@ public enum CommandError: LocalizedError {
     case noOutputToParse(msg: String)
     case commandFailed(rc: Int32, errmsg: String)
     case invalidCommand(msg: String)
+    case timeoutExceeded(cmd: Command)
+    case noOutputFromCommand(cmd: Command)
 
     /// The localized description.
     public var errorDescription: String? {
@@ -21,6 +23,10 @@ public enum CommandError: LocalizedError {
             "Command failed with return code \(rc): \(errmsg)"
         case .invalidCommand(let msg):
             "Invalid command: \(msg)"
+        case .timeoutExceeded(let command):
+            "Timeout exceeded for command: \(command)"
+        case .noOutputFromCommand(let cmd):
+            "No output received from command: \(cmd)"
         }
     }
 }

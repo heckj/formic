@@ -5,18 +5,19 @@ import Foundation
 @testable import Formic
 
 struct TestCommandInvoker: CommandInvoker {
-
-    var proxyResults: [[String]: CommandOutput]
+    // proxyResults is keyed by arguments, returns a tuple of seconds delay to apply, then the result
+    var proxyResults: [[String]: (Duration, CommandOutput)]
     var proxyErrors: [[String]: (any Error)]
 
     func remoteCopy(
         host: String, user: String, identityFile: String?, port: Int?, strictHostKeyChecking: Bool, localPath: String,
         remotePath: String
-    ) throws -> Formic.CommandOutput {
+    ) async throws -> Formic.CommandOutput {
         if let errorToThrow = proxyErrors[[localPath, remotePath]] {
             throw errorToThrow
         }
-        if let storedResponse = proxyResults[[localPath, remotePath]] {
+        if let (delay, storedResponse) = proxyResults[[localPath, remotePath]] {
+            try await Task.sleep(for: delay)
             return storedResponse
         }
         return CommandOutput(returnCode: 0, stdOut: "".data(using: .utf8), stdErr: nil)
@@ -25,26 +26,28 @@ struct TestCommandInvoker: CommandInvoker {
     func remoteShell(
         host: String, user: String, identityFile: String?, port: Int?, strictHostKeyChecking: Bool, cmd: [String],
         env: [String: String]?
-    ) throws -> Formic.CommandOutput {
+    ) async throws -> Formic.CommandOutput {
         if let errorToThrow = proxyErrors[cmd] {
             throw errorToThrow
         }
-        if let storedResponse = proxyResults[cmd] {
+        if let (delay, storedResponse) = proxyResults[cmd] {
+            try await Task.sleep(for: delay)
             return storedResponse
         }
         // default to a null, success response
         return CommandOutput(returnCode: 0, stdOut: "".data(using: .utf8), stdErr: nil)
     }
 
-    func localShell(cmd: [String], stdIn: Pipe?, env: [String: String]?) throws -> Formic.CommandOutput {
-        if let storedResponse = proxyResults[cmd] {
+    func localShell(cmd: [String], stdIn: Pipe?, env: [String: String]?) async throws -> Formic.CommandOutput {
+        if let (delay, storedResponse) = proxyResults[cmd] {
+            try await Task.sleep(for: delay)
             return storedResponse
         }
         // default to a null, success response
         return CommandOutput(returnCode: 0, stdOut: "".data(using: .utf8), stdErr: nil)
     }
 
-    init(_ outputs: [[String]: CommandOutput]? = nil, _ errors: [[String]: (any Error)]? = nil) {
+    init(_ outputs: [[String]: (Duration, CommandOutput)]? = nil, _ errors: [[String]: (any Error)]? = nil) {
         if let outputs {
             self.proxyResults = outputs
         } else {
@@ -57,29 +60,33 @@ struct TestCommandInvoker: CommandInvoker {
         }
     }
 
-    init(command: [String], presentOutput: String) {
-        self.proxyResults = [
-            command: CommandOutput(returnCode: 0, stdOut: presentOutput.data(using: .utf8), stdErr: nil)
-        ]
+    init() {
+        proxyResults = [:]
         proxyErrors = [:]
     }
 
-    func addSuccess(command: [String], presentOutput: String) -> Self {
+    func addSuccess(command: [String], presentOutput: String, delay: Duration = .zero) -> Self {
         var existingResult = proxyResults
-        existingResult[command] = CommandOutput(
-            returnCode: 0,
-            stdOut: presentOutput.data(using: .utf8),
-            stdErr: nil)
+        existingResult[command] = (
+            delay,
+            CommandOutput(
+                returnCode: 0,
+                stdOut: presentOutput.data(using: .utf8),
+                stdErr: nil)
+        )
         return TestCommandInvoker(existingResult, proxyErrors)
     }
 
-    func addFailure(command: [String], presentOutput: String, returnCode: Int32 = -1) -> Self {
+    func addFailure(command: [String], presentOutput: String, delay: Duration = .zero, returnCode: Int32 = -1) -> Self {
         var existingResult = proxyResults
-        existingResult[command] = CommandOutput(
-            returnCode: returnCode,
-            stdOut: nil,
-            stdErr:
-                presentOutput.data(using: .utf8))
+        existingResult[command] = (
+            delay,
+            CommandOutput(
+                returnCode: returnCode,
+                stdOut: nil,
+                stdErr:
+                    presentOutput.data(using: .utf8))
+        )
         return TestCommandInvoker(existingResult, proxyErrors)
     }
 

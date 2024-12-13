@@ -33,7 +33,7 @@ protocol CommandInvoker: Sendable {
         strictHostKeyChecking: Bool,
         cmd: [String],
         env: [String: String]?
-    ) throws -> CommandOutput
+    ) async throws -> CommandOutput
 
     func remoteCopy(
         host: String,
@@ -43,13 +43,13 @@ protocol CommandInvoker: Sendable {
         strictHostKeyChecking: Bool,
         localPath: String,
         remotePath: String
-    ) throws -> CommandOutput
+    ) async throws -> CommandOutput
 
     func localShell(
         cmd: [String],
         stdIn: Pipe?,
         env: [String: String]?
-    ) throws -> CommandOutput
+    ) async throws -> CommandOutput
 }
 
 // registers the dependency
@@ -82,7 +82,7 @@ struct ProcessCommandInvoker: CommandInvoker {
     /// The types of errors thrown from those locations aren't undocumented.
     func localShell(
         cmd: [String], stdIn: Pipe? = nil, env: [String: String]? = nil
-    ) throws -> CommandOutput {
+    ) async throws -> CommandOutput {
         #if DEBUG
             print("DEBUG!! : \(cmd)")
         #endif
@@ -136,7 +136,7 @@ struct ProcessCommandInvoker: CommandInvoker {
         strictHostKeyChecking: Bool = false,
         localPath: String,
         remotePath: String
-    ) throws -> CommandOutput {
+    ) async throws -> CommandOutput {
         var args: [String] = ["scp"]
 
         if strictHostKeyChecking {
@@ -156,7 +156,7 @@ struct ProcessCommandInvoker: CommandInvoker {
         args.append("\(user)@\(host):\(remotePath)")
         // loose form:
         // scp -o StrictHostKeyChecking=no get-docker.sh "docker-user@${IP_ADDRESS}:get-docker.sh"
-        let rcAndPipe = try localShell(cmd: args)
+        let rcAndPipe = try await localShell(cmd: args)
         return rcAndPipe
     }
 
@@ -179,7 +179,7 @@ struct ProcessCommandInvoker: CommandInvoker {
         strictHostKeyChecking: Bool = false,
         cmd: [String],
         env: [String: String]? = nil
-    ) throws -> CommandOutput {
+    ) async throws -> CommandOutput {
         var args: [String] = ["ssh"]
         if strictHostKeyChecking {
             args.append("-o")
@@ -203,7 +203,7 @@ struct ProcessCommandInvoker: CommandInvoker {
         // does this with significantly more finness, checking the output as it's returned and providing a pass
         // to use sshpass to authenticate, or to escalate commands with sudo and a password, before the core
         // command is invoked.
-        let rcAndPipe = try localShell(cmd: args, env: env)
+        let rcAndPipe = try await localShell(cmd: args, env: env)
         return rcAndPipe
     }
 }
