@@ -24,7 +24,12 @@ public struct CommandOutput: Sendable {
         }
         return String(data: stdErr, encoding: String.Encoding.utf8)
     }
-
+    
+    /// Create a new command output.
+    /// - Parameters:
+    ///   - returnCode: The return code
+    ///   - stdOut: The raw data for STDOUT, if any.
+    ///   - stdErr: The raw data for STDERR, if any.
     init(returnCode: Int32, stdOut: Data?, stdErr: Data?) {
         self.returnCode = returnCode
         self.stdOut = stdOut
