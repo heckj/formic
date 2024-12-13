@@ -7,7 +7,11 @@ public actor Engine {
     var runners: [Host: Task<Void, any Error>]
 
     /// An asynchronous stream of state updates for playbooks.
-    public nonisolated let playbookStateUpdates: AsyncStream<(Playbook.ID, PlaybookRunState)>
+    ///
+    /// You can request the state of a playbook by calling the ``status(_:)`` method
+    /// or watch a stream of the command results as they process by reading the ``commandUpdates``
+    /// stream.
+    public nonisolated let playbookUpdates: AsyncStream<(Playbook.ID, PlaybookRunState)>
     let stateContinuation: AsyncStream<(Playbook.ID, PlaybookRunState)>.Continuation
 
     /// An asynchronous stream of command execution results.
@@ -23,7 +27,7 @@ public actor Engine {
         playbooks = [:]
 
         // assemble the streams and continuations
-        (playbookStateUpdates, stateContinuation) = AsyncStream.makeStream(of: (Playbook.ID, PlaybookRunState).self)
+        (playbookUpdates, stateContinuation) = AsyncStream.makeStream(of: (Playbook.ID, PlaybookRunState).self)
         (commandUpdates, commandContinuation) = AsyncStream.makeStream(of: CommandExecutionResult.self)
     }
 
@@ -33,6 +37,10 @@ public actor Engine {
     /// - Parameter playbook: The playbook to run.
     /// - Parameter delay: The delay between steps.
     /// - Parameter startRunner: A Boolean value that indicates whether to start the runner.
+    ///
+    /// If you schedule a playbook with `startRunner` set to `false`, the engine does not automatically
+    /// create a runner to process the commands.
+    /// Call ``step(for:)`` to process the commands individually.
     public func schedule(_ playbook: Playbook, delay: Duration = .seconds(1), startRunner: Bool = true) {
         for host in playbook.hosts {
             if commandResults[host] == nil {
@@ -95,7 +103,7 @@ public actor Engine {
 
     /// Returns a Boolean value that indicates whether there is active processing for the host you provide.
     /// - Parameter host: The host to check.
-    public func status(_ host: Host) -> Bool {
+    public func runnerOperating(for host: Host) -> Bool {
         return runners[host] != nil
     }
 
