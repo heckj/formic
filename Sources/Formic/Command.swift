@@ -13,6 +13,7 @@ public struct Command: Sendable, Identifiable {
     public let ignoreFailure: Bool
     public let retryOnFailure: Bool
     public let backoff: Backoff
+    public let executionTimeout: Duration
     public let id: UUID
 
     // I'm special-casing Command using this sort of wonky hack to keep the
@@ -29,7 +30,7 @@ public struct Command: Sendable, Identifiable {
 
     private init(
         args: [String], env: [String: String]?, commandType: CommandType, ignoreFailure: Bool,
-        retryOnFailure: Bool, backoff: Backoff
+        retryOnFailure: Bool, backoff: Backoff, executionTimeout: Duration
     ) {
         self.args = args
         self.env = env
@@ -37,6 +38,7 @@ public struct Command: Sendable, Identifiable {
         self.retryOnFailure = retryOnFailure
         self.ignoreFailure = ignoreFailure
         self.backoff = backoff
+        self.executionTimeout = executionTimeout
         id = UUID()
     }
 
@@ -50,11 +52,11 @@ public struct Command: Sendable, Identifiable {
     /// - Returns: The command declaration.
     public static func shell(
         _ args: String..., env: [String: String]? = nil, ignoreFailure: Bool = false, retryOnFailure: Bool = false,
-        backoff: Backoff = .default
+        backoff: Backoff = .default, timeout: Duration = .seconds(30)
     ) -> Command {
         Command(
             args: args, env: env, commandType: .shell, ignoreFailure: ignoreFailure, retryOnFailure: retryOnFailure,
-            backoff: backoff)
+            backoff: backoff, executionTimeout: timeout)
     }
 
     /// Creates a new command declaration that copies a file to a remote host.
@@ -66,18 +68,18 @@ public struct Command: Sendable, Identifiable {
     ///   - backoff: The strategy used to delay when retrying a failed command.
     public static func remoteCopy(
         from: String, to: String, ignoreFailure: Bool = false, retryOnFailure: Bool = false,
-        backoff: Backoff = .default
+        backoff: Backoff = .default, timeout: Duration = .seconds(30)
     ) -> Command {
         Command(
             args: [from, to], env: nil, commandType: .scp, ignoreFailure: ignoreFailure, retryOnFailure: retryOnFailure,
-            backoff: backoff)
+            backoff: backoff, executionTimeout: timeout)
     }
 
     /// Runs the command on the host you provide.
     /// - Parameter host: The host on which to run the command.
     /// - Returns: The command output.
     @discardableResult
-    public func run(host: Host) throws -> CommandOutput {
+    public func run(host: Host) async throws -> CommandOutput {
         @Dependency(\.commandInvoker) var invoker: any CommandInvoker
         switch commandType {
         case .scp:
@@ -87,7 +89,7 @@ public struct Command: Sendable, Identifiable {
                 if args.count != 2 {
                     throw CommandError.invalidCommand(msg: "SCP requires a single 'from' and 'to' path as arguments.")
                 }
-                return try invoker.remoteCopy(
+                return try await invoker.remoteCopy(
                     host: targetHostName,
                     user: sshCreds.username,
                     identityFile: sshCreds.identityFile,
@@ -102,7 +104,7 @@ public struct Command: Sendable, Identifiable {
             if host.remote {
                 let sshCreds = host.sshAccessCredentials
                 let targetHostName = host.networkAddress.dnsName ?? host.networkAddress.address.description
-                return try invoker.remoteShell(
+                return try await invoker.remoteShell(
                     host: targetHostName,
                     user: sshCreds.username,
                     identityFile: sshCreds.identityFile,
@@ -111,7 +113,7 @@ public struct Command: Sendable, Identifiable {
                     cmd: args,
                     env: env)
             } else {
-                return try invoker.localShell(cmd: args, stdIn: nil, env: env)
+                return try await invoker.localShell(cmd: args, stdIn: nil, env: env)
             }
         }
     }

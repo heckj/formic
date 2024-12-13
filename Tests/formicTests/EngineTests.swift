@@ -35,7 +35,8 @@ func testEngineRun() async throws {
     let cmd = Command.shell("uname")
     let cmdExecOut = try await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess()
-        dependencyValues.commandInvoker = TestCommandInvoker(command: ["uname"], presentOutput: "Darwin\n")
+        dependencyValues.commandInvoker = TestCommandInvoker()
+            .addSuccess(command: ["uname"], presentOutput: "Darwin\n")
     } operation: {
         try await engine.run(command: cmd, host: .localhost)
     }
@@ -469,4 +470,32 @@ func testPlaybookCommandResultStream() async throws {
         #expect(result.exception != nil)
         #expect(result.command == cmd2)
     }
+}
+
+@Test("verify timeout is triggered on long command")
+func testCommandTimeout() async throws {
+    typealias Host = Formic.Host
+    let engine = Engine()
+    let cmd1 = Command.shell("uname", timeout: .seconds(1))
+
+    let fakeHost = try await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess(
+            dnsName: "somewhere.com", ipAddressesToUse: ["8.8.8.8"])
+    } operation: {
+        try await Host.resolve("somewhere.com")
+    }
+
+    let mockCmdInvoker = TestCommandInvoker()
+        .addSuccess(command: ["uname"], presentOutput: "Linux\n", delay: .seconds(2))
+
+    await #expect(
+        throws: CommandError.self, "Slow command should invoke timeout",
+        performing: {
+            let _ = try await withDependencies { dependencyValues in
+                dependencyValues.localSystemAccess = TestFileSystemAccess()
+                dependencyValues.commandInvoker = mockCmdInvoker
+            } operation: {
+                return try await engine.run(command: cmd1, host: fakeHost)
+            }
+        })
 }

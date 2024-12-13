@@ -53,10 +53,11 @@ func testOSStringInitializer() async throws {
 
 @Test("verify the OperatingSystem.singularInquiry(_:String) function")
 func testOperatingSystemSingularInquiry() async throws {
-    let shellResult: CommandOutput = try withDependencies {
-        $0.commandInvoker = TestCommandInvoker(command: ["uname"], presentOutput: "Linux\n")
+    let shellResult: CommandOutput = try await withDependencies {
+        $0.commandInvoker = TestCommandInvoker()
+            .addSuccess(command: ["uname"], presentOutput: "Linux\n")
     } operation: {
-        try OperatingSystem.singularInquiry.run(host: .localhost)
+        try await OperatingSystem.singularInquiry.run(host: .localhost)
     }
 
     // results proxied for a linux host
@@ -73,11 +74,13 @@ func testOperatingSystemParse() async throws {
 @Test("test singular findResource for operating system")
 func testOperatingSystemQuery() async throws {
 
-    let (parsedOS, _) = try withDependencies {
-        $0.commandInvoker = TestCommandInvoker(command: ["uname"], presentOutput: "Linux\n")
+    let (parsedOS, _) = try await withDependencies {
+        $0.commandInvoker = TestCommandInvoker()
+            .addSuccess(command: ["uname"], presentOutput: "Linux\n")
+
         $0.date.now = Date(timeIntervalSince1970: 1_234_567_890)
     } operation: {
-        try OperatingSystem.findResource(from: .localhost)
+        try await OperatingSystem.findResource(from: .localhost)
     }
 
     #expect(parsedOS.name == .linux)
@@ -88,11 +91,12 @@ func testOperatingSystemInstanceQuery() async throws {
 
     let instance = OperatingSystem(.macOS)
 
-    let (parsedOS, _) = try withDependencies {
-        $0.commandInvoker = TestCommandInvoker(command: ["uname"], presentOutput: "Linux\n")
+    let (parsedOS, _) = try await withDependencies {
+        $0.commandInvoker = TestCommandInvoker()
+            .addSuccess(command: ["uname"], presentOutput: "Linux\n")
         $0.date.now = Date(timeIntervalSince1970: 1_234_567_890)
     } operation: {
-        try instance.queryResource(from: .localhost)
+        try await instance.queryResource(from: .localhost)
     }
 
     #expect(parsedOS.name == .linux)

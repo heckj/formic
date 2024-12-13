@@ -273,8 +273,24 @@ public actor Engine {
         // `nonisolated` + `async` means run on a cooperative thread pool and return the result
         // remove the `nonisolated` keyword to run in the actor's context.
         let start = clock.now
+
         // TODO: handle failure and retry logic
-        let commandOutput = try command.run(host: host)
+        let commandOutput = try await withThrowingTaskGroup(of: CommandOutput.self, returning: CommandOutput.self) {
+            group in
+            group.addTask {
+                return try await command.run(host: host)
+            }
+            group.addTask {
+                try await Task.sleep(for: command.executionTimeout)
+                try Task.checkCancellation()
+                throw CommandError.timeoutExceeded(cmd: command)
+            }
+            guard let output = try await group.next() else {
+                throw CommandError.noOutputFromCommand(cmd: command)
+            }
+            group.cancelAll()
+            return output
+        }
         let duration = clock.now - start
         return CommandExecutionResult(
             command: command, host: host, playbookId: playbookId, output: commandOutput, duration: duration, retries: 0,

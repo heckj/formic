@@ -36,7 +36,7 @@ public protocol Resource: Codable, Hashable, Sendable {
     /// Queries the state of the resource from the given host.
     /// - Parameter from: The host to inspect.
     /// - Returns: The state of the resource.
-    func queryResource(from: Host) throws -> (Self, Date)
+    func queryResource(from: Host) async throws -> (Self, Date)
 
 }
 
@@ -94,12 +94,12 @@ extension Resource {
     /// Queries the state of the resource from the given host.
     /// - Parameter host: The host to inspect.
     /// - Returns: The state of the resource and the time that it was last updated.
-    public func queryResource(from host: Host) throws -> (Self, Date) {
+    public func queryResource(from host: Host) async throws -> (Self, Date) {
         // default implementation:
 
         @Dependency(\.date.now) var date
         // run the command on the relevant host, capturing the output
-        let output: CommandOutput = try inquiry.run(host: host)
+        let output: CommandOutput = try await inquiry.run(host: host)
         // verify the return code is 0
         if output.returnCode != 0 {
             throw CommandError.commandFailed(rc: output.returnCode, errmsg: output.stderrString ?? "")
@@ -130,18 +130,18 @@ public protocol SingularResource: Resource {
     static var singularInquiry: Command { get }
     /// Returns a resource for the host you provide.
     /// - Parameter host: The host to inspect for the resource.
-    static func findResource(from host: Host) throws -> (Self, Date)
+    static func findResource(from host: Host) async throws -> (Self, Date)
 }
 
 extension SingularResource {
     /// Returns a resource for the host you provide.
     /// - Parameter host: The host to inspect for the resource.
-    public static func findResource(from host: Host) throws -> (Self, Date) {
+    public static func findResource(from host: Host) async throws -> (Self, Date) {
         // default implementation:
 
         @Dependency(\.date.now) var date
         // run the command on the relevant host, capturing the output
-        let output: CommandOutput = try singularInquiry.run(host: host)
+        let output: CommandOutput = try await singularInquiry.run(host: host)
         // verify the return code is 0
         if output.returnCode != 0 {
             throw CommandError.commandFailed(rc: output.returnCode, errmsg: output.stderrString ?? "")
@@ -166,7 +166,7 @@ public protocol NamedResource: Resource {
     /// Returns a resource for the host you provide.
     /// - Parameter name: The name of the resource to find.
     /// - Parameter host: The host to inspect for the resource.
-    static func findResource(_ name: String, from host: Host) throws -> (Self, Date)
+    static func findResource(_ name: String, from host: Host) async throws -> (Self, Date)
 }
 
 /// A collection of resources that can be found and queried from a host.
@@ -178,19 +178,19 @@ public protocol CollectionQueryableResource: Resource {
     static func collectionParse(_ output: String) throws -> [Self]
     /// Returns a list of resources for the host you provide.
     /// - Parameter from: The host to inspect.
-    static func queryResourceCollection(from: Host) throws -> ([Self], Date)
+    static func queryResourceCollection(from: Host) async throws -> ([Self], Date)
 }
 
 extension CollectionQueryableResource {
     /// Queries the state of the resource from the given host.
     /// - Parameter host: The host to inspect.
     /// - Returns: The state of the resource and the time that it was last updated.
-    public static func queryResourceCollection(from host: Host) throws -> ([Self], Date) {
+    public static func queryResourceCollection(from host: Host) async throws -> ([Self], Date) {
         // default implementation:
 
         @Dependency(\.date.now) var date
         // run the command on the relevant host, capturing the output
-        let output: CommandOutput = try collectionInquiry.run(host: host)
+        let output: CommandOutput = try await collectionInquiry.run(host: host)
         // verify the return code is 0
         if output.returnCode != 0 {
             throw CommandError.commandFailed(rc: output.returnCode, errmsg: output.stderrString ?? "")
