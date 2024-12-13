@@ -4,7 +4,9 @@ import Foundation
 /// A command to run on a local or remote host.
 ///
 /// Use ``run(host:)`` to invoke the command. The system forks a process and collects the output, both `STDOUT` and `STDERR`, when it finishes.
-/// The combination is returned as ``CommandOutput``.
+///
+/// The combination is returned as ``CommandOutput``, wrapped into ``CommandExecutionResult`` after retry
+/// and timeout logic is processed to provide a result for a ``Playbook``.
 public struct Command: Sendable, Identifiable {
     /// The command and arguments to run.
     public let args: [String]
@@ -45,8 +47,8 @@ public struct Command: Sendable, Identifiable {
     ///   - args: the command and arguments to run.
     ///   - env: An optional dictionary of environment variables the system sets when it runs the command.
     ///   - ignoreFailure: A Boolean value that indicates whether a failing command should fail a playbook.
-    ///   - retryOnFailure: A Boolean value that indicates whether the system should retry a failed command.
-    ///   - backoff: The strategy used to delay when retrying a failed command.
+    ///   - retry: The retry settings for the command.
+    ///   - timeout: The maximum duration to allow for the command.
     /// - Returns: The command declaration.
     public static func shell(
         _ args: String..., env: [String: String]? = nil, ignoreFailure: Bool = false, retry: RetrySetting = .none,
@@ -62,8 +64,8 @@ public struct Command: Sendable, Identifiable {
     ///   - from: The path of the file to copy.
     ///   - to: The path to copy the file to.
     ///   - ignoreFailure: A Boolean value that indicates whether a failing command should fail a playbook.
-    ///   - retryOnFailure: A Boolean value that indicates whether the system should retry a failed command.
-    ///   - backoff: The strategy used to delay when retrying a failed command.
+    ///   - retry: The retry settings for the command.
+    ///   - timeout: The maximum duration to allow for the command.
     public static func remoteCopy(
         from: String, to: String, ignoreFailure: Bool = false, retry: RetrySetting = .none,
         timeout: Duration = .seconds(30)

@@ -1,7 +1,10 @@
 import Foundation
 
+/// The retry settings for a command on failure.
 public enum RetrySetting: Sendable, Hashable, Codable {
+    /// Don't retry the command.
     case none
+    /// Retry the command on failure.
     case retryOnFailure(Backoff)
 }
 
