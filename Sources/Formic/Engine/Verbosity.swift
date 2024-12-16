@@ -1,5 +1,5 @@
 /// The level of console output.
-public enum Verbosity {
+public enum Verbosity: Sendable, Hashable {
     /// Reports only failures
     case silent(emoji: Bool = false)
     /// Reports host and command with an indication of command success or failure.
