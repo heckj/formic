@@ -29,7 +29,7 @@ func initEngine() async throws {
     #expect(await engine.states.isEmpty)
 }
 
-@Test("Engine execution function")
+@Test("Direct engine execution - single function")
 func testEngineRun() async throws {
     let engine = Engine()
     let cmd = Command.shell("uname")
@@ -41,7 +41,7 @@ func testEngineRun() async throws {
         try await engine.run(command: cmd, host: .localhost)
     }
 
-    #expect(cmdExecOut.command == cmd)
+    #expect(cmdExecOut.command.id == cmd.id)
     #expect(cmdExecOut.output.returnCode == 0)
     #expect(cmdExecOut.output.stdoutString == "Darwin\n")
 
@@ -50,6 +50,145 @@ func testEngineRun() async throws {
     #expect(cmdExecOut.retries == 0)
     #expect(cmdExecOut.duration > .zero)
     #expect(cmdExecOut.exception == nil)
+}
+
+@Test("Direct engine execution - list of functions")
+func testEngineRunList() async throws {
+    let engine = Engine()
+    let cmd1 = Command.shell("uname")
+    let cmd2 = Command.shell("whoami")
+
+    let cmdExecOut = try await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess()
+        dependencyValues.commandInvoker = TestCommandInvoker()
+            .addSuccess(command: ["uname"], presentOutput: "Darwin\n")
+            .addSuccess(command: ["whoami"], presentOutput: "docker-user")
+    } operation: {
+        try await engine.run(host: .localhost, commands: [cmd1, cmd2], displayProgress: false)
+    }
+
+    #expect(cmdExecOut.count == 2)
+    #expect(cmdExecOut[0].command.id == cmd1.id)
+    #expect(cmdExecOut[0].output.returnCode == 0)
+    #expect(cmdExecOut[0].output.stdoutString == "Darwin\n")
+
+    #expect(cmdExecOut[0].host == .localhost)
+    #expect(cmdExecOut[0].playbookId == nil)
+    #expect(cmdExecOut[0].retries == 0)
+    #expect(cmdExecOut[0].duration > .zero)
+    #expect(cmdExecOut[0].exception == nil)
+
+    #expect(cmdExecOut[1].command.id == cmd2.id)
+    #expect(cmdExecOut[1].output.returnCode == 0)
+    #expect(cmdExecOut[1].output.stdoutString == "docker-user")
+
+    #expect(cmdExecOut[1].host == .localhost)
+    #expect(cmdExecOut[1].playbookId == nil)
+    #expect(cmdExecOut[1].retries == 0)
+    #expect(cmdExecOut[1].duration > .zero)
+    #expect(cmdExecOut[1].exception == nil)
+}
+
+@Test("Direct engine execution - playbook")
+func testEngineRunPlaybook() async throws {
+    let engine = Engine()
+    let cmd1 = Command.shell("uname")
+    let cmd2 = Command.shell("whoami")
+    let playbook = Playbook(
+        name: "testPlaybook", hosts: [.localhost],
+        commands: [cmd1, cmd2])
+
+    let status = try await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess()
+        dependencyValues.commandInvoker = TestCommandInvoker()
+            .addSuccess(command: ["uname"], presentOutput: "Darwin\n")
+            .addSuccess(command: ["whoami"], presentOutput: "docker-user")
+    } operation: {
+        try await engine.run(playbook: playbook, displayProgress: false)
+    }
+
+    #expect(status.playbook.id == playbook.id)
+    #expect(status.playbook == playbook)
+    #expect(status.state == .complete)
+    #expect(status.results.count == 1)
+
+    let resultsForLocalhost: [UUID: CommandExecutionResult] = try #require(status.results[.localhost])
+    #expect(resultsForLocalhost.count == 2)
+
+    #expect(resultsForLocalhost[cmd1.id]?.output.stdoutString == "Darwin\n")
+    #expect(resultsForLocalhost[cmd1.id]?.playbookId == playbook.id)
+    #expect(resultsForLocalhost[cmd1.id]?.host == .localhost)
+    #expect(resultsForLocalhost[cmd1.id]?.retries == 0)
+    #expect(resultsForLocalhost[cmd1.id]?.exception == nil)
+
+    #expect(resultsForLocalhost[cmd2.id]?.output.stdoutString == "docker-user")
+    #expect(resultsForLocalhost[cmd2.id]?.playbookId == playbook.id)
+    #expect(resultsForLocalhost[cmd2.id]?.host == .localhost)
+    #expect(resultsForLocalhost[cmd2.id]?.retries == 0)
+    #expect(resultsForLocalhost[cmd2.id]?.exception == nil)
+}
+
+@Test("Direct engine execution - playbook w/ failure")
+func testEngineRunPlaybookWithFailure() async throws {
+    let engine = Engine()
+    let cmd1 = Command.shell("uname")
+    let cmd2 = Command.shell("whoami")
+    let playbook = Playbook(
+        name: "testPlaybook", hosts: [.localhost],
+        commands: [cmd1, cmd2])
+
+    let status = try await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess()
+        dependencyValues.commandInvoker = TestCommandInvoker()
+            .addSuccess(command: ["uname"], presentOutput: "Darwin\n")
+            .addFailure(command: ["whoami"], presentOutput: "not tellin!")
+    } operation: {
+        try await engine.run(playbook: playbook, displayProgress: false)
+    }
+
+    #expect(status.playbook.id == playbook.id)
+    #expect(status.playbook == playbook)
+    #expect(status.state == .failed)
+    #expect(status.results.count == 1)
+
+    let resultsForLocalhost: [UUID: CommandExecutionResult] = try #require(status.results[.localhost])
+    #expect(resultsForLocalhost.count == 2)
+
+    #expect(resultsForLocalhost[cmd1.id]?.output.stdoutString == "Darwin\n")
+    #expect(resultsForLocalhost[cmd1.id]?.playbookId == playbook.id)
+    #expect(resultsForLocalhost[cmd1.id]?.host == .localhost)
+    #expect(resultsForLocalhost[cmd1.id]?.retries == 0)
+    #expect(resultsForLocalhost[cmd1.id]?.exception == nil)
+
+    #expect(resultsForLocalhost[cmd2.id]?.output.stderrString == "not tellin!")
+    #expect(resultsForLocalhost[cmd2.id]?.playbookId == playbook.id)
+    #expect(resultsForLocalhost[cmd2.id]?.host == .localhost)
+    #expect(resultsForLocalhost[cmd2.id]?.retries == 0)
+    #expect(resultsForLocalhost[cmd2.id]?.exception == nil)
+}
+
+@Test("Direct engine execution - playbook w/ exception")
+func testEngineRunPlaybookWithException() async throws {
+    let engine = Engine()
+    let cmd1 = Command.shell("uname")
+    let cmd2 = Command.shell("whoami")
+    let playbook = Playbook(
+        name: "testPlaybook", hosts: [.localhost],
+        commands: [cmd1, cmd2])
+
+    await #expect(
+        throws: TestError.self,
+        performing: {
+            let _ = try await withDependencies { dependencyValues in
+                dependencyValues.localSystemAccess = TestFileSystemAccess()
+                dependencyValues.commandInvoker = TestCommandInvoker()
+                    .addSuccess(command: ["uname"], presentOutput: "Darwin\n")
+                    .addException(
+                        command: ["whoami"], errorToThrow: TestError.unknown(msg: "Process failed in something"))
+            } operation: {
+                try await engine.run(playbook: playbook, displayProgress: false)
+            }
+        })
 }
 
 @Test("engine schedule w/ step function")
@@ -106,7 +245,7 @@ func testEngineScheduleStep() async throws {
     let currentResults: [Command.ID: CommandExecutionResult] = try await #require(engine.commandResults[fakeHost])
     #expect(currentResults.count == 1)
     let singleResult: CommandExecutionResult = try #require(currentResults[cmd1.id])
-    #expect(singleResult.command == cmd1)
+    #expect(singleResult.command.id == cmd1.id)
     #expect(singleResult.playbookId == playbook.id)
     #expect(singleResult.host == fakeHost)
     #expect(singleResult.retries == 0)
@@ -154,7 +293,7 @@ func testEngineScheduleStepWithFailure() async throws {
     let currentResults: [Command.ID: CommandExecutionResult] = try await #require(engine.commandResults[fakeHost])
     #expect(currentResults.count == 2)
     let finalResult: CommandExecutionResult = try #require(currentResults[cmd2.id])
-    #expect(finalResult.command == cmd2)
+    #expect(finalResult.command.id == cmd2.id)
     #expect(finalResult.playbookId == playbook.id)
     #expect(finalResult.host == fakeHost)
     #expect(finalResult.retries == 0)
@@ -223,7 +362,7 @@ func testEngineScheduleStepWithImmediateError() async throws {
 
     let playbook = Playbook(name: "example", hosts: [fakeHost], commands: [cmd1, cmd2])
     let mockCmdInvoker = TestCommandInvoker()
-        .throwError(command: ["uname"], errorToThrow: TestError.unknown(msg: "Process failed in something"))
+        .addException(command: ["uname"], errorToThrow: TestError.unknown(msg: "Process failed in something"))
 
     await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess()
@@ -279,7 +418,7 @@ func testEngineScheduleStepWithLaterException() async throws {
     let playbook = Playbook(name: "example", hosts: [fakeHost], commands: [cmd1, cmd2])
     let mockCmdInvoker = TestCommandInvoker()
         .addSuccess(command: ["uname"], presentOutput: "Linux\n")
-        .throwError(command: ["whoami"], errorToThrow: TestError.unknown(msg: "Process failed in something"))
+        .addException(command: ["whoami"], errorToThrow: TestError.unknown(msg: "Process failed in something"))
 
     await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess()
@@ -305,7 +444,7 @@ func testEngineScheduleStepWithLaterException() async throws {
     #expect(currentResults.count == 2)
 
     let finalResult: CommandExecutionResult = try #require(currentResults[cmd2.id])
-    #expect(finalResult.command == cmd2)
+    #expect(finalResult.command.id == cmd2.id)
     #expect(finalResult.playbookId == playbook.id)
     #expect(finalResult.host == fakeHost)
     #expect(finalResult.exception == "Unknown error: Process failed in something")
@@ -346,7 +485,7 @@ func testPlaybookStatusAfterStep() async throws {
     #expect(resultsFromPbStatus.count == 1)
     let dictOfResultsforHost: [Command.ID: CommandExecutionResult] = try #require(resultsFromPbStatus[fakeHost])
     #expect(dictOfResultsforHost.count == 1)
-    #expect(dictOfResultsforHost[cmd1.id]?.command == cmd1)
+    #expect(dictOfResultsforHost[cmd1.id]?.command.id == cmd1.id)
 
     await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess()
@@ -401,7 +540,7 @@ func testPlaybookStateStream() async throws {
     let playbook = Playbook(name: "example", hosts: [fakeHost], commands: [cmd1, cmd2])
     let mockCmdInvoker = TestCommandInvoker()
         .addSuccess(command: ["uname"], presentOutput: "Linux\n")
-        .throwError(command: ["whoami"], errorToThrow: TestError.unknown(msg: "Process failed in something"))
+        .addException(command: ["whoami"], errorToThrow: TestError.unknown(msg: "Process failed in something"))
 
     let stateStream: AsyncStream<(Playbook.ID, PlaybookState)> = engine.playbookUpdates
     var streamIterator = stateStream.makeAsyncIterator()
@@ -446,7 +585,7 @@ func testPlaybookCommandResultStream() async throws {
     let playbook = Playbook(name: "example", hosts: [fakeHost], commands: [cmd1, cmd2])
     let mockCmdInvoker = TestCommandInvoker()
         .addSuccess(command: ["uname"], presentOutput: "Linux\n")
-        .throwError(command: ["whoami"], errorToThrow: TestError.unknown(msg: "Process failed in something"))
+        .addException(command: ["whoami"], errorToThrow: TestError.unknown(msg: "Process failed in something"))
 
     let stateStream: AsyncStream<CommandExecutionResult> = engine.commandUpdates
     var streamIterator = stateStream.makeAsyncIterator()
@@ -462,13 +601,13 @@ func testPlaybookCommandResultStream() async throws {
         var result: CommandExecutionResult = try #require(await streamIterator.next())
         #expect(result.playbookId == playbook.id)
         #expect(result.exception == nil)
-        #expect(result.command == cmd1)
+        #expect(result.command.id == cmd1.id)
 
         await engine.step(for: fakeHost)
         result = try #require(await streamIterator.next())
         #expect(result.playbookId == playbook.id)
         #expect(result.exception != nil)
-        #expect(result.command == cmd2)
+        #expect(result.command.id == cmd2.id)
     }
 }
 
@@ -523,9 +662,8 @@ func testCommandRetry() async throws {
         return try await engine.run(command: cmd1, host: fakeHost)
     }
 
-    #expect(result.command == cmd1)
+    #expect(result.command.id == cmd1.id)
     #expect(result.output.returnCode == -1)
     #expect(result.output.stderrString == "not tellin!")
     #expect(result.retries == 3)
-    print(result)
 }

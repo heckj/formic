@@ -39,6 +39,9 @@ struct TestCommandInvoker: CommandInvoker {
     }
 
     func localShell(cmd: [String], stdIn: Pipe?, env: [String: String]?) async throws -> Formic.CommandOutput {
+        if let errorToThrow = proxyErrors[cmd] {
+            throw errorToThrow
+        }
         if let (delay, storedResponse) = proxyResults[cmd] {
             try await Task.sleep(for: delay)
             return storedResponse
@@ -90,7 +93,7 @@ struct TestCommandInvoker: CommandInvoker {
         return TestCommandInvoker(existingResult, proxyErrors)
     }
 
-    func throwError(command: [String], errorToThrow: (any Error)) -> Self {
+    func addException(command: [String], errorToThrow: (any Error)) -> Self {
         var existingErrors = proxyErrors
         existingErrors[command] = errorToThrow
         return TestCommandInvoker(proxyResults, existingErrors)

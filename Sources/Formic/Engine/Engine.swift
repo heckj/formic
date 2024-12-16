@@ -1,3 +1,5 @@
+import Foundation
+
 /// An engine that runs playbooks and exposes the results.
 public actor Engine {
     let clock: ContinuousClock
@@ -246,7 +248,7 @@ public actor Engine {
 
     // MARK: Running API
 
-    /// Runs the next command available for the host you provide.
+    /// Runs the next command in the background that is available for the host you provide.
     /// - Parameter host: The host to interact with.
     public nonisolated func step(for host: Host) async {
         // `nonisolated` + `async` means run on a cooperative thread pool and return the result
@@ -263,7 +265,65 @@ public actor Engine {
         }
     }
 
-    /// Runs a single command against a single host.
+    /// Directly runs a series of commands against a single host.
+    /// - Parameters:
+    ///   - host: The host on which to run the command.
+    ///   - commands: The commands to run.
+    ///   - displayProgress: A Boolean value that indicates whether to display progress while the commands are executed.
+    ///   - verbosity: The level of verbosity for reporting progress.
+    /// - Returns: A list of the results of the command executions.
+    public func run(
+        host: Host, commands: [(any CommandProtocol)], displayProgress: Bool,
+        verbosity: Verbosity = .silent(emoji: true)
+    ) async throws -> [CommandExecutionResult] {
+        var results: [CommandExecutionResult] = []
+        for command in commands {
+            let result = try await run(command: command, host: host)
+            results.append(result)
+            if displayProgress {
+                print(result.consoleOutput(verbosity: verbosity))
+            }
+        }
+        return results
+    }
+
+    /// Directly runs a playbook in the foreground, one host at time.
+    /// - Parameter playbook: The playbook to run.
+    /// - Returns: The combined playbook state when the run is complete.
+    /// - Throws: Any exceptiopns that occur while running the playbook.
+    /// Exceptions are not captured and embedded in results when running in the foreground.
+    public func run(playbook: Playbook, displayProgress: Bool, verbosity: Verbosity = .silent(emoji: true)) async throws
+        -> PlaybookStatus
+    {
+
+        var failed: Bool = false
+        //public let results: [Host: [Command.ID: CommandExecutionResult]]
+        var hostResults: [Host: [UUID: CommandExecutionResult]] = [:]
+        for host in playbook.hosts {
+            var results: [UUID: CommandExecutionResult] = [:]
+            for command in playbook.commands {
+                let result = try await run(command: command, host: host, playbookId: playbook.id)
+                results[result.command.id] = result
+                if displayProgress {
+                    print(result.consoleOutput(verbosity: verbosity))
+                }
+
+                if result.output.returnCode != 0 && !result.command.ignoreFailure {
+                    failed = true
+                    break
+                }
+            }
+            hostResults[host] = results
+        }
+
+        if failed {
+            return PlaybookStatus(state: .failed, playbook: playbook, results: hostResults)
+        } else {
+            return PlaybookStatus(state: .complete, playbook: playbook, results: hostResults)
+        }
+    }
+
+    /// Directly runs a single command against a single host.
     /// - Parameters:
     ///   - command: The command to run.
     ///   - host: The host on which to run the command.
