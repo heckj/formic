@@ -1,5 +1,5 @@
 /// A representation of the state of playbook execution.
-public struct PlaybookStatus: Sendable, Hashable, Codable {
+public struct PlaybookStatus: Sendable, Hashable {
     /// The state of the playbook.
     public let state: PlaybookState
     /// The playbook declaration.

@@ -1,7 +1,7 @@
 /// The result of executing a command.
-public struct CommandExecutionResult: Sendable, Hashable, Codable {
+public struct CommandExecutionResult: Sendable {
     /// The command.
-    public let command: Command
+    public let command: any CommandProtocol  // switch to command id?
     /// The host for the command.
     public let host: Host
     /// The ID of the playbook that the command is part of, if any.
@@ -129,5 +129,26 @@ extension CommandExecutionResult {
         } else {
             return "✅"
         }
+    }
+}
+
+extension CommandExecutionResult: Equatable {
+    public static func == (lhs: CommandExecutionResult, rhs: CommandExecutionResult) -> Bool {
+        lhs.command.id == rhs.command.id && lhs.host == rhs.host && lhs.playbookId == rhs.playbookId
+            && lhs.output == rhs.output && lhs.duration == rhs.duration && lhs.retries == rhs.retries
+            && lhs.exception == rhs.exception
+    }
+}
+
+extension CommandExecutionResult: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        let hashOfCommand = command.hashValue
+        hasher.combine(hashOfCommand)
+        hasher.combine(host)
+        hasher.combine(playbookId)
+        hasher.combine(output)
+        hasher.combine(duration)
+        hasher.combine(retries)
+        hasher.combine(exception)
     }
 }

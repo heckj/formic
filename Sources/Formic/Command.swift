@@ -1,6 +1,15 @@
 import Dependencies
 import Foundation
 
+public protocol CommandProtocol: Sendable, Identifiable, Hashable, Codable {
+    var id: UUID { get }
+    var ignoreFailure: Bool { get }
+    var retry: RetrySetting { get }
+    var executionTimeout: Duration { get }
+
+    func run(host: Host) async throws -> CommandOutput
+}
+
 /// A command to run on a local or remote host.
 ///
 /// Use ``run(host:)`` to invoke the command. The system forks a process and collects the output, both `STDOUT` and `STDERR`, when it finishes.
