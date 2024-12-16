@@ -83,9 +83,9 @@ struct ProcessCommandInvoker: CommandInvoker {
     func localShell(
         cmd: [String], stdIn: Pipe? = nil, env: [String: String]? = nil
     ) async throws -> CommandOutput {
-        #if DEBUG
-            print("DEBUG!! : \(cmd)")
-        #endif
+//        #if DEBUG
+//            print("DEBUG!! : \(cmd)")
+//        #endif
         let task = Process()
         task.executableURL = URL(fileURLWithPath: "/usr/bin/env")
 
