@@ -133,6 +133,10 @@ extension CommandExecutionResult {
 }
 
 extension CommandExecutionResult: Equatable {
+    /// Returns `true` if the two execution results are equal.
+    /// - Parameters:
+    ///   - lhs: The first execution result
+    ///   - rhs: The second execution result
     public static func == (lhs: CommandExecutionResult, rhs: CommandExecutionResult) -> Bool {
         lhs.command.id == rhs.command.id && lhs.host == rhs.host && lhs.playbookId == rhs.playbookId
             && lhs.output == rhs.output && lhs.duration == rhs.duration && lhs.retries == rhs.retries
@@ -141,6 +145,8 @@ extension CommandExecutionResult: Equatable {
 }
 
 extension CommandExecutionResult: Hashable {
+    /// Hashes the essential components of the execution result.
+    /// - Parameter hasher: The hasher to use when combining the components
     public func hash(into hasher: inout Hasher) {
         let hashOfCommand = command.hashValue
         hasher.combine(hashOfCommand)
