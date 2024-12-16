@@ -45,12 +45,18 @@ public struct Playbook: Identifiable, Sendable {
 }
 
 extension Playbook: Equatable {
+    /// Returns `true` if the two playbooks are equal.
+    /// - Parameters:
+    ///   - lhs: The first playbook
+    ///   - rhs: The second playbook
     public static func == (lhs: Playbook, rhs: Playbook) -> Bool {
         lhs.id == rhs.id && lhs.name == rhs.name && lhs.hosts == rhs.hosts
     }
 }
 
 extension Playbook: Hashable {
+    /// Hashes the essential components of the playbook.
+    /// - Parameter hasher: The hasher to use when combining the components
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
         hasher.combine(name)
