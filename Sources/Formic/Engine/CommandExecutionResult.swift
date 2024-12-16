@@ -1,7 +1,7 @@
 /// The result of executing a command.
 public struct CommandExecutionResult: Sendable {
     /// The command.
-    public let command: any CommandProtocol  // switch to command id?
+    public let command: any Command  // switch to command id?
     /// The host for the command.
     public let host: Host
     /// The ID of the playbook that the command is part of, if any.
@@ -25,7 +25,7 @@ public struct CommandExecutionResult: Sendable {
     ///   - retries: The number of retries needed for the command.
     ///   - exception: The description of the exception thrown while invoking the command, if any.
     public init(
-        command: any CommandProtocol, host: Host, playbookId: Playbook.ID?, output: CommandOutput, duration: Duration,
+        command: any Command, host: Host, playbookId: Playbook.ID?, output: CommandOutput, duration: Duration,
         retries: Int, exception: String?
     ) {
         self.command = command

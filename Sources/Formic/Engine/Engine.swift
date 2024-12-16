@@ -140,8 +140,8 @@ public actor Engine {
 
     // MARK: Coordination API
 
-    func availableCommandsForHost(host: Host) -> [(any CommandProtocol, Playbook.ID)] {
-        var availableCommands: [(any CommandProtocol, Playbook.ID)] = []
+    func availableCommandsForHost(host: Host) -> [(any Command, Playbook.ID)] {
+        var availableCommands: [(any Command, Playbook.ID)] = []
         // list of playbooks that are either scheduled or running
         // but not terminated, failed, or cancelled.
         let availablePlaybookIds: [Playbook.ID] = playbooks.keys.filter { id in
@@ -159,7 +159,7 @@ public actor Engine {
                 continue
             }
             let completedCommandIDs: [LocalProcess.ID] = commandResults[host]?.keys.map { $0 } ?? []
-            let remainingCommands: [(any CommandProtocol)] = playbook.commands.filter { command in
+            let remainingCommands: [(any Command)] = playbook.commands.filter { command in
                 return !completedCommandIDs.contains(command.id)
             }
             for command in remainingCommands {
@@ -226,7 +226,7 @@ public actor Engine {
     }
 
     func handleCommandException(
-        playbookId: Playbook.ID, host: Host, command: (any CommandProtocol), exception: any Error
+        playbookId: Playbook.ID, host: Host, command: (any Command), exception: any Error
     ) {
         // store the result
         let exceptionReport = CommandExecutionResult(
@@ -273,7 +273,7 @@ public actor Engine {
     ///   - verbosity: The level of verbosity for reporting progress.
     /// - Returns: A list of the results of the command executions.
     public func run(
-        host: Host, commands: [(any CommandProtocol)], displayProgress: Bool,
+        host: Host, commands: [(any Command)], displayProgress: Bool,
         verbosity: Verbosity = .silent(emoji: true)
     ) async throws -> [CommandExecutionResult] {
         var results: [CommandExecutionResult] = []
@@ -329,7 +329,7 @@ public actor Engine {
     ///   - host: The host on which to run the command.
     ///   - playbookId: The ID of the playbook the command is part of.
     /// - Returns: The result of the command execution.
-    public nonisolated func run(command: (any CommandProtocol), host: Host, playbookId: Playbook.ID? = nil) async throws
+    public nonisolated func run(command: (any Command), host: Host, playbookId: Playbook.ID? = nil) async throws
         -> CommandExecutionResult
     {
         // `nonisolated` + `async` means run on a cooperative thread pool and return the result
