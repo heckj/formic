@@ -8,14 +8,14 @@ public struct Playbook: Identifiable, Sendable {
     /// The hosts to run the commands on.
     public let hosts: [Host]
     /// The commands to invoke on the hosts.
-    public let commands: [(any CommandProtocol)]
+    public let commands: [(any Command)]
 
     /// Creates a new playlist.
     /// - Parameters:
     ///   - name: The name of the playlist.
     ///   - hosts: The hosts to run the commands on.
     ///   - commands: The commands to invoke on the hosts.
-    public init(name: String, hosts: [Host], commands: [(any CommandProtocol)]) {
+    public init(name: String, hosts: [Host], commands: [(any Command)]) {
         self.name = name
         self.hosts = hosts
         self.commands = commands
@@ -27,7 +27,7 @@ public struct Playbook: Identifiable, Sendable {
     ///   - name: The name of the playlist.
     ///   - hosts: The host names to resolve into hosts.
     ///   - commands: The commands to invoke on the hosts.
-    public init(name: String, hosts: [String], commands: [(any CommandProtocol)]) async {
+    public init(name: String, hosts: [String], commands: [(any Command)]) async {
         id = UUID()
         self.name = name
         self.commands = commands

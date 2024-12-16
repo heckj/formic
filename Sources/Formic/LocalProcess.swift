@@ -133,4 +133,4 @@ extension LocalProcess: CustomStringConvertible {
     }
 }
 
-extension LocalProcess: CommandProtocol {}
+extension LocalProcess: Command {}
