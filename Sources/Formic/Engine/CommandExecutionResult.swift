@@ -8,12 +8,34 @@ public struct CommandExecutionResult: Sendable {
     public let playbookId: Playbook.ID?
     /// The output from the command.
     public let output: CommandOutput
-    /// The duration of the command.
+    /// The duration of execution of the command.
     public let duration: Duration
-    /// The number of retries needed for this command.
+    /// The number of retries needed for the command.
     public let retries: Int
     /// The description of the exception thrown while invoking the command, if any.
     public let exception: String?
+
+    /// Creates an annotated command execution result.
+    /// - Parameters:
+    ///   - command: The command.
+    ///   - host: The host for the command.
+    ///   - playbookId: The ID of the playbook the command is part of, it any.
+    ///   - output: The output from the command
+    ///   - duration: The duration of execution of the command.
+    ///   - retries: The number of retries needed for the command.
+    ///   - exception: The description of the exception thrown while invoking the command, if any.
+    public init(
+        command: any CommandProtocol, host: Host, playbookId: Playbook.ID?, output: CommandOutput, duration: Duration,
+        retries: Int, exception: String?
+    ) {
+        self.command = command
+        self.host = host
+        self.playbookId = playbookId
+        self.output = output
+        self.duration = duration
+        self.retries = retries
+        self.exception = exception
+    }
 }
 
 extension CommandExecutionResult {

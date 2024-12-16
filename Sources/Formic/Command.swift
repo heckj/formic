@@ -142,3 +142,5 @@ extension Command: CustomStringConvertible {
         }
     }
 }
+
+extension Command: CommandProtocol {}

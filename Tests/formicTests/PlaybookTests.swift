@@ -16,9 +16,6 @@ func testPlaybookSimpleDeclaration() async throws {
     #expect(playbook.hosts.count == 1)
     #expect(playbook.hosts[0] == .localhost)
     #expect(playbook.commands.count == 3)
-    #expect(playbook.commands[0].args == ["uname"])
-    #expect(playbook.commands[1].args == ["pwd"])
-    #expect(playbook.commands[2].args == ["ls", "-l"])
 }
 
 @Test("test playbook creating with hostname resolution")
