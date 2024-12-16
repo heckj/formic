@@ -32,7 +32,7 @@ func initEngine() async throws {
 @Test("Direct engine execution - single function")
 func testEngineRun() async throws {
     let engine = Engine()
-    let cmd = Command.shell("uname")
+    let cmd = LocalProcess.shell("uname")
     let cmdExecOut = try await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess()
         dependencyValues.commandInvoker = TestCommandInvoker()
@@ -55,8 +55,8 @@ func testEngineRun() async throws {
 @Test("Direct engine execution - list of functions")
 func testEngineRunList() async throws {
     let engine = Engine()
-    let cmd1 = Command.shell("uname")
-    let cmd2 = Command.shell("whoami")
+    let cmd1 = LocalProcess.shell("uname")
+    let cmd2 = LocalProcess.shell("whoami")
 
     let cmdExecOut = try await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess()
@@ -92,8 +92,8 @@ func testEngineRunList() async throws {
 @Test("Direct engine execution - playbook")
 func testEngineRunPlaybook() async throws {
     let engine = Engine()
-    let cmd1 = Command.shell("uname")
-    let cmd2 = Command.shell("whoami")
+    let cmd1 = LocalProcess.shell("uname")
+    let cmd2 = LocalProcess.shell("whoami")
     let playbook = Playbook(
         name: "testPlaybook", hosts: [.localhost],
         commands: [cmd1, cmd2])
@@ -131,8 +131,8 @@ func testEngineRunPlaybook() async throws {
 @Test("Direct engine execution - playbook w/ failure")
 func testEngineRunPlaybookWithFailure() async throws {
     let engine = Engine()
-    let cmd1 = Command.shell("uname")
-    let cmd2 = Command.shell("whoami")
+    let cmd1 = LocalProcess.shell("uname")
+    let cmd2 = LocalProcess.shell("whoami")
     let playbook = Playbook(
         name: "testPlaybook", hosts: [.localhost],
         commands: [cmd1, cmd2])
@@ -170,8 +170,8 @@ func testEngineRunPlaybookWithFailure() async throws {
 @Test("Direct engine execution - playbook w/ exception")
 func testEngineRunPlaybookWithException() async throws {
     let engine = Engine()
-    let cmd1 = Command.shell("uname")
-    let cmd2 = Command.shell("whoami")
+    let cmd1 = LocalProcess.shell("uname")
+    let cmd2 = LocalProcess.shell("whoami")
     let playbook = Playbook(
         name: "testPlaybook", hosts: [.localhost],
         commands: [cmd1, cmd2])
@@ -195,8 +195,8 @@ func testEngineRunPlaybookWithException() async throws {
 func testEngineScheduleStep() async throws {
     typealias Host = Formic.Host
     let engine = Engine()
-    let cmd1 = Command.shell("uname")
-    let cmd2 = Command.shell("whoami")
+    let cmd1 = LocalProcess.shell("uname")
+    let cmd2 = LocalProcess.shell("whoami")
 
     let fakeHost = try await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess(
@@ -242,7 +242,7 @@ func testEngineScheduleStep() async throws {
     #expect(playbookRunState == .running)
 
     // and verify the results of the first command are recorded
-    let currentResults: [Command.ID: CommandExecutionResult] = try await #require(engine.commandResults[fakeHost])
+    let currentResults: [LocalProcess.ID: CommandExecutionResult] = try await #require(engine.commandResults[fakeHost])
     #expect(currentResults.count == 1)
     let singleResult: CommandExecutionResult = try #require(currentResults[cmd1.id])
     #expect(singleResult.command.id == cmd1.id)
@@ -255,8 +255,8 @@ func testEngineScheduleStep() async throws {
 func testEngineScheduleStepWithFailure() async throws {
     typealias Host = Formic.Host
     let engine = Engine()
-    let cmd1 = Command.shell("uname")
-    let cmd2 = Command.shell("whoami")
+    let cmd1 = LocalProcess.shell("uname")
+    let cmd2 = LocalProcess.shell("whoami")
 
     let fakeHost = try await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess(
@@ -290,7 +290,7 @@ func testEngineScheduleStepWithFailure() async throws {
     #expect(await engine.commandResults.count == 1)
 
     // and verify the results of the first command are recorded
-    let currentResults: [Command.ID: CommandExecutionResult] = try await #require(engine.commandResults[fakeHost])
+    let currentResults: [LocalProcess.ID: CommandExecutionResult] = try await #require(engine.commandResults[fakeHost])
     #expect(currentResults.count == 2)
     let finalResult: CommandExecutionResult = try #require(currentResults[cmd2.id])
     #expect(finalResult.command.id == cmd2.id)
@@ -306,8 +306,8 @@ func testEngineScheduleStepWithFailure() async throws {
 func testPlaybookComplete() async throws {
     typealias Host = Formic.Host
     let engine = Engine()
-    let cmd1 = Command.shell("uname")
-    let cmd2 = Command.shell("whoami")
+    let cmd1 = LocalProcess.shell("uname")
+    let cmd2 = LocalProcess.shell("whoami")
 
     let fakeHost = try await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess(
@@ -350,8 +350,8 @@ func testUnknownPlaybookComplete() async throws {
 func testEngineScheduleStepWithImmediateError() async throws {
     typealias Host = Formic.Host
     let engine = Engine()
-    let cmd1 = Command.shell("uname")
-    let cmd2 = Command.shell("whoami")
+    let cmd1 = LocalProcess.shell("uname")
+    let cmd2 = LocalProcess.shell("whoami")
 
     let fakeHost = try await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess(
@@ -397,7 +397,7 @@ func testEngineScheduleStepWithImmediateError() async throws {
     #expect(playbookRunState == .failed)
 
     // and verify the results of the first command are recorded
-    let currentResults: [Command.ID: CommandExecutionResult] = try await #require(engine.commandResults[fakeHost])
+    let currentResults: [LocalProcess.ID: CommandExecutionResult] = try await #require(engine.commandResults[fakeHost])
     #expect(currentResults.count == 1)
 }
 
@@ -405,8 +405,8 @@ func testEngineScheduleStepWithImmediateError() async throws {
 func testEngineScheduleStepWithLaterException() async throws {
     typealias Host = Formic.Host
     let engine = Engine()
-    let cmd1 = Command.shell("uname")
-    let cmd2 = Command.shell("whoami")
+    let cmd1 = LocalProcess.shell("uname")
+    let cmd2 = LocalProcess.shell("whoami")
 
     let fakeHost = try await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess(
@@ -440,7 +440,7 @@ func testEngineScheduleStepWithLaterException() async throws {
     #expect(await engine.commandResults.count == 1)
 
     // and verify the results of the first command are recorded
-    let currentResults: [Command.ID: CommandExecutionResult] = try await #require(engine.commandResults[fakeHost])
+    let currentResults: [LocalProcess.ID: CommandExecutionResult] = try await #require(engine.commandResults[fakeHost])
     #expect(currentResults.count == 2)
 
     let finalResult: CommandExecutionResult = try #require(currentResults[cmd2.id])
@@ -454,8 +454,8 @@ func testEngineScheduleStepWithLaterException() async throws {
 func testPlaybookStatusAfterStep() async throws {
     typealias Host = Formic.Host
     let engine = Engine()
-    let cmd1 = Command.shell("uname")
-    let cmd2 = Command.shell("whoami")
+    let cmd1 = LocalProcess.shell("uname")
+    let cmd2 = LocalProcess.shell("whoami")
 
     let fakeHost = try await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess(
@@ -483,7 +483,7 @@ func testPlaybookStatusAfterStep() async throws {
     #expect(!pbStatus.results.isEmpty)
     let resultsFromPbStatus = pbStatus.results
     #expect(resultsFromPbStatus.count == 1)
-    let dictOfResultsforHost: [Command.ID: CommandExecutionResult] = try #require(resultsFromPbStatus[fakeHost])
+    let dictOfResultsforHost: [LocalProcess.ID: CommandExecutionResult] = try #require(resultsFromPbStatus[fakeHost])
     #expect(dictOfResultsforHost.count == 1)
     #expect(dictOfResultsforHost[cmd1.id]?.command.id == cmd1.id)
 
@@ -527,8 +527,8 @@ func testPlaybookRunnerIsCreatedOnSchedule() async throws {
 func testPlaybookStateStream() async throws {
     typealias Host = Formic.Host
     let engine = Engine()
-    let cmd1 = Command.shell("uname")
-    let cmd2 = Command.shell("whoami")
+    let cmd1 = LocalProcess.shell("uname")
+    let cmd2 = LocalProcess.shell("whoami")
 
     let fakeHost = try await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess(
@@ -572,8 +572,8 @@ func testPlaybookStateStream() async throws {
 func testPlaybookCommandResultStream() async throws {
     typealias Host = Formic.Host
     let engine = Engine()
-    let cmd1 = Command.shell("uname")
-    let cmd2 = Command.shell("whoami")
+    let cmd1 = LocalProcess.shell("uname")
+    let cmd2 = LocalProcess.shell("whoami")
 
     let fakeHost = try await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess(
@@ -615,7 +615,7 @@ func testPlaybookCommandResultStream() async throws {
 func testCommandTimeout() async throws {
     typealias Host = Formic.Host
     let engine = Engine()
-    let cmd1 = Command.shell("uname", timeout: .seconds(1))
+    let cmd1 = LocalProcess.shell("uname", timeout: .seconds(1))
 
     let fakeHost = try await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess(
@@ -643,7 +643,7 @@ func testCommandTimeout() async throws {
 func testCommandRetry() async throws {
     typealias Host = Formic.Host
     let engine = Engine()
-    let cmd1 = Command.shell("uname", retry: .retryOnFailure(.default))
+    let cmd1 = LocalProcess.shell("uname", retry: .retryOnFailure(.default))
 
     let fakeHost = try await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess(

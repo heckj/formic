@@ -28,7 +28,7 @@ public protocol Resource: Codable, Hashable, Sendable {
     // that span multiple hosts, we might need something more complex)
 
     /// The shell command to use to get the state for this resource.
-    var inquiry: Command { get }
+    var inquiry: LocalProcess { get }
     /// Returns the state of the resource from the output of the shell command.
     /// - Parameter output: The string output of the shell command.
     /// - Throws: Any errors parsing the output.
@@ -127,7 +127,7 @@ public protocol StatefulResource<DeclarativeStateType>: Resource {
 /// A type of single resource that can be identified from from a host without a name or identifier.
 public protocol SingularResource: Resource {
     /// The shell command to use to get the state for this resource.
-    static var singularInquiry: Command { get }
+    static var singularInquiry: LocalProcess { get }
     /// Returns a resource for the host you provide.
     /// - Parameter host: The host to inspect for the resource.
     static func findResource(from host: Host) async throws -> (Self, Date)
@@ -172,7 +172,7 @@ public protocol NamedResource: Resource {
 /// A collection of resources that can be found and queried from a host.
 public protocol CollectionQueryableResource: Resource {
     /// The shell command to use to get the state for this resource.
-    static var collectionInquiry: Command { get }
+    static var collectionInquiry: LocalProcess { get }
     /// Returns a list of resources from the string output from a command.
     /// - Parameter output: The output from the command.
     static func collectionParse(_ output: String) throws -> [Self]
