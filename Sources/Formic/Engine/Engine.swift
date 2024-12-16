@@ -138,8 +138,8 @@ public actor Engine {
 
     // MARK: Coordination API
 
-    func availableCommandsForHost(host: Host) -> [(Command, Playbook.ID)] {
-        var availableCommands: [(Command, Playbook.ID)] = []
+    func availableCommandsForHost(host: Host) -> [(any CommandProtocol, Playbook.ID)] {
+        var availableCommands: [(any CommandProtocol, Playbook.ID)] = []
         // list of playbooks that are either scheduled or running
         // but not terminated, failed, or cancelled.
         let availablePlaybookIds: [Playbook.ID] = playbooks.keys.filter { id in
@@ -157,7 +157,7 @@ public actor Engine {
                 continue
             }
             let completedCommandIDs: [Command.ID] = commandResults[host]?.keys.map { $0 } ?? []
-            let remainingCommands: [Command] = playbook.commands.filter { command in
+            let remainingCommands: [(any CommandProtocol)] = playbook.commands.filter { command in
                 return !completedCommandIDs.contains(command.id)
             }
             for command in remainingCommands {
@@ -189,7 +189,7 @@ public actor Engine {
                 states[playbookId] = .failed
                 stateContinuation.yield((playbookId, .failed))
             } else {
-                if result.command == playbooks[playbookId]?.commands.last {
+                if result.command.id == playbooks[playbookId]?.commands.last?.id {
                     // check for completion
                     if playbookComplete(playbookId: playbookId) {
                         states[playbookId] = .complete
@@ -223,7 +223,9 @@ public actor Engine {
         return true
     }
 
-    func handleCommandException(playbookId: Playbook.ID, host: Host, command: Command, exception: any Error) {
+    func handleCommandException(
+        playbookId: Playbook.ID, host: Host, command: (any CommandProtocol), exception: any Error
+    ) {
         // store the result
         let exceptionReport = CommandExecutionResult(
             command: command, host: host, playbookId: playbookId, output: .empty, duration: .nanoseconds(0), retries: 0,
@@ -267,7 +269,7 @@ public actor Engine {
     ///   - host: The host on which to run the command.
     ///   - playbookId: The ID of the playbook the command is part of.
     /// - Returns: The result of the command execution.
-    public nonisolated func run(command: Command, host: Host, playbookId: Playbook.ID? = nil) async throws
+    public nonisolated func run(command: (any CommandProtocol), host: Host, playbookId: Playbook.ID? = nil) async throws
         -> CommandExecutionResult
     {
         // `nonisolated` + `async` means run on a cooperative thread pool and return the result

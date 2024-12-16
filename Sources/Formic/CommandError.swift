@@ -13,9 +13,9 @@ public enum CommandError: LocalizedError {
     /// Failure due to an invalid command.
     case invalidCommand(msg: String)
     /// Failure due to a command timeout exceeding.
-    case timeoutExceeded(cmd: Command)
+    case timeoutExceeded(cmd: (any CommandProtocol))
     /// Failure due to no output from a command
-    case noOutputFromCommand(cmd: Command)
+    case noOutputFromCommand(cmd: (any CommandProtocol))
 
     /// The localized description.
     public var errorDescription: String? {
