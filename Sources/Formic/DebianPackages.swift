@@ -40,13 +40,17 @@ public struct DebianPackage: StatefulResource, CollectionQueryableResource {
     public var state: DeclarativeState
 
     // command to run to get request the data for a collection of resources
-    public static let collectionInquiry: LocalProcess = .shell("dpkg", "-l")
+    public static let collectionInquiry: (any Command) = LocalProcess.shell("dpkg", "-l")
     public static func collectionParse(_ output: String) throws -> [DebianPackage] {
         fatalError("not implemented")
     }
 
     // singular inquiry command
-    public let inquiry: LocalProcess  // in init: .shell("dpkg", "-l", name)
+    public let _inquiry: LocalProcess
+    public var inquiry: (any Command) {
+        return _inquiry
+    }
+    
     public static func parse(_ output: String) throws -> DebianPackage {
         fatalError("not implemented")
     }
@@ -55,6 +59,12 @@ public struct DebianPackage: StatefulResource, CollectionQueryableResource {
     // MIT License: https://github.com/kellyjonbrazil/jc/blob/master/LICENSE.md
     // - https://github.com/kellyjonbrazil/jc/blob/master/jc/parsers/dpkg_l.py
     // - https://github.com/kellyjonbrazil/jc/blob/master/docs/parsers/dpkg_l.md
+    
+    init(name: String, state: DeclarativeState) {
+        self.name = name
+        self.state = state
+        self._inquiry = LocalProcess.shell("dpkg", "-l", name)
+    }
 
 }
 
