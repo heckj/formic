@@ -40,13 +40,13 @@ public struct DebianPackage: StatefulResource, CollectionQueryableResource {
     public var state: DeclarativeState
 
     // command to run to get request the data for a collection of resources
-    public static let collectionInquiry: Command = .shell("dpkg", "-l")
+    public static let collectionInquiry: LocalProcess = .shell("dpkg", "-l")
     public static func collectionParse(_ output: String) throws -> [DebianPackage] {
         fatalError("not implemented")
     }
 
     // singular inquiry command
-    public let inquiry: Command  // in init: .shell("dpkg", "-l", name)
+    public let inquiry: LocalProcess  // in init: .shell("dpkg", "-l", name)
     public static func parse(_ output: String) throws -> DebianPackage {
         fatalError("not implemented")
     }

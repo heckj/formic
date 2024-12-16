@@ -8,9 +8,9 @@ func testPlaybookSimpleDeclaration() async throws {
     let playbook = Playbook(
         name: "simplest", hosts: [.localhost],
         commands: [
-            Command.shell("uname"),
-            Command.shell("pwd"),
-            Command.shell("ls", "-l"),
+            LocalProcess.shell("uname"),
+            LocalProcess.shell("pwd"),
+            LocalProcess.shell("ls", "-l"),
         ])
     #expect(playbook.name == "simplest")
     #expect(playbook.hosts.count == 1)
