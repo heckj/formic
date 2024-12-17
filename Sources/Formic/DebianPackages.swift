@@ -26,22 +26,20 @@ public struct DebianPackage: StatefulResource, CollectionQueryableResource {
         case absent
     }
 
-    // the supplemental information sources for this Resource
-    public enum DPkgInformationKey: String, StringInfoKey {
-        case name
-        case version
-        case architecture
-        case description
-    }
-
     // the key information to identify this Resource
     public var name: String
-
     public var state: DeclarativeState
 
     // command to run to get request the data for a collection of resources
     public static let collectionInquiry: (any Command) = LocalProcess.shell("dpkg", "-l")
-    public static func collectionParse(_ output: String) throws -> [DebianPackage] {
+    public static func collectionParse(_ output: Data) throws -> [DebianPackage] {
+        guard let stringFromData: String = String(data: output, encoding: .utf8) else {
+            throw QueryError.notAString
+        }
+        let _ = try DpkgState.PackageList().parse(Substring(stringFromData))
+
+        // TODO: Merge DebianPackage with DpkgState
+
         fatalError("not implemented")
     }
 
@@ -50,8 +48,12 @@ public struct DebianPackage: StatefulResource, CollectionQueryableResource {
     public var inquiry: (any Command) {
         return _inquiry
     }
-    
-    public static func parse(_ output: String) throws -> DebianPackage {
+
+    public static func parse(_ output: Data) throws -> DebianPackage {
+        guard let stringFromData: String = String(data: output, encoding: .utf8) else {
+            throw QueryError.notAString
+        }
+        let _ = try DpkgState.PackageList().parse(Substring(stringFromData))
         fatalError("not implemented")
     }
 
@@ -59,7 +61,7 @@ public struct DebianPackage: StatefulResource, CollectionQueryableResource {
     // MIT License: https://github.com/kellyjonbrazil/jc/blob/master/LICENSE.md
     // - https://github.com/kellyjonbrazil/jc/blob/master/jc/parsers/dpkg_l.py
     // - https://github.com/kellyjonbrazil/jc/blob/master/docs/parsers/dpkg_l.md
-    
+
     init(name: String, state: DeclarativeState) {
         self.name = name
         self.state = state
