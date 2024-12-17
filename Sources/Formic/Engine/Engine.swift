@@ -272,6 +272,7 @@ public actor Engine {
     ///   - displayProgress: A Boolean value that indicates whether to display progress while the commands are executed.
     ///   - verbosity: The level of verbosity for reporting progress.
     /// - Returns: A list of the results of the command executions.
+    @discardableResult
     public func run(
         host: Host, commands: [(any Command)], displayProgress: Bool,
         verbosity: Verbosity = .silent(emoji: true)
@@ -292,6 +293,7 @@ public actor Engine {
     /// - Returns: The combined playbook state when the run is complete.
     /// - Throws: Any exceptiopns that occur while running the playbook.
     /// Exceptions are not captured and embedded in results when running in the foreground.
+    @discardableResult
     public func run(playbook: Playbook, displayProgress: Bool, verbosity: Verbosity = .silent(emoji: true)) async throws
         -> PlaybookStatus
     {
