@@ -36,7 +36,7 @@ func verifyParsingOneLine() async throws {
     let sample =
         "ii  apt                           2.7.14build2                      arm64        commandline package manager"
     let result = try DpkgState.PackageStatus().parse(sample)
-    print(result)
+    //print(result)
     #expect(result.name == "apt")
     #expect(result.version == "2.7.14build2")
     #expect(result.architecture == "arm64")
