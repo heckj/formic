@@ -32,7 +32,7 @@ public protocol Resource: Codable, Hashable, Sendable {
     /// Returns the state of the resource from the output of the shell command.
     /// - Parameter output: The string output of the shell command.
     /// - Throws: Any errors parsing the output.
-    static func parse(_ output: String) throws -> Self
+    static func parse(_ output: Data) throws -> Self
     /// Queries the state of the resource from the given host.
     /// - Parameter from: The host to inspect.
     /// - Returns: The state of the resource.
@@ -105,7 +105,7 @@ extension Resource {
             throw CommandError.commandFailed(rc: output.returnCode, errmsg: output.stderrString ?? "")
         } else {
             // then parse the output
-            guard let stdout = output.stdoutString else {
+            guard let stdout = output.stdOut else {
                 throw CommandError.noOutputToParse(
                     msg:
                         "The command \(inquiry) to \(host) did not return any output. stdError: \(output.stderrString ?? "-none-")"
@@ -147,7 +147,7 @@ extension SingularResource {
             throw CommandError.commandFailed(rc: output.returnCode, errmsg: output.stderrString ?? "")
         } else {
             // then parse the output
-            guard let stdout = output.stdoutString else {
+            guard let stdout = output.stdOut else {
                 throw CommandError.noOutputToParse(
                     msg:
                         "The command \(Self.singularInquiry) to \(host) did not return any output. stdError: \(output.stderrString ?? "-none-")"
@@ -175,7 +175,7 @@ public protocol CollectionQueryableResource: Resource {
     static var collectionInquiry: (any Command) { get }
     /// Returns a list of resources from the string output from a command.
     /// - Parameter output: The output from the command.
-    static func collectionParse(_ output: String) throws -> [Self]
+    static func collectionParse(_ output: Data) throws -> [Self]
     /// Returns a list of resources for the host you provide.
     /// - Parameter from: The host to inspect.
     static func queryResourceCollection(from: Host) async throws -> ([Self], Date)
@@ -196,7 +196,7 @@ extension CollectionQueryableResource {
             throw CommandError.commandFailed(rc: output.returnCode, errmsg: output.stderrString ?? "")
         } else {
             // then parse the output
-            guard let stdout = output.stdoutString else {
+            guard let stdout = output.stdOut else {
                 throw CommandError.noOutputToParse(
                     msg:
                         "The command \(Self.collectionInquiry) to \(host) did not return any output. stdError: \(output.stderrString ?? "-none-")"

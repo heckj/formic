@@ -4,30 +4,6 @@ import Testing
 
 @testable import Formic
 
-// Things to test for a type that's a Resource:
-//
-// - If the type includes a parser as a sep. type, work that directly with various inputs
-// static Self.parse(_:String) throws -> Self
-// functional-mock - instance.queryResource(from: Host) throws -> (Self, Date)
-//
-// --------------------------------------
-// tests for SingularResource:
-//
-// functional-mock - Self.findResource(from: Host) throws -> (Self, Date) (also uses static parse)
-//
-// --------------------------------------
-// tests for NamedResource:
-//
-// functional-mock - Self.findResource(_:String, from: Host) throws -> Self
-// (typically uses the static parse, with name used in the command to to request the resource)
-//
-// --------------------------------------
-// tests for CollectionQueryableResource:
-//
-// static collectionParse(_:String) throws -> [Self]
-// functional-mock - Self.queryResourceCollection(from: Host) throws -> ([Self],Date) (uses collectionParse)
-//
-
 @Test("parse a string to determine type of operating system")
 func testOperatingSystemKindParser() async throws {
     let parser = OperatingSystem.UnameParser()
@@ -68,7 +44,8 @@ func testOperatingSystemSingularInquiry() async throws {
 
 @Test("verify the OperatingSystem.parse(_:String) function")
 func testOperatingSystemParse() async throws {
-    #expect(OperatingSystem.parse("Linux\n").name == .linux)
+    let dataToParse: Data = try #require("Linux\n".data(using: .utf8))
+    #expect(OperatingSystem.parse(dataToParse).name == .linux)
 }
 
 @Test("test singular findResource for operating system")
