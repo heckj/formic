@@ -65,7 +65,7 @@ public struct OperatingSystem: Resource {
 
 extension OperatingSystem: SingularResource {
     /// The shell command to use to get the state for this resource.
-    public static let singularInquiry: (any Command) = LocalProcess.shell("uname")
+    public static let singularInquiry: (any Command) = ShellCommand("uname")
 
     /// The shell command to use to update the state for this resource.
     public var inquiry: (any Command) {

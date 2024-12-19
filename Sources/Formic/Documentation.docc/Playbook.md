@@ -4,8 +4,8 @@
 
 ### Creating a Playbook
 
-- ``init(name:hosts:commands:)-4e7lt``
-- ``init(name:hosts:commands:)-4wqqi``
+- ``init(name:hosts:commands:)-lhyo``
+- ``init(name:hosts:commands:)-5js45``
 
 ### Inspecting Playbooks
 

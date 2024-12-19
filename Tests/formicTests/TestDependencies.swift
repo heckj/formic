@@ -5,9 +5,21 @@ import Foundation
 @testable import Formic
 
 struct TestCommandInvoker: CommandInvoker {
+    func getDataAtURL(url: URL) async throws -> Data {
+        if let data = proxyData[url] {
+            return data
+        } else {
+            guard let sampleData = "SAMPLE".data(using: .utf8) else {
+                fatalError("Some whack error converting a string into data.")
+            }
+            return sampleData
+        }
+    }
+
     // proxyResults is keyed by arguments, returns a tuple of seconds delay to apply, then the result
     var proxyResults: [[String]: (Duration, CommandOutput)]
     var proxyErrors: [[String]: (any Error)]
+    var proxyData: [URL: Data]
 
     func remoteCopy(
         host: String, user: String, identityFile: String?, port: Int?, strictHostKeyChecking: Bool, localPath: String,
@@ -50,22 +62,20 @@ struct TestCommandInvoker: CommandInvoker {
         return CommandOutput(returnCode: 0, stdOut: "".data(using: .utf8), stdErr: nil)
     }
 
-    init(_ outputs: [[String]: (Duration, CommandOutput)]? = nil, _ errors: [[String]: (any Error)]? = nil) {
-        if let outputs {
-            self.proxyResults = outputs
-        } else {
-            proxyResults = [:]
-        }
-        if let errors {
-            self.proxyErrors = errors
-        } else {
-            proxyErrors = [:]
-        }
+    init(
+        _ outputs: [[String]: (Duration, CommandOutput)],
+        _ errors: [[String]: (any Error)],
+        _ data: [URL: Data]
+    ) {
+        proxyResults = outputs
+        proxyErrors = errors
+        proxyData = data
     }
 
     init() {
         proxyResults = [:]
         proxyErrors = [:]
+        proxyData = [:]
     }
 
     func addSuccess(command: [String], presentOutput: String, delay: Duration = .zero) -> Self {
@@ -77,7 +87,7 @@ struct TestCommandInvoker: CommandInvoker {
                 stdOut: presentOutput.data(using: .utf8),
                 stdErr: nil)
         )
-        return TestCommandInvoker(existingResult, proxyErrors)
+        return TestCommandInvoker(existingResult, proxyErrors, proxyData)
     }
 
     func addFailure(command: [String], presentOutput: String, delay: Duration = .zero, returnCode: Int32 = -1) -> Self {
@@ -90,14 +100,21 @@ struct TestCommandInvoker: CommandInvoker {
                 stdErr:
                     presentOutput.data(using: .utf8))
         )
-        return TestCommandInvoker(existingResult, proxyErrors)
+        return TestCommandInvoker(existingResult, proxyErrors, proxyData)
     }
 
     func addException(command: [String], errorToThrow: (any Error)) -> Self {
         var existingErrors = proxyErrors
         existingErrors[command] = errorToThrow
-        return TestCommandInvoker(proxyResults, existingErrors)
+        return TestCommandInvoker(proxyResults, existingErrors, proxyData)
     }
+
+    func addData(url: URL, data: Data) -> Self {
+        var existingData = proxyData
+        existingData[url] = data
+        return TestCommandInvoker(proxyResults, proxyErrors, existingData)
+    }
+
 }
 
 struct TestFileSystemAccess: LocalSystemAccess {

@@ -4,8 +4,8 @@ import Testing
 
 @Test("CommandExecutionOutput emoji")
 func testEmojiForExecutionOuput() async throws {
-    let cmd = LocalProcess.shell("uname")
-    let cmdIgnoreFailure = LocalProcess.shell("uname", ignoreFailure: true)
+    let cmd = ShellCommand("uname")
+    let cmdIgnoreFailure = ShellCommand("uname", ignoreFailure: true)
 
     let successOutput = CommandOutput(returnCode: 0, stdOut: "Darwin\n".data(using: .utf8), stdErr: nil)
     let failureOutput = CommandOutput(returnCode: -1, stdOut: nil, stdErr: "I'm not telling you!\n".data(using: .utf8))
@@ -35,8 +35,8 @@ func testEmojiForExecutionOuput() async throws {
 
 @Test("CommandExecutionOutput consoleOutput")
 func testConsoleOutputForExecutionOuput() async throws {
-    let cmd = LocalProcess.shell("uname")
-    let cmdIgnoreFailure = LocalProcess.shell("uname", ignoreFailure: true)
+    let cmd = ShellCommand("uname")
+    let cmdIgnoreFailure = ShellCommand("uname", ignoreFailure: true)
 
     let successOutput = CommandOutput(returnCode: 0, stdOut: "Darwin\n".data(using: .utf8), stdErr: nil)
     let failureOutput = CommandOutput(returnCode: -1, stdOut: nil, stdErr: "I'm not telling you!\n".data(using: .utf8))
