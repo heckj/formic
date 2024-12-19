@@ -5,7 +5,7 @@ public actor Engine {
     let clock: ContinuousClock
     var playbooks: [Playbook.ID: Playbook]
     var states: [Playbook.ID: PlaybookState]
-    var commandResults: [Host: [LocalProcess.ID: CommandExecutionResult]]
+    var commandResults: [Host: [UUID: CommandExecutionResult]]
     var runners: [Host: Task<Void, any Error>]
 
     /// An asynchronous stream of state updates for playbooks.
@@ -118,14 +118,14 @@ public actor Engine {
         else {
             return nil
         }
-        var hostResults: [Host: [LocalProcess.ID: CommandExecutionResult]] = [:]
+        var hostResults: [Host: [UUID: CommandExecutionResult]] = [:]
         // get a list of all the command IDs for this host in this playbook
         // public let results: [Host:[Command.ID:CommandExecutionResult]]
 
         for host in playbook.hosts {
-            var resultsForHost: [LocalProcess.ID: CommandExecutionResult] = [:]
+            var resultsForHost: [UUID: CommandExecutionResult] = [:]
             // ALL results from the engine for this host
-            if let allEngineResults: [LocalProcess.ID: CommandExecutionResult] = commandResults[host] {
+            if let allEngineResults: [UUID: CommandExecutionResult] = commandResults[host] {
                 // only include the results for commands from this playbook
                 for commandId in playbook.commands.map(\.id) {
                     if let executionResult = allEngineResults[commandId] {
@@ -158,7 +158,7 @@ public actor Engine {
             guard let playbook = playbooks[playbookId] else {
                 continue
             }
-            let completedCommandIDs: [LocalProcess.ID] = commandResults[host]?.keys.map { $0 } ?? []
+            let completedCommandIDs: [UUID] = commandResults[host]?.keys.map { $0 } ?? []
             let remainingCommands: [(any Command)] = playbook.commands.filter { command in
                 return !completedCommandIDs.contains(command.id)
             }
@@ -171,7 +171,7 @@ public actor Engine {
 
     func acceptResult(host: Host, result: CommandExecutionResult) {
         // store the result
-        if var hostResultDict: [LocalProcess.ID: CommandExecutionResult] = commandResults[host] {
+        if var hostResultDict: [UUID: CommandExecutionResult] = commandResults[host] {
             assert(hostResultDict[result.command.id] == nil, "Duplicate command result")
             hostResultDict[result.command.id] = result
             commandResults[host] = hostResultDict
@@ -215,7 +215,7 @@ public actor Engine {
                 return false
             }
             // host has all commands reported from original playbook
-            let anyFailure = commandResultsForHost.contains { (id: LocalProcess.ID, result: CommandExecutionResult) in
+            let anyFailure = commandResultsForHost.contains { (id: UUID, result: CommandExecutionResult) in
                 result.output.returnCode != 0 && !result.command.ignoreFailure
             }
             if anyFailure {
@@ -232,7 +232,7 @@ public actor Engine {
         let exceptionReport = CommandExecutionResult(
             command: command, host: host, playbookId: playbookId, output: .empty, duration: .nanoseconds(0), retries: 0,
             exception: exception.localizedDescription)
-        if var hostResultDict: [LocalProcess.ID: CommandExecutionResult] = commandResults[host] {
+        if var hostResultDict: [UUID: CommandExecutionResult] = commandResults[host] {
             assert(hostResultDict[command.id] == nil, "Duplicate command result")
             hostResultDict[command.id] = exceptionReport
             commandResults[host] = hostResultDict

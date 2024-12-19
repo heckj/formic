@@ -31,7 +31,7 @@ public struct DebianPackage: StatefulResource, CollectionQueryableResource {
     public var state: DeclarativeState
 
     // command to run to get request the data for a collection of resources
-    public static let collectionInquiry: (any Command) = LocalProcess.shell("dpkg", "-l")
+    public static let collectionInquiry: (any Command) = ShellCommand("dpkg -l")
     public static func collectionParse(_ output: Data) throws -> [DebianPackage] {
         guard let stringFromData: String = String(data: output, encoding: .utf8) else {
             throw QueryError.notAString
@@ -44,7 +44,7 @@ public struct DebianPackage: StatefulResource, CollectionQueryableResource {
     }
 
     // singular inquiry command
-    public let _inquiry: LocalProcess
+    public let _inquiry: ShellCommand
     public var inquiry: (any Command) {
         return _inquiry
     }
@@ -65,7 +65,7 @@ public struct DebianPackage: StatefulResource, CollectionQueryableResource {
     init(name: String, state: DeclarativeState) {
         self.name = name
         self.state = state
-        self._inquiry = LocalProcess.shell("dpkg", "-l", name)
+        self._inquiry = ShellCommand("dpkg -l \(name)")
     }
 
 }

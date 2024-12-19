@@ -45,6 +45,8 @@ protocol CommandInvoker: Sendable {
         remotePath: String
     ) async throws -> CommandOutput
 
+    func getDataAtURL(url: URL) async throws -> Data
+
     func localShell(
         cmd: [String],
         stdIn: Pipe?,
@@ -123,6 +125,29 @@ struct ProcessCommandInvoker: CommandInvoker {
         let stdErrData = try stdErrPipe.fileHandleForReading.readToEnd()
 
         return CommandOutput(returnCode: task.terminationStatus, stdOut: stdOutData, stdErr: stdErrData)
+    }
+
+    func getDataAtURL(url: URL) async throws -> Data {
+        let ephemeral = URLSession(configuration: .ephemeral)
+        let request = URLRequest(url: url)
+        let (data, response) = try await ephemeral.data(for: request)
+        guard let httpResponse: HTTPURLResponse = response as? HTTPURLResponse else {
+            throw CommandError.noOutputToParse(
+                msg: "Unable to parse response from \(url): \(response.debugDescription)")
+        }
+        if data.isEmpty {
+            throw CommandError.noOutputToParse(msg: "No data returned from \(url): \(response.debugDescription)")
+        }
+        switch httpResponse.statusCode {
+        case 200, 301, 302:
+            return data
+        default:
+            throw CommandError.commandFailed(
+                rc: -1,
+                errmsg:
+                    "Unexpected status code \(httpResponse.statusCode) from \(url). Response: \(response.debugDescription)"
+            )
+        }
     }
 
     func remoteCopy(
