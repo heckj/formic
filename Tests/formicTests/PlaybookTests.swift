@@ -8,14 +8,15 @@ func testPlaybookSimpleDeclaration() async throws {
     let playbook = Playbook(
         name: "simplest", hosts: [.localhost],
         commands: [
-            LocalProcess.shell("uname"),
-            LocalProcess.shell("pwd"),
-            LocalProcess.shell("ls", "-l"),
+            ShellCommand("uname"),
+            ShellCommand("pwd"),
+            ShellCommand("ls", "-l"),
+            ShellCommand("ls -l"),
         ])
     #expect(playbook.name == "simplest")
     #expect(playbook.hosts.count == 1)
     #expect(playbook.hosts[0] == .localhost)
-    #expect(playbook.commands.count == 3)
+    #expect(playbook.commands.count == 4)
 }
 
 @Test("test playbook creating with hostname resolution")
