@@ -20,17 +20,16 @@ public struct ShellCommand: Command {
 
     /// Creates a new command declaration that the engine runs as a shell command.
     /// - Parameters:
-    ///   - args: the command and arguments to run, each argument as a separate string.
+    ///   - arguments: the command and arguments to run, each argument as a separate string.
     ///   - env: An optional dictionary of environment variables the system sets when it runs the command.
     ///   - ignoreFailure: A Boolean value that indicates whether a failing command should fail a playbook.
     ///   - retry: The retry settings for the command.
-    ///   - timeout: The maximum duration to allow for the command.
-    /// - Returns: The command declaration.
+    ///   - executionTimeout: The maximum duration to allow for the command.
     public init(
-        _ args: [String], env: [String: String]? = nil, ignoreFailure: Bool = false,
+        arguments: [String], env: [String: String]? = nil, ignoreFailure: Bool = false,
         retry: RetrySetting = .none, executionTimeout: Duration = .seconds(30)
     ) {
-        self.args = args
+        self.args = arguments
         self.env = env
         self.retry = retry
         self.ignoreFailure = ignoreFailure
@@ -40,36 +39,38 @@ public struct ShellCommand: Command {
 
     /// Creates a new command declaration that the engine runs as a shell command.
     /// - Parameters:
-    ///   - args: the command and arguments to run, each argument as a separate string.
+    ///   - argString: the command and arguments to run as a single string separated by spaces.
     ///   - env: An optional dictionary of environment variables the system sets when it runs the command.
     ///   - ignoreFailure: A Boolean value that indicates whether a failing command should fail a playbook.
     ///   - retry: The retry settings for the command.
-    ///   - timeout: The maximum duration to allow for the command.
-    /// - Returns: The command declaration.
+    ///   - executionTimeout: The maximum duration to allow for the command.
     ///
     /// This initializer is useful when you have a space-separated string of arguments, and splits all arguments by whitespace.
-    /// If a command, or argument, requires a whitespace within it, use ``ShellCommand.init(args:env:ignoreFailure:retry:executionTimeout:)`` instead.
+    /// If a command, or argument, requires a whitespace within it, use ``init(arguments:env:ignoreFailure:retry:executionTimeout:)`` instead.
     public init(
         _ argString: String, env: [String: String]? = nil, ignoreFailure: Bool = false,
         retry: RetrySetting = .none, executionTimeout: Duration = .seconds(30)
     ) {
         let splitArgs: [String] = argString.split(separator: .whitespace).map(String.init)
-        self.init(splitArgs, env: env, ignoreFailure: ignoreFailure, retry: retry, executionTimeout: executionTimeout)
+        self.init(
+            arguments: splitArgs, env: env, ignoreFailure: ignoreFailure, retry: retry,
+            executionTimeout: executionTimeout)
     }
 
     /// Creates a new command declaration that the engine runs as a shell command.
     /// - Parameters:
-    ///   - args: the command and arguments to run, each argument as a separate string.
+    ///   - argumentStrings: the command and arguments to run, each argument as a separate string.
     ///   - env: An optional dictionary of environment variables the system sets when it runs the command.
     ///   - ignoreFailure: A Boolean value that indicates whether a failing command should fail a playbook.
     ///   - retry: The retry settings for the command.
-    ///   - timeout: The maximum duration to allow for the command.
-    /// - Returns: The command declaration.
+    ///   - executionTimeout: The maximum duration to allow for the command.
     public init(
-        _ argStrings: String..., env: [String: String]? = nil, ignoreFailure: Bool = false,
+        argumentStrings: String..., env: [String: String]? = nil, ignoreFailure: Bool = false,
         retry: RetrySetting = .none, executionTimeout: Duration = .seconds(30)
     ) {
-        self.init(argStrings, env: env, ignoreFailure: ignoreFailure, retry: retry, executionTimeout: executionTimeout)
+        self.init(
+            arguments: argumentStrings, env: env, ignoreFailure: ignoreFailure, retry: retry,
+            executionTimeout: executionTimeout)
     }
 
     /// Runs the command on the host you provide.
