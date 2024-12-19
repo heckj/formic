@@ -20,7 +20,7 @@ Quite a is inspired by [Ansible](https://github.com/ansible/ansible), with a goa
 - ``Playbook``
 - ``Engine``
 - ``PlaybookStatus``
-- ``PlaybookRunState``
+- ``PlaybookState``
 - ``CommandExecutionResult``
 - ``Verbosity``
 
@@ -31,6 +31,12 @@ Quite a is inspired by [Ansible](https://github.com/ansible/ansible), with a goa
 - ``RetrySetting``
 - ``CommandOutput``
 - ``CommandError``
+
+### Built-in Commands
+
+- ``ShellCommand``
+- ``CopyFrom``
+- ``CopyInto``
 
 ### Resources
 

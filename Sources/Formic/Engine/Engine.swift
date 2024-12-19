@@ -289,9 +289,13 @@ public actor Engine {
     }
 
     /// Directly runs a playbook in the foreground, one host at time.
-    /// - Parameter playbook: The playbook to run.
+    /// - Parameters:
+    ///   - playbook:  The playbook to run.
+    ///   - displayProgress: A Boolean value that indicates whether to display progress while the playbook is executed.
+    ///   - verbosity: The verbosity level to use if you display progress.
     /// - Returns: The combined playbook state when the run is complete.
-    /// - Throws: Any exceptiopns that occur while running the playbook.
+    /// - Throws: Any exceptions that occur while running the playbook.
+    ///
     /// Exceptions are not captured and embedded in results when running in the foreground.
     @discardableResult
     public func run(playbook: Playbook, displayProgress: Bool, verbosity: Verbosity = .silent(emoji: true)) async throws
