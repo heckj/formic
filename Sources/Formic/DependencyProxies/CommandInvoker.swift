@@ -1,6 +1,10 @@
 import Dependencies
 import Foundation
 
+#if canImport(FoundationNetworking)  // Required for Linux
+    import FoundationNetworking
+#endif
+
 // IMPLEMENTATION NOTES:
 // With this structure, everything is synchronous - which makes some of the higher level
 // structuring easier. But it also means that you don't see any output _while_ it's happening.
