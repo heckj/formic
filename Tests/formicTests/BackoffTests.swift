@@ -55,6 +55,7 @@ func testBackoffDelayLogicFibonacci() async throws {
     #expect(strategy.delay(for: 10, withJitter: false) == .seconds(3.5))
 
     #expect(strategy.delay(for: 3, withJitter: true) != .seconds(2))
+    #expect(strategy.delay(for: 20, withJitter: true) <= .seconds(3.5))
 }
 
 @Test("verify backoff logic - .exponential")
@@ -68,6 +69,7 @@ func testBackoffDelayLogicExponential() async throws {
     #expect(strategy.delay(for: 10, withJitter: false) == .seconds(3.5))
 
     #expect(strategy.delay(for: 2, withJitter: true) != .seconds(2))
+    #expect(strategy.delay(for: 20, withJitter: true) <= .seconds(3.5))
 }
 
 @Test("verify jitter logic")
