@@ -5,6 +5,8 @@
 ### Creating output
 
 - ``empty``
+- ``generalSuccess(msg:)``
+- ``generalFailure(msg:)``
 
 ### Inspecting Command Output
 
