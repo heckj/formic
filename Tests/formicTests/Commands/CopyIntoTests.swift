@@ -1,6 +1,8 @@
-import Formic
+import Dependencies
 import Foundation
 import Testing
+
+@testable import Formic
 
 @Test("initializing a copy command")
 func copyCommandDeclarationTest() async throws {
@@ -29,4 +31,25 @@ func copyCommandFullDeclarationTest() async throws {
     #expect(backoff == Backoff(maxRetries: 100, strategy: .fibonacci(maxDelay: .seconds(60))))
 
     #expect(command.description == "scp one to remote host:two")
+}
+
+@Test("test invoking a copyInt command")
+func testInvokingCopyIntoCommand() async throws {
+
+    let testInvoker = TestCommandInvoker()
+
+    let host = try await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess(
+            dnsName: "somewhere.com", ipAddressesToUse: ["8.8.8.8"])
+    } operation: {
+        try await Host.resolve("somewhere.com")
+    }
+
+    let cmdOut = try await withDependencies {
+        $0.commandInvoker = testInvoker
+    } operation: {
+        try await CopyInto(location: "/etc/configFile", from: "~/datafile").run(host: host)
+    }
+
+    #expect(cmdOut.returnCode == 0)
 }

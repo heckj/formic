@@ -1,6 +1,8 @@
-import Formic
+import Dependencies
 import Foundation
 import Testing
+
+@testable import Formic
 
 @Test("initializing a shell command")
 func shellCommandDeclarationTest() async throws {
@@ -35,4 +37,25 @@ func shellCommandFullDeclarationTest() async throws {
     }
     #expect(backoff == Backoff(maxRetries: 200, strategy: .exponential(maxDelay: .seconds(60))))
     #expect(command.description == "ls")
+}
+
+@Test("test invoking a shell command")
+func testInvokingShellCommand() async throws {
+
+    let testInvoker = TestCommandInvoker()
+
+    let host = try await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess(
+            dnsName: "somewhere.com", ipAddressesToUse: ["8.8.8.8"])
+    } operation: {
+        try await Host.resolve("somewhere.com")
+    }
+
+    let cmdOut = try await withDependencies {
+        $0.commandInvoker = testInvoker
+    } operation: {
+        try await ShellCommand("ls -altr").run(host: host)
+    }
+
+    #expect(cmdOut.returnCode == 0)
 }

@@ -109,7 +109,16 @@ struct TestCommandInvoker: CommandInvoker {
         return TestCommandInvoker(proxyResults, existingErrors, proxyData)
     }
 
-    func addData(url: URL, data: Data) -> Self {
+    //    func addURLException(command: [String], errorToThrow: (any Error)) -> Self {
+    //        var existingErrors = proxyErrors
+    //        existingErrors[command] = errorToThrow
+    //        return TestCommandInvoker(proxyResults, existingErrors, proxyData)
+    //    }
+
+    func addData(url: URL, data: Data?) -> Self {
+        guard let data = data else {
+            return self
+        }
         var existingData = proxyData
         existingData[url] = data
         return TestCommandInvoker(proxyResults, proxyErrors, existingData)
