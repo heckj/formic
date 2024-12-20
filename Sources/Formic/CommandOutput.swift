@@ -40,6 +40,18 @@ public struct CommandOutput: Sendable {
     public static var empty: CommandOutput {
         CommandOutput(returnCode: 0, stdOut: nil, stdErr: nil)
     }
+
+    /// Creates a command out that represents a success.
+    /// - Parameter msg: A message to include as the standard output.
+    public static func generalSuccess(msg: String) -> CommandOutput {
+        CommandOutput(returnCode: 0, stdOut: msg.data(using: .utf8), stdErr: nil)
+    }
+
+    /// Creates a command out that represents a failure.
+    /// - Parameter msg: A message to include as the standard error.
+    public static func generalFailure(msg: String) -> CommandOutput {
+        CommandOutput(returnCode: -1, stdOut: nil, stdErr: msg.data(using: .utf8))
+    }
 }
 
 extension CommandOutput: Hashable {}
