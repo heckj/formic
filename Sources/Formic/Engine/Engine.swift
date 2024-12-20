@@ -372,7 +372,7 @@ public actor Engine {
                     duration: durationOfLastAttempt, retries: numberOfRetries,
                     exception: nil)
             } else {
-                let delay = command.retry.strategy.delay(for: numberOfRetries)
+                let delay = command.retry.strategy.delay(for: numberOfRetries, withJitter: true)
                 try await Task.sleep(for: delay)
             }
         } while command.retry.retryOnFailure && numberOfRetries < command.retry.maxRetries
