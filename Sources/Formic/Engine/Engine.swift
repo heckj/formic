@@ -340,18 +340,9 @@ public actor Engine {
     {
         // `nonisolated` + `async` means run on a cooperative thread pool and return the result
         // remove the `nonisolated` keyword to run in the actor's context.
-        var shouldAttemptRetry: Bool = false
         var numberOfRetries: Int = -1
-        var maxRetries: Int = 0
         var durationOfLastAttempt: Duration = .zero
         var outputOfLastAttempt: CommandOutput = .empty
-        var retryDelayStrategy: Backoff.Strategy = .none
-
-        if case .retryOnFailure(let backoffSetting) = command.retry {
-            shouldAttemptRetry = true
-            maxRetries = backoffSetting.maxRetries
-            retryDelayStrategy = backoffSetting.strategy
-        }
 
         repeat {
             numberOfRetries += 1
@@ -381,10 +372,10 @@ public actor Engine {
                     duration: durationOfLastAttempt, retries: numberOfRetries,
                     exception: nil)
             } else {
-                let delay = retryDelayStrategy.delay(for: numberOfRetries)
+                let delay = command.retry.strategy.delay(for: numberOfRetries)
                 try await Task.sleep(for: delay)
             }
-        } while shouldAttemptRetry && numberOfRetries < maxRetries
+        } while command.retry.retryOnFailure && numberOfRetries < command.retry.maxRetries
 
         return CommandExecutionResult(
             command: command, host: host, playbookId: playbookId, output: outputOfLastAttempt,

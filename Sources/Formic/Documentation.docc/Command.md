@@ -8,6 +8,7 @@
 - ``Command/ignoreFailure``
 - ``Command/retry``
 - ``Command/executionTimeout``
+- ``Backoff``
 
 ### Invoking Commands
 

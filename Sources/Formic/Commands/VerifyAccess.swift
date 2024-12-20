@@ -6,7 +6,7 @@ public struct VerifyAccess: Command {
     /// A Boolean value that indicates whether a failing command should fail a playbook.
     public let ignoreFailure: Bool
     /// The retry settings for the command.
-    public let retry: RetrySetting
+    public let retry: Backoff
     /// The maximum duration to allow for the command.
     public let executionTimeout: Duration
     /// The ID of the command.
@@ -19,10 +19,9 @@ public struct VerifyAccess: Command {
     ///   - executionTimeout: The maximum duration to allow for the command.
     public init(
         ignoreFailure: Bool = false,
-        retry: RetrySetting = .retryOnFailure(
-            Backoff(
-                maxRetries: 10,
-                strategy: .fibonacci(maxDelay: .seconds(600)))),
+        retry: Backoff = Backoff(
+            maxRetries: 10,
+            strategy: .fibonacci(maxDelay: .seconds(600))),
         executionTimeout: Duration = .seconds(30)
     ) {
         self.retry = retry
