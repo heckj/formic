@@ -7,7 +7,7 @@ import Testing
 @Test("initializing a shell command")
 func shellCommandDeclarationTest() async throws {
     let command = ShellCommand("uname")
-    #expect(command.retry == .none)
+    #expect(command.retry == .never)
     #expect(command.args == ["uname"])
     #expect(command.env == nil)
     #expect(command.id != nil)

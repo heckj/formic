@@ -61,10 +61,10 @@ public struct Backoff: Sendable, Hashable, Codable {
         self.strategy = strategy
     }
 
-    /// Default backoff settings
+    /// Never attempt retry
     ///
     /// Do not attempt to retry on failure.
-    public static var none: Backoff {
+    public static var never: Backoff {
         Backoff(maxRetries: 0, strategy: .constant(delay: .seconds(1)))
     }
 

@@ -27,7 +27,7 @@ public struct ShellCommand: Command {
     ///   - executionTimeout: The maximum duration to allow for the command.
     public init(
         arguments: [String], env: [String: String]? = nil, ignoreFailure: Bool = false,
-        retry: Backoff = .none, executionTimeout: Duration = .seconds(30)
+        retry: Backoff = .never, executionTimeout: Duration = .seconds(30)
     ) {
         self.args = arguments
         self.env = env
@@ -49,7 +49,7 @@ public struct ShellCommand: Command {
     /// If a command, or argument, requires a whitespace within it, use ``init(arguments:env:ignoreFailure:retry:executionTimeout:)`` instead.
     public init(
         _ argString: String, env: [String: String]? = nil, ignoreFailure: Bool = false,
-        retry: Backoff = .none, executionTimeout: Duration = .seconds(30)
+        retry: Backoff = .never, executionTimeout: Duration = .seconds(30)
     ) {
         let splitArgs: [String] = argString.split(separator: .whitespace).map(String.init)
         self.init(
@@ -66,7 +66,7 @@ public struct ShellCommand: Command {
     ///   - executionTimeout: The maximum duration to allow for the command.
     public init(
         argumentStrings: String..., env: [String: String]? = nil, ignoreFailure: Bool = false,
-        retry: Backoff = .none, executionTimeout: Duration = .seconds(30)
+        retry: Backoff = .never, executionTimeout: Duration = .seconds(30)
     ) {
         self.init(
             arguments: argumentStrings, env: env, ignoreFailure: ignoreFailure, retry: retry,
