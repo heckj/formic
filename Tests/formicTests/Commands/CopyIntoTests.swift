@@ -7,7 +7,7 @@ import Testing
 @Test("initializing a copy command")
 func copyCommandDeclarationTest() async throws {
     let command = CopyInto(location: "two", from: "one")
-    #expect(command.retry == .none)
+    #expect(command.retry == .never)
     #expect(command.from == "one")
     #expect(command.destinationPath == "two")
     #expect(command.env == nil)

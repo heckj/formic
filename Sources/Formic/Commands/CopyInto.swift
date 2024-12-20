@@ -30,7 +30,7 @@ public struct CopyInto: Command {
     ///   - executionTimeout: The maximum duration to allow for the command.
     public init(
         location: String, from: String, env: [String: String]? = nil, ignoreFailure: Bool = false,
-        retry: Backoff = .none, executionTimeout: Duration = .seconds(30)
+        retry: Backoff = .never, executionTimeout: Duration = .seconds(30)
     ) {
         self.from = from
         self.env = env

@@ -9,7 +9,7 @@ func copyFromCommandDeclarationTest() async throws {
 
     let url: URL = try #require(URL(string: "http://somehost.com/datafile"))
     let command = CopyFrom(location: "/dest/path", from: url)
-    #expect(command.retry == .none)
+    #expect(command.retry == .never)
     #expect(command.from == url)
     #expect(command.destinationPath == "/dest/path")
     #expect(command.env == nil)
