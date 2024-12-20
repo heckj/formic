@@ -30,24 +30,57 @@ public struct Backoff: Sendable, Hashable, Codable {
         /// Increment delay by a backoff increasing using a exponential sequence, up to a max interval.
         case exponential(maxDelay: Duration)
 
-        func delay(for attempt: Int) -> Duration {
+        func delay(for attempt: Int, withJitter: Bool) -> Duration {
             switch self {
             case .none:
                 return .zero
             case .constant(let delay):
                 return delay
             case .linear(let increment, let maxDelay):
-                return min(increment * attempt, maxDelay)
+                if withJitter {
+                    return Self.jitterValue(base: increment * attempt, max: maxDelay)
+                } else {
+                    return min(increment * attempt, maxDelay)
+                }
             case .fibonacci(let maxDelay):
                 if attempt >= Self.fibBackoffs.count {
-                    return min(.seconds(610), maxDelay)
+                    if withJitter {
+                        return Self.jitterValue(base: .seconds(610), max: maxDelay)
+                    } else {
+                        return min(.seconds(610), maxDelay)
+                    }
                 }
-                return min(.seconds(Self.fibBackoffs[attempt]), maxDelay)
+                if withJitter {
+                    return Self.jitterValue(base: .seconds(Self.fibBackoffs[attempt]), max: maxDelay)
+                } else {
+                    return min(.seconds(Self.fibBackoffs[attempt]), maxDelay)
+                }
             case .exponential(let maxDelay):
                 if attempt >= Self.exponentialBackoffs.count {
-                    return min(.seconds(512), maxDelay)
+                    if withJitter {
+                        return Self.jitterValue(base: .seconds(512), max: maxDelay)
+                    } else {
+                        return min(.seconds(512), maxDelay)
+                    }
                 }
-                return min(.seconds(Self.exponentialBackoffs[attempt]), maxDelay)
+                if withJitter {
+                    return Self.jitterValue(base: .seconds(Self.exponentialBackoffs[attempt]), max: maxDelay)
+                } else {
+                    return min(.seconds(Self.exponentialBackoffs[attempt]), maxDelay)
+                }
+            }
+        }
+
+        static func jitterValue(base: Duration, max: Duration) -> Duration {
+            // plus or minus 5% of the base duration
+            let jitter: Duration = base * Double.random(in: -1...1) / 20
+            let adjustedDuration = base + jitter
+            if adjustedDuration > max {
+                return max
+            } else if adjustedDuration < .zero {
+                return .zero
+            } else {
+                return adjustedDuration
             }
         }
     }
