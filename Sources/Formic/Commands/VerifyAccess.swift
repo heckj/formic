@@ -19,8 +19,10 @@ public struct VerifyAccess: Command {
     ///   - executionTimeout: The maximum duration to allow for the command.
     public init(
         ignoreFailure: Bool = false,
-        retry: RetrySetting = .retryOnFailure(Backoff(maxRetries: 10,
-                                                      strategy: .fibonacci(maxDelay: .seconds(600)))),
+        retry: RetrySetting = .retryOnFailure(
+            Backoff(
+                maxRetries: 10,
+                strategy: .fibonacci(maxDelay: .seconds(600)))),
         executionTimeout: Duration = .seconds(30)
     ) {
         self.retry = retry
@@ -36,7 +38,7 @@ public struct VerifyAccess: Command {
     public func run(host: Host) async throws -> CommandOutput {
         @Dependency(\.commandInvoker) var invoker: any CommandInvoker
         let cmdArgs = ["echo", "'hello'"]
-        
+
         let answer: CommandOutput
         if host.remote {
             let sshCreds = host.sshAccessCredentials
