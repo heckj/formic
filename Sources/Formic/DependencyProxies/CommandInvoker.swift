@@ -140,17 +140,9 @@ struct ProcessCommandInvoker: CommandInvoker {
                 msg: "Unable to parse response from \(url): \(response.debugDescription)")
         }
         if data.isEmpty {
-            throw CommandError.noOutputToParse(msg: "No data returned from \(url): \(response.debugDescription)")
-        }
-        switch httpResponse.statusCode {
-        case 200, 301, 302:
+            throw CommandError.noOutputToParse(msg: "No data returned from \(url): \(httpResponse.debugDescription)")
+        } else {
             return data
-        default:
-            throw CommandError.commandFailed(
-                rc: -1,
-                errmsg:
-                    "Unexpected status code \(httpResponse.statusCode) from \(url). Response: \(response.debugDescription)"
-            )
         }
     }
 
