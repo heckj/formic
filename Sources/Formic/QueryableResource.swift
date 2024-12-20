@@ -4,7 +4,7 @@ import Foundation
 // Resource pieces and operating on them:
 
 /// A type of resource that can be updated from a remote and supports collections and persistence.
-public protocol Resource: Codable, Hashable, Sendable {
+public protocol Resource: Hashable, Sendable {
     // IMPLEMENTATION NOTE:
     // Requirement 0 - persist-able and comparable
     //    - `Codable`, `Hashable`
@@ -119,7 +119,7 @@ extension Resource {
 
 /// A type of resource that exposes a declarative state.
 public protocol StatefulResource<DeclarativeStateType>: Resource {
-    associatedtype DeclarativeStateType: CustomStringConvertible, Sendable, Hashable, Codable
+    associatedtype DeclarativeStateType: CustomStringConvertible, Sendable, Hashable
     /// The state of this resource.
     var state: DeclarativeStateType { get }
 }
