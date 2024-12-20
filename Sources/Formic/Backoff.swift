@@ -45,7 +45,7 @@ public struct Backoff: Sendable, Hashable, Codable {
             case .fibonacci(let maxDelay):
                 if attempt >= Self.fibBackoffs.count {
                     if withJitter {
-                        return Self.jitterValue(base: .seconds(610), max: maxDelay)
+                        return Self.jitterValue(base: min(.seconds(610), maxDelay), max: maxDelay)
                     } else {
                         return min(.seconds(610), maxDelay)
                     }
@@ -58,7 +58,7 @@ public struct Backoff: Sendable, Hashable, Codable {
             case .exponential(let maxDelay):
                 if attempt >= Self.exponentialBackoffs.count {
                     if withJitter {
-                        return Self.jitterValue(base: .seconds(512), max: maxDelay)
+                        return Self.jitterValue(base: min(.seconds(512), maxDelay), max: maxDelay)
                     } else {
                         return min(.seconds(512), maxDelay)
                     }
