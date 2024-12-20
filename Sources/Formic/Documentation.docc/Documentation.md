@@ -28,7 +28,6 @@ Quite a is inspired by [Ansible](https://github.com/ansible/ansible), with a goa
 
 - ``Host``
 - ``Command``
-- ``RetrySetting``
 - ``CommandOutput``
 - ``CommandError``
 

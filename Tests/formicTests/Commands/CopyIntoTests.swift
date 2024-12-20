@@ -19,16 +19,11 @@ func copyCommandDeclarationTest() async throws {
 func copyCommandFullDeclarationTest() async throws {
     let command = CopyInto(
         location: "two", from: "one",
-        retry: .retryOnFailure(Backoff(maxRetries: 100, strategy: .fibonacci(maxDelay: .seconds(60)))))
+        retry: Backoff(maxRetries: 100, strategy: .fibonacci(maxDelay: .seconds(60))))
     #expect(command.from == "one")
     #expect(command.destinationPath == "two")
     #expect(command.env == nil)
-    #expect(command.retry != .none)
-    guard case .retryOnFailure(let backoff) = command.retry else {
-        Issue.record("Unexpected type found in retry: \(command.retry)")
-        return
-    }
-    #expect(backoff == Backoff(maxRetries: 100, strategy: .fibonacci(maxDelay: .seconds(60))))
+    #expect(command.retry == Backoff(maxRetries: 100, strategy: .fibonacci(maxDelay: .seconds(60))))
 
     #expect(command.description == "scp one to remote host:two")
 }

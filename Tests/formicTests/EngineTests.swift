@@ -643,7 +643,7 @@ func testCommandTimeout() async throws {
 func testCommandRetry() async throws {
     typealias Host = Formic.Host
     let engine = Engine()
-    let cmd1 = ShellCommand("uname", retry: .retryOnFailure(.default))
+    let cmd1 = ShellCommand("uname", retry: .default)
 
     let fakeHost = try await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess(

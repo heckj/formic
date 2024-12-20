@@ -26,16 +26,10 @@ func verifyIdentifiableCommands() async throws {
 func shellCommandFullDeclarationTest() async throws {
     let command = ShellCommand(
         "ls", env: ["PATH": "/usr/bin"],
-        retry: .retryOnFailure(
-            Backoff(maxRetries: 200, strategy: .exponential(maxDelay: .seconds(60)))))
+        retry: Backoff(maxRetries: 200, strategy: .exponential(maxDelay: .seconds(60))))
     #expect(command.args == ["ls"])
     #expect(command.env == ["PATH": "/usr/bin"])
-    #expect(command.retry != .none)
-    guard case .retryOnFailure(let backoff) = command.retry else {
-        Issue.record("Unexpected type found in retry: \(command.retry)")
-        return
-    }
-    #expect(backoff == Backoff(maxRetries: 200, strategy: .exponential(maxDelay: .seconds(60))))
+    #expect(command.retry == Backoff(maxRetries: 200, strategy: .exponential(maxDelay: .seconds(60))))
     #expect(command.description == "ls")
 }
 

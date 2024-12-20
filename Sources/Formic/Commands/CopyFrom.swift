@@ -15,7 +15,7 @@ public struct CopyFrom: Command {
     /// A Boolean value that indicates whether a failing command should fail a playbook.
     public let ignoreFailure: Bool
     /// The retry settings for the command.
-    public let retry: RetrySetting
+    public let retry: Backoff
     /// The maximum duration to allow for the command.
     public let executionTimeout: Duration
     /// The ID of the command.
@@ -31,7 +31,7 @@ public struct CopyFrom: Command {
     ///   - executionTimeout: The maximum duration to allow for the command.
     public init(
         location: String, from: URL, env: [String: String]? = nil, ignoreFailure: Bool = false,
-        retry: RetrySetting = .none, executionTimeout: Duration = .seconds(30)
+        retry: Backoff = .none, executionTimeout: Duration = .seconds(30)
     ) {
         self.from = from
         self.env = env

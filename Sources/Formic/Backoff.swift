@@ -1,20 +1,17 @@
 import Foundation
 
-/// The retry settings for a command on failure.
-public enum RetrySetting: Sendable, Hashable, Codable {
-    /// Don't retry the command.
-    case none
-    /// Retry the command on failure.
-    case retryOnFailure(Backoff)
-}
-
-/// The backoff settings for a command.
+/// The retry and backoff delay settings for a command.
 public struct Backoff: Sendable, Hashable, Codable {
 
     /// The maximum number of retries to attempt on failure.
     public let maxRetries: Int
+
     /// The delay strategy for waiting between retries.
     public let strategy: Strategy
+
+    public var retryOnFailure: Bool {
+        maxRetries > 0
+    }
 
     /// The backoff strategy and values for delaying.
     public enum Strategy: Sendable, Hashable, Codable {
@@ -57,11 +54,18 @@ public struct Backoff: Sendable, Hashable, Codable {
 
     /// Creates a new backup setting with the values you provide.
     /// - Parameters:
-    ///   - maxRetries: The maximum number of retry attempts allowed.
+    ///   - maxRetries: The maximum number of retry attempts allowed. Negative integers are treated as 0 retries.
     ///   - strategy: The delay strategy for waiting between retries.
     public init(maxRetries: Int, strategy: Strategy) {
-        self.maxRetries = maxRetries
+        self.maxRetries = max(maxRetries, 0)
         self.strategy = strategy
+    }
+
+    /// Default backoff settings
+    ///
+    /// Do not attempt to retry on failure.
+    public static var none: Backoff {
+        Backoff(maxRetries: 0, strategy: .constant(delay: .seconds(1)))
     }
 
     /// Default backoff settings
@@ -70,4 +74,5 @@ public struct Backoff: Sendable, Hashable, Codable {
     public static var `default`: Backoff {
         Backoff(maxRetries: 3, strategy: .fibonacci(maxDelay: .seconds(10)))
     }
+
 }
