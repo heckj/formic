@@ -80,6 +80,57 @@ apply { host in
     let envset = ENVSET("/etc/os-release")
 }
 ```
+
+At the start, Playbooks are a list of commands links to hosts. 
+I think for declarative setups we want to take that a bit farther, in particular allowing cross-host coordination. 
+The engine can't know up front how to coordinate things, so I think maybe putting that logic into a playbook, with a reasonable default (a .run() or something) would make sense.
+
+I'd also like to possibly allow parallelism within the playbook. 
+The execution parallelism should be controlled BY the playbook (so either declarative, or in the run() method).
+The "Owner" of the operations should be Engine, since that's an actor, and specifically "in the background" in terms of execution context. (Need to look into how to inherit isolation context).
+
+```swift
+InParallel(a,b,c) { host in
+Cmd,
+Cmd,
+Cmd,
+}
+CoordinatedThing(a,b)
+```
+
+```swift
+Playbook("myBook", hosts: [a,b,c]) { context in
+// "builder" structure - so these becomes various types that the playbook knows how to execute?
+  InParallel(a,b,c) {
+    Query(OSResource) // command that interrogates the host, and returns a resource info and state, storing into something available from the playbook and commands. A dynamic context.
+    Cmd("apply updates")
+    Query(Packages)
+    DockerResource(state: enabled, forUser: "docker-user")
+  }
+  SetupReplication(from: a, to: b) // executed as a unit after everything in InParallel is done.
+  SetupSwarm(masters: b workers: c,d) // Host... parameters?
+    playbook.context [Host: [Resources]] // inout parameter?
+    - .resolve() gets passed the dynamic context from the playbook
+}
+```
+
+Alternately, its an async closure that gets invoked by Engine, where I can cobble in Swift directly and use TaskGroups and invoke commands directly.
+
+Playbooks might also want to have pre-requisites, and fail or not allow execution if they're not met - a set of "checks" up front. 
+```swift
+Require(hostA["OS"] == "Ubuntu")
+```
+
+Likewise, I can see a desire to query and "load" some dynamic context for the playbook while it's operational. 
+For example, gate on "What's my OS", or getting some values like from /etc/os-release or /etc/lsb-release to use as parameters in constructing commands.
+```swift
+Query(OSResource)
+Query(OSResource, for: hostA)
+withHosts(a,b,c,) { host in
+    Query(OSResource, for: host)
+}
+```
+
 ```bash
 docker-user@ubuntu:~$ cat /etc/os-release
 PRETTY_NAME="Ubuntu 24.04.1 LTS"
