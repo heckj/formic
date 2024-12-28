@@ -18,17 +18,17 @@ import Parsing
 /// The kind of operating system.
 public struct DebianPackage: StatefulResource, CollectionQueryableResource {
 
-    public typealias DeclarativeStateType = DeclarativeState
-
     // the states for this Resource
-    public enum DeclarativeState: String, StringInfoKey {
+    public enum PackageDeclarativeState: String, Hashable, CustomStringConvertible, Sendable {
+        public var description: String {
+            self.rawValue
+        }
         case present
         case absent
     }
 
-    // the key information to identify this Resource
     public var name: String
-    public var state: DeclarativeState
+    public var state: PackageDeclarativeState
 
     // command to run to get request the data for a collection of resources
     public static let collectionInquiry: (any Command) = ShellCommand("dpkg -l")
@@ -62,7 +62,7 @@ public struct DebianPackage: StatefulResource, CollectionQueryableResource {
     // - https://github.com/kellyjonbrazil/jc/blob/master/jc/parsers/dpkg_l.py
     // - https://github.com/kellyjonbrazil/jc/blob/master/docs/parsers/dpkg_l.md
 
-    init(name: String, state: DeclarativeState) {
+    init(name: String, state: PackageDeclarativeState) {
         self.name = name
         self.state = state
         self._inquiry = ShellCommand("dpkg -l \(name)")
@@ -176,9 +176,7 @@ extension DpkgState {
             }
         }
     }
-}
 
-extension DpkgState {
     // parsing `dpkg -l` output
     struct DpkgHeader: Parser {
         var body: some Parser<Substring, Void> {

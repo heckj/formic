@@ -36,65 +36,43 @@ public protocol Resource: Hashable, Sendable {
     /// Queries the state of the resource from the given host.
     /// - Parameter from: The host to inspect.
     /// - Returns: The state of the resource.
-    func queryResource(from: Host) async throws -> (Self, Date)
-
+    func query(from: Host) async throws -> (Self, Date)
 }
 
-/// Resource or Declarative state type that presents a description through rawValue.
-///
-/// (like an enum)
-protocol StringInfoKey: RawRepresentable, CustomStringConvertible, Sendable, Hashable, Codable {}
-extension StringInfoKey {
-    /// The description of the key.
-    public var description: RawValue { rawValue }
-}
-// ^ makes using enums as resource information keys a bit easier by avoiding each implementation
-// having it's own CustomStringConvertible representation.
-
-/// A type of resource that exposes a stringly-based interface.
-protocol StringlyAvailableResourceInformation<ResourceInformationKey>: Resource {
-    associatedtype ResourceInformationKey: StringInfoKey
-    /// Returns the string information for the key you provide.
-    /// - Parameter key: The resource information key.
-    ///
-    /// The key is loosely equivalent to a "property" name in a Swift struct.
-    func info(for key: ResourceInformationKey) -> String?
-
-    // IMPLEMENTATION NOTE:
-    // Requirement 1 - a declarative structure to represent what we want it to be
-    //    - name
-    //      - state (present|absent)
-    //    ? additional state/information (not declarable, but shown?)
-    //      - version
-    //      - architecture
-    //      - description
-    // (we need enough of a name and context to be able to programmatically request information about
-    // the resource. For software on a single OS, a type, name, and host address should be enough. But
-    // for resources that span hosts, we might need something very different.)
-    //
-    // The use cases I've stumbled across so far _may_ result in this needing to be more "stringly"
-    // typed - especially if it revolves out to externally declared resources, but I think this can
-    // mostly work _within_ Swift itself by using the underlying types of the resources themselves.
-    //
-    // While I started down this way to expose a struct as a bunch of generic strings, I'm not
-    // really sure it's needed, let along as a core "Resource" capability. So I've left the structure
-    // here, but I'm not sure it's needed.
-    //
-    // This whole basic structure is very indirect if you could "represent" the resource as a
-    // single string or something. It is a means of making a type that you can
-    // generically inquire for details, with an assumption that _most_ resource types will have
-    // multiple kinds of detail. This allows us to represent the resource types with strong types
-    // in swift, while exposing a String interface to inquire about the details.
-    // The idea was to try and get a little bit away from Stringly-typed resources if at all
-    // possible.
-    //
-}
+// IMPLEMENTATION NOTE:
+// Requirement 1 - a declarative structure to represent what we want it to be
+//    - name
+//      - state (present|absent)
+//    ? additional state/information (not declarable, but shown?)
+//      - version
+//      - architecture
+//      - description
+// (we need enough of a name and context to be able to programmatically request information about
+// the resource. For software on a single OS, a type, name, and host address should be enough. But
+// for resources that span hosts, we might need something very different.)
+//
+// The use cases I've stumbled across so far _may_ result in this needing to be more "stringly"
+// typed - especially if it revolves out to externally declared resources, but I think this can
+// mostly work _within_ Swift itself by using the underlying types of the resources themselves.
+//
+// While I started down this way to expose a struct as a bunch of generic strings, I'm not
+// really sure it's needed, let along as a core "Resource" capability. So I've left the structure
+// here, but I'm not sure it's needed.
+//
+// This whole basic structure is very indirect if you could "represent" the resource as a
+// single string or something. It is a means of making a type that you can
+// generically inquire for details, with an assumption that _most_ resource types will have
+// multiple kinds of detail. This allows us to represent the resource types with strong types
+// in swift, while exposing a String interface to inquire about the details.
+// The idea was to try and get a little bit away from Stringly-typed resources if at all
+// possible.
+//
 
 extension Resource {
     /// Queries the state of the resource from the given host.
     /// - Parameter host: The host to inspect.
     /// - Returns: The state of the resource and the time that it was last updated.
-    public func queryResource(from host: Host) async throws -> (Self, Date) {
+    public func query(from host: Host) async throws -> (Self, Date) {
         // default implementation:
 
         @Dependency(\.date.now) var date
@@ -117,31 +95,26 @@ extension Resource {
     }
 }
 
-/// A type of resource that exposes a declarative state.
-public protocol StatefulResource<DeclarativeStateType>: Resource {
-    associatedtype DeclarativeStateType: CustomStringConvertible, Sendable, Hashable
-    /// The state of this resource.
-    var state: DeclarativeStateType { get }
-}
-
-/// A type of single resource that can be identified from from a host without a name or identifier.
+/// A type of resource that exists in singular form on a Host.
 public protocol SingularResource: Resource {
     /// The shell command to use to get the state for this resource.
-    static var singularInquiry: (any Command) { get }
-    /// Returns a resource for the host you provide.
-    /// - Parameter host: The host to inspect for the resource.
-    static func findResource(from host: Host) async throws -> (Self, Date)
+    static var inquiry: (any Command) { get }
+    /// Queries the state of the resource from the given host.
+    /// - Parameter from: The host to inspect.
+    /// - Returns: The state of the resource.
+    static func query(from: Host) async throws -> (Self, Date)
 }
 
 extension SingularResource {
-    /// Returns a resource for the host you provide.
-    /// - Parameter host: The host to inspect for the resource.
-    public static func findResource(from host: Host) async throws -> (Self, Date) {
+    /// Queries the state of the resource from the given host.
+    /// - Parameter host: The host to inspect.
+    /// - Returns: The state of the resource and the time that it was last updated.
+    public static func query(from host: Host) async throws -> (Self, Date) {
         // default implementation:
 
         @Dependency(\.date.now) var date
         // run the command on the relevant host, capturing the output
-        let output: CommandOutput = try await singularInquiry.run(host: host)
+        let output: CommandOutput = try await Self.inquiry.run(host: host)
         // verify the return code is 0
         if output.returnCode != 0 {
             throw CommandError.commandFailed(rc: output.returnCode, errmsg: output.stderrString ?? "")
@@ -150,15 +123,20 @@ extension SingularResource {
             guard let stdout = output.stdOut else {
                 throw CommandError.noOutputToParse(
                     msg:
-                        "The command \(Self.singularInquiry) to \(host) did not return any output. stdError: \(output.stderrString ?? "-none-")"
+                        "The command \(Self.inquiry) to \(host) did not return any output. stdError: \(output.stderrString ?? "-none-")"
                 )
             }
             let parsedState = try Self.parse(stdout)
             return (parsedState, date)
         }
-
     }
+}
 
+/// A type of resource that exposes a declarative state.
+public protocol StatefulResource<DeclarativeStateType>: Resource {
+    associatedtype DeclarativeStateType: CustomStringConvertible, Sendable, Hashable
+    /// The state of this resource.
+    var state: DeclarativeStateType { get }
 }
 
 /// A resource that can be identifier from a host with a name you provide.
@@ -166,7 +144,8 @@ public protocol NamedResource: Resource {
     /// Returns a resource for the host you provide.
     /// - Parameter name: The name of the resource to find.
     /// - Parameter host: The host to inspect for the resource.
-    static func findResource(_ name: String, from host: Host) async throws -> (Self, Date)
+    static func query(_ name: String, from host: Host) async throws -> (Self, Date)
+    // var name: String { get }
 }
 
 /// A collection of resources that can be found and queried from a host.
@@ -178,14 +157,14 @@ public protocol CollectionQueryableResource: Resource {
     static func collectionParse(_ output: Data) throws -> [Self]
     /// Returns a list of resources for the host you provide.
     /// - Parameter from: The host to inspect.
-    static func queryResourceCollection(from: Host) async throws -> ([Self], Date)
+    static func queryCollection(from: Host) async throws -> ([Self], Date)
 }
 
 extension CollectionQueryableResource {
     /// Queries the state of the resource from the given host.
     /// - Parameter host: The host to inspect.
     /// - Returns: The state of the resource and the time that it was last updated.
-    public static func queryResourceCollection(from host: Host) async throws -> ([Self], Date) {
+    public static func queryCollection(from host: Host) async throws -> ([Self], Date) {
         // default implementation:
 
         @Dependency(\.date.now) var date
