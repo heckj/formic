@@ -33,6 +33,11 @@ public struct CommandExecutionResult: Sendable {
         self.retries = retries
         self.exception = exception
     }
+
+    /// Returns a Boolean value that indicates if the execution result represents a failure.
+    public func representsFailure() -> Bool {
+        output.returnCode != 0 && !command.ignoreFailure
+    }
 }
 
 extension CommandExecutionResult {
@@ -54,7 +59,7 @@ extension CommandExecutionResult {
                     stringOutput.append(" ")
                 }
                 stringOutput.append("exception: \(exception)")
-            } else if output.returnCode != 0 && !command.ignoreFailure {
+            } else if representsFailure() {
                 if includeEmoji {
                     stringOutput.append(" ")
                 }
