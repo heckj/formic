@@ -16,65 +16,64 @@ import Parsing
 //ii  docker-ce      5:27.3.1-1~ubuntu.24.04~noble arm64        Docker: the open-source application container engine
 
 /// The kind of operating system.
-public struct DebianPackage: StatefulResource, CollectionQueryableResource {
+public struct DebianPackageDeclaration {
 
     // the states for this Resource
-    public enum PackageDeclarativeState: String, Hashable, CustomStringConvertible, Sendable {
-        public var description: String {
-            self.rawValue
-        }
+    public enum DesiredPackageState: String, Hashable, Sendable {
         case present
         case absent
     }
 
     public var name: String
-    public var state: PackageDeclarativeState
-
-    // command to run to get request the data for a collection of resources
-    public static let collectionInquiry: (any Command) = ShellCommand("dpkg -l")
-    public static func collectionParse(_ output: Data) throws -> [DebianPackage] {
-        guard let stringFromData: String = String(data: output, encoding: .utf8) else {
-            throw QueryError.notAString
-        }
-        let _ = try DpkgState.PackageList().parse(Substring(stringFromData))
-
-        // TODO: Merge DebianPackage with DpkgState
-
-        fatalError("not implemented")
-    }
-
-    // singular inquiry command
-    public let _inquiry: ShellCommand
-    public var inquiry: (any Command) {
-        return _inquiry
-    }
-
-    public static func parse(_ output: Data) throws -> DebianPackage {
-        guard let stringFromData: String = String(data: output, encoding: .utf8) else {
-            throw QueryError.notAString
-        }
-        let _ = try DpkgState.PackageList().parse(Substring(stringFromData))
-        fatalError("not implemented")
-    }
+    public var state: DesiredPackageState
 
     // borrow from https://github.com/kellyjonbrazil/jc
     // MIT License: https://github.com/kellyjonbrazil/jc/blob/master/LICENSE.md
     // - https://github.com/kellyjonbrazil/jc/blob/master/jc/parsers/dpkg_l.py
     // - https://github.com/kellyjonbrazil/jc/blob/master/docs/parsers/dpkg_l.md
 
-    init(name: String, state: PackageDeclarativeState) {
+    public init(name: String, state: DesiredPackageState) {
         self.name = name
         self.state = state
-        self._inquiry = ShellCommand("dpkg -l \(name)")
     }
-
 }
 
 // there's stuff I want to just "ask about" and report on, and stuff I want to "change"
 // QueryableResource vs. DeclaredResource
 // for both state and information bits that I query - I want to track "when I last asked" - when it was last updated.
 
-struct DpkgState: Sendable, Hashable {
+//StatefulResource, CollectionQueryableResource
+
+// command to run to get request the data for a collection of resources
+//public static let collectionInquiry: (any Command) = ShellCommand("dpkg -l")
+//public static func collectionParse(_ output: Data) throws -> [DebianPackage] {
+//    guard let stringFromData: String = String(data: output, encoding: .utf8) else {
+//        throw QueryError.notAString
+//    }
+//    let _ = try DpkgState.PackageList().parse(Substring(stringFromData))
+//
+//    // TODO: Merge DebianPackage with DpkgState
+//
+//    fatalError("not implemented")
+//}
+
+struct DpkgState: Sendable, Hashable, Resource {
+    static func namedInquiry(_ name: String) -> (any Command) {
+        ShellCommand("dpkg -l \(name)")
+    }
+
+    var inquiry: (any Command) {
+        Self.namedInquiry(name)
+    }
+
+    static func parse(_ output: Data) throws -> DpkgState {
+        guard let stringFromData: String = String(data: output, encoding: .utf8) else {
+            throw QueryError.notAString
+        }
+        let _ = try DpkgState.PackageList().parse(Substring(stringFromData))
+        fatalError("not implemented")
+    }
+
     enum DesiredState: String, Sendable, Hashable {
         case unknown = "u"
         case install = "i"
@@ -109,6 +108,19 @@ struct DpkgState: Sendable, Hashable {
     let description: String
 }
 
+extension DpkgState: CollectionQueryableResource {
+    static var collectionInquiry: (any Command) {
+        ShellCommand("dpkg -l")
+    }
+
+    static func collectionParse(_ output: Data) throws -> [DpkgState] {
+        guard let stringFromData: String = String(data: output, encoding: .utf8) else {
+            throw QueryError.notAString
+        }
+        let x = try DpkgState.PackageList().parse(Substring(stringFromData))
+        return x
+    }
+}
 // https://swiftpackageindex.com/pointfreeco/swift-parsing#user-content-getting-started
 // https://pointfreeco.github.io/swift-parsing/0.10.0/documentation/parsing/
 

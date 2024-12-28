@@ -27,6 +27,8 @@ public protocol Resource: Hashable, Sendable {
     // (I think a single command will do what we need for resources within an OS, but for resources
     // that span multiple hosts, we might need something more complex)
 
+    // any instance of a resource should be able to get updated details about itself.
+
     /// The shell command to use to get the state for this resource.
     var inquiry: (any Command) { get }
     /// Returns the state of the resource from the output of the shell command.
@@ -73,7 +75,7 @@ extension Resource {
     /// - Parameter host: The host to inspect.
     /// - Returns: The state of the resource and the time that it was last updated.
     public func query(from host: Host) async throws -> (Self, Date) {
-        // default implementation:
+        // default implementation to get updated details from an _instance_ of a resource
 
         @Dependency(\.date.now) var date
         // run the command on the relevant host, capturing the output
@@ -97,6 +99,11 @@ extension Resource {
 
 /// A type of resource that exists in singular form on a Host.
 public protocol SingularResource: Resource {
+
+    // a singular resource should have a way to query for the kind of resource given
+    // JUST the host, so any default query & parse setup should be accessible as
+    // static variables or functions.
+
     /// The shell command to use to get the state for this resource.
     static var inquiry: (any Command) { get }
     /// Queries the state of the resource from the given host.
@@ -132,20 +139,16 @@ extension SingularResource {
     }
 }
 
-/// A type of resource that exposes a declarative state.
+/// A type of resource that can be retrieved and resolved to a desired state using a declaration.
 public protocol StatefulResource<DeclarativeStateType>: Resource {
-    associatedtype DeclarativeStateType: CustomStringConvertible, Sendable, Hashable
+    associatedtype DeclarativeStateType: Sendable, Hashable
     /// The state of this resource.
     var state: DeclarativeStateType { get }
-}
 
-/// A resource that can be identifier from a host with a name you provide.
-public protocol NamedResource: Resource {
-    /// Returns a resource for the host you provide.
-    /// - Parameter name: The name of the resource to find.
-    /// - Parameter host: The host to inspect for the resource.
-    static func query(_ name: String, from host: Host) async throws -> (Self, Date)
-    // var name: String { get }
+    static func query(state: DeclarativeStateType, from host: Host) async throws -> (Self, Date)
+    // a declaration alone should be enough to get the resource and resolve it to
+    // whatever state is desired and supported.
+    func resolve(to: DeclarativeStateType, on: Host) async throws -> (Self, Date)
 }
 
 /// A collection of resources that can be found and queried from a host.
@@ -158,6 +161,9 @@ public protocol CollectionQueryableResource: Resource {
     /// Returns a list of resources for the host you provide.
     /// - Parameter from: The host to inspect.
     static func queryCollection(from: Host) async throws -> ([Self], Date)
+    /// Returns an inquiry command that retrieves the output to parse into a resource.
+    /// - Parameter name: The name of the resource to find.
+    static func namedInquiry(_ name: String) -> (any Command)
 }
 
 extension CollectionQueryableResource {
@@ -182,6 +188,31 @@ extension CollectionQueryableResource {
                 )
             }
             let parsedState = try Self.collectionParse(stdout)
+            return (parsedState, date)
+        }
+    }
+
+    /// Returns the individual resource from a collection for the host you provide.
+    /// - Parameter name: The name of the resource to find.
+    /// - Parameter host: The host to inspect for the resource.
+    static func query(_ name: String, from host: Host) async throws -> (Self, Date) {
+        // default implementation:
+
+        @Dependency(\.date.now) var date
+        // run the command on the relevant host, capturing the output
+        let output: CommandOutput = try await Self.namedInquiry(name).run(host: host)
+        // verify the return code is 0
+        if output.returnCode != 0 {
+            throw CommandError.commandFailed(rc: output.returnCode, errmsg: output.stderrString ?? "")
+        } else {
+            // then parse the output
+            guard let stdout = output.stdOut else {
+                throw CommandError.noOutputToParse(
+                    msg:
+                        "The command \(Self.collectionInquiry) to \(host) did not return any output. stdError: \(output.stderrString ?? "-none-")"
+                )
+            }
+            let parsedState = try Self.parse(stdout)
             return (parsedState, date)
         }
     }

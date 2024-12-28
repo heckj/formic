@@ -58,6 +58,39 @@ func verifyHeaderParse() async throws {
     #expect(x == "what?")
 }
 
+@Test("parse single package - unknown")
+func verifyParsingUnknownSinglePackage() async throws {
+    let sampleOutput = """
+        Desired=Unknown/Install/Remove/Purge/Hold
+        | Status=Not/Inst/Conf-files/Unpacked/halF-conf/Half-inst/trig-aWait/Trig-pend
+        |/ Err?=(none)/Reinst-required (Status,Err: uppercase=bad)
+        ||/ Name           Version      Architecture Description
+        +++-==============-============-============-=================================
+        un  docker         <none>       <none>       (no description available)
+        """
+
+    let result: [DpkgState] = try DpkgState.PackageList().parse(sampleOutput)
+    //print(result)
+    #expect(result.count == 1)
+}
+
+@Test("parse single package - known")
+func verifyParsingKnownSinglePackage() async throws {
+
+    let sampleOutput = """
+        Desired=Unknown/Install/Remove/Purge/Hold
+        | Status=Not/Inst/Conf-files/Unpacked/halF-conf/Half-inst/trig-aWait/Trig-pend
+        |/ Err?=(none)/Reinst-required (Status,Err: uppercase=bad)
+        ||/ Name           Version                       Architecture Description
+        +++-==============-=============================-============-====================================================
+        ii  docker-ce      5:27.4.0-1~ubuntu.24.04~noble arm64        Docker: the open-source application container engine
+        """
+
+    let result: [DpkgState] = try DpkgState.PackageList().parse(sampleOutput)
+    //print(result)
+    #expect(result.count == 1)
+}
+
 @Test("package parsing - dpkg output")
 func verifyParsingMultilineOutputString() async throws {
     let result: [DpkgState] = try DpkgState.PackageList().parse(bigSample)
