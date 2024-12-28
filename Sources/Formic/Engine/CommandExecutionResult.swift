@@ -1,11 +1,9 @@
 /// The result of executing a command.
 public struct CommandExecutionResult: Sendable {
     /// The command.
-    public let command: any Command  // switch to command id?
+    public let command: any Command
     /// The host for the command.
     public let host: Host
-    /// The ID of the playbook that the command is part of, if any.
-    public let playbookId: Playbook.ID?
     /// The output from the command.
     public let output: CommandOutput
     /// The duration of execution of the command.
@@ -25,12 +23,11 @@ public struct CommandExecutionResult: Sendable {
     ///   - retries: The number of retries needed for the command.
     ///   - exception: The description of the exception thrown while invoking the command, if any.
     public init(
-        command: any Command, host: Host, playbookId: Playbook.ID?, output: CommandOutput, duration: Duration,
+        command: any Command, host: Host, output: CommandOutput, duration: Duration,
         retries: Int, exception: String?
     ) {
         self.command = command
         self.host = host
-        self.playbookId = playbookId
         self.output = output
         self.duration = duration
         self.retries = retries
@@ -160,7 +157,7 @@ extension CommandExecutionResult: Equatable {
     ///   - lhs: The first execution result
     ///   - rhs: The second execution result
     public static func == (lhs: CommandExecutionResult, rhs: CommandExecutionResult) -> Bool {
-        lhs.command.id == rhs.command.id && lhs.host == rhs.host && lhs.playbookId == rhs.playbookId
+        lhs.command.id == rhs.command.id && lhs.host == rhs.host
             && lhs.output == rhs.output && lhs.duration == rhs.duration && lhs.retries == rhs.retries
             && lhs.exception == rhs.exception
     }
@@ -173,7 +170,6 @@ extension CommandExecutionResult: Hashable {
         let hashOfCommand = command.hashValue
         hasher.combine(hashOfCommand)
         hasher.combine(host)
-        hasher.combine(playbookId)
         hasher.combine(output)
         hasher.combine(duration)
         hasher.combine(retries)
