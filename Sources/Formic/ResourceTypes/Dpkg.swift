@@ -16,7 +16,7 @@ import Parsing
 //ii  docker-ce      5:27.3.1-1~ubuntu.24.04~noble arm64        Docker: the open-source application container engine
 
 /// A debian package resource.
-public struct DpkgState: Sendable, Hashable, Resource {
+public struct Dpkg: Sendable, Hashable, Resource {
     /// Returns an inquiry command that retrieves the output to parse into a resource.
     /// - Parameter name: The name of the resource to find.
     public static func namedInquiry(_ name: String) -> (any Command) {
@@ -31,11 +31,11 @@ public struct DpkgState: Sendable, Hashable, Resource {
     /// Returns the state of the resource from the output of the shell command.
     /// - Parameter output: The string output of the shell command.
     /// - Throws: Any errors parsing the output.
-    public static func parse(_ output: Data) throws -> DpkgState {
+    public static func parse(_ output: Data) throws -> Dpkg {
         guard let stringFromData: String = String(data: output, encoding: .utf8) else {
             throw ResourceError.notAString
         }
-        let _ = try DpkgState.PackageList().parse(Substring(stringFromData))
+        let _ = try Dpkg.PackageList().parse(Substring(stringFromData))
         fatalError("not implemented")
     }
 
@@ -89,7 +89,7 @@ public struct DpkgState: Sendable, Hashable, Resource {
         public var retry: Backoff
         public var executionTimeout: Duration
         public func run(host: Host) async throws -> CommandOutput {
-            if try await DpkgState.resolve(state: self, on: host) {
+            if try await Dpkg.resolve(state: self, on: host) {
                 return .generalSuccess(msg: "Resolved")
             } else {
                 return .generalFailure(msg: "Failed")
@@ -127,7 +127,7 @@ public struct DpkgState: Sendable, Hashable, Resource {
     }
 }
 
-extension DpkgState: CollectionResource {
+extension Dpkg: CollectionResource {
     /// The shell command to use to get the state for this resource.
     public static var collectionInquiry: (any Command) {
         ShellCommand("dpkg -l")
@@ -135,22 +135,22 @@ extension DpkgState: CollectionResource {
 
     /// Returns a list of resources from the string output from a command.
     /// - Parameter output: The output from the command.
-    public static func collectionParse(_ output: Data) throws -> [DpkgState] {
+    public static func collectionParse(_ output: Data) throws -> [Dpkg] {
         guard let stringFromData: String = String(data: output, encoding: .utf8) else {
             throw ResourceError.notAString
         }
-        let collection = try DpkgState.PackageList().parse(Substring(stringFromData))
+        let collection = try Dpkg.PackageList().parse(Substring(stringFromData))
         return collection
     }
 }
 
-extension DpkgState: StatefulResource {
+extension Dpkg: StatefulResource {
     /// Queries and returns the state of the resource identified by a declaration you provide.
     /// - Parameters:
     ///   - state: The declaration that identifies the resource.
     ///   - host: The host on which to find the resource.
-    public static func query(state: DebianPackageDeclaration, from host: Host) async throws -> (DpkgState, Date) {
-        return try await DpkgState.query(state.name, from: host)
+    public static func query(state: DebianPackageDeclaration, from host: Host) async throws -> (Dpkg, Date) {
+        return try await Dpkg.query(state.name, from: host)
     }
 
     /// Queries and attempts to resolve the update to the desired state you provide.
@@ -158,14 +158,14 @@ extension DpkgState: StatefulResource {
     ///   - state: The declaration that identifies the resource and its desired state.
     ///   - host: The host on which to resolve the resource.
     public static func resolve(state: DebianPackageDeclaration, on host: Host) async throws -> Bool {
-        let (currentState, _) = try await DpkgState.query(state.name, from: host)
+        let (currentState, _) = try await Dpkg.query(state.name, from: host)
         switch state.declaredState {
         case .present:
             if currentState.desiredState == .install && currentState.statusCode == .installed {
                 return true
             } else {
                 try await ShellCommand("apt-get install \(state.name)").run(host: host)
-                let (updatedState, _) = try await DpkgState.query(state.name, from: host)
+                let (updatedState, _) = try await Dpkg.query(state.name, from: host)
                 if updatedState.desiredState == .install && updatedState.statusCode == .installed {
                     return true
                 } else {
@@ -181,7 +181,7 @@ extension DpkgState: StatefulResource {
             } else {
                 // do the removal
                 try await ShellCommand("apt-get remove \(state.name)").run(host: host)
-                let (updatedState, _) = try await DpkgState.query(state.name, from: host)
+                let (updatedState, _) = try await Dpkg.query(state.name, from: host)
                 if (updatedState.desiredState == .unknown || updatedState.desiredState == .remove)
                     && updatedState.statusCode == .notInstalled
                 {

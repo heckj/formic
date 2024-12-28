@@ -4,7 +4,7 @@ import Parsing
 // https://swiftpackageindex.com/pointfreeco/swift-parsing#user-content-getting-started
 // https://pointfreeco.github.io/swift-parsing/0.10.0/documentation/parsing/
 
-extension DpkgState {
+extension Dpkg {
     // parsing individual lines
     struct PackageCodes: Parser {
         var body: some Parser<Substring, (DesiredState, StatusCode, ErrCode)> {
@@ -32,8 +32,8 @@ extension DpkgState {
     }
 
     struct PackageStatus: Parser {
-        var body: some Parser<Substring, DpkgState> {
-            Parse(DpkgState.init) {
+        var body: some Parser<Substring, Dpkg> {
+            Parse(Dpkg.init) {
                 PackageCodes()
                 Skip {
                     // whitespace
@@ -82,8 +82,8 @@ extension DpkgState {
     }
 
     struct PackageList: Parser {
-        var body: some Parser<Substring, [DpkgState]> {
-            DpkgState.DpkgHeader()
+        var body: some Parser<Substring, [Dpkg]> {
+            Dpkg.DpkgHeader()
             Many(1...) {
                 PackageStatus()
             } separator: {
