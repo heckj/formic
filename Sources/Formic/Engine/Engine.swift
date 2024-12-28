@@ -35,6 +35,9 @@ public actor Engine {
             if displayProgress {
                 print(result.consoleOutput(verbosity: verbosity))
             }
+            if result.representsFailure() {
+                break
+            }
         }
         return results
     }
