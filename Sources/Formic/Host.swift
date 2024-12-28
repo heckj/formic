@@ -68,26 +68,26 @@ public struct Host: Sendable {
     /// Use the name `127.0.0.1` to access a remote host through port forwarding.
     ///
     /// - Parameters:
-    ///   - networkAddresss: The network address of the host.
+    ///   - networkAddress: The network address of the host.
     ///   - sshPort: the ssh port, defaults to `22`.
     ///   - sshUser: the ssh user, defaults to the username of the current user.
     ///   - sshIdentityFile: The ssh identity file, defaults to standard key locations for ssh.
     ///   - strictHostKeyChecking: A Boolean value that indicates whether to enable strict host checking during SSH connections.
     public init(
-        _ networkAddresss: NetworkAddress,
+        _ networkAddress: NetworkAddress,
         sshPort: Int = 22,
         sshUser: String? = nil,
         sshIdentityFile: String? = nil,
         strictHostKeyChecking: Bool = false
     ) throws {
         let creds = try SSHAccessCredentials(username: sshUser, identityFile: sshIdentityFile)
-        if networkAddresss.dnsName == "localhost" {
+        if networkAddress.dnsName == "localhost" {
             self.init(
-                remote: false, address: networkAddresss, sshPort: sshPort, sshAccessCredentials: creds,
+                remote: false, address: networkAddress, sshPort: sshPort, sshAccessCredentials: creds,
                 strictHostKeyChecking: strictHostKeyChecking)
         } else {
             self.init(
-                remote: true, address: networkAddresss, sshPort: sshPort, sshAccessCredentials: creds,
+                remote: true, address: networkAddress, sshPort: sshPort, sshAccessCredentials: creds,
                 strictHostKeyChecking: strictHostKeyChecking)
         }
     }

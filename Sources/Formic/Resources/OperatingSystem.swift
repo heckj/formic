@@ -2,18 +2,24 @@ import Foundation
 import Parsing
 
 /// The kind of operating system.
-public struct OperatingSystem: Resource {
-
+public struct OperatingSystem: SingularResource {
     /// The kind of operating system.
     public let name: KindOfOperatingSystem
 
     /// The types of operating system this resource can represent.
-    public enum KindOfOperatingSystem: String, StringInfoKey {
+    public enum KindOfOperatingSystem: String, Sendable {
         case macOS
         case linux
         case unknown
     }
     // ^^ provides a useful type that we can "parse" into and initialize the wrapping resource-type
+    public static var inquiry: (any Command) {
+        return ShellCommand("uname")
+    }
+
+    public var inquiry: (any Command) {
+        return Self.inquiry
+    }
 
     struct UnameParser: Parser {
         var body: some Parser<Substring, KindOfOperatingSystem> {
@@ -33,6 +39,19 @@ public struct OperatingSystem: Resource {
         }
     }
 
+    /// Returns the state of the resource from the output of the shell command.
+    /// - Parameter output: The string output of the shell command.
+    public static func parse(_ output: Data) -> OperatingSystem {
+        do {
+            guard let stringFromData: String = String(data: output, encoding: .utf8) else {
+                return Self(.unknown)
+            }
+            return Self(try UnameParser().parse(stringFromData))
+        } catch {
+            return Self(.unknown)
+        }
+    }
+
     /// Creates a new resource instance for the kind of operating system you provide.
     /// - Parameter kind: The kind of operating system.
     public init(_ kind: KindOfOperatingSystem) {
@@ -46,42 +65,6 @@ public struct OperatingSystem: Resource {
             self.name = try UnameParser().parse(name)
         } catch {
             self.name = .unknown
-        }
-    }
-}
-
-//extension OperatingSystem: Resource {
-//    public typealias ResourceInformationKey = OSInformationKey
-//    public enum OSInformationKey: String, StringInfoKey {
-//        case name
-//    }
-//    public func info(for key: ResourceInformationKey) -> String? {
-//        switch key {
-//        case .name:
-//            return name.rawValue
-//        }
-//    }
-//}
-
-extension OperatingSystem: SingularResource {
-    /// The shell command to use to get the state for this resource.
-    public static let singularInquiry: (any Command) = ShellCommand("uname")
-
-    /// The shell command to use to update the state for this resource.
-    public var inquiry: (any Command) {
-        return Self.singularInquiry
-    }
-
-    /// Returns the state of the resource from the output of the shell command.
-    /// - Parameter output: The string output of the shell command.
-    public static func parse(_ output: Data) -> OperatingSystem {
-        do {
-            guard let stringFromData: String = String(data: output, encoding: .utf8) else {
-                return Self(.unknown)
-            }
-            return Self(try UnameParser().parse(stringFromData))
-        } catch {
-            return Self(.unknown)
         }
     }
 }
