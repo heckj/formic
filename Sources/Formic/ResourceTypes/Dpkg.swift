@@ -33,7 +33,7 @@ public struct DpkgState: Sendable, Hashable, Resource {
     /// - Throws: Any errors parsing the output.
     public static func parse(_ output: Data) throws -> DpkgState {
         guard let stringFromData: String = String(data: output, encoding: .utf8) else {
-            throw QueryError.notAString
+            throw ResourceError.notAString
         }
         let _ = try DpkgState.PackageList().parse(Substring(stringFromData))
         fatalError("not implemented")
@@ -96,7 +96,7 @@ public struct DpkgState: Sendable, Hashable, Resource {
         /// The name of the package.
         public var name: String
         /// The desired state of the package.
-        public var state: DesiredPackageState
+        public var declaredState: DesiredPackageState
 
         /// Creates a new declaration for a Debian package resource
         /// - Parameters:
@@ -104,13 +104,13 @@ public struct DpkgState: Sendable, Hashable, Resource {
         ///   - state: The desired state of the package.
         public init(name: String, state: DesiredPackageState) {
             self.name = name
-            self.state = state
+            self.declaredState = state
         }
     }
 
 }
 
-extension DpkgState: CollectionQueryableResource {
+extension DpkgState: CollectionResource {
     /// The shell command to use to get the state for this resource.
     public static var collectionInquiry: (any Command) {
         ShellCommand("dpkg -l")
@@ -120,7 +120,7 @@ extension DpkgState: CollectionQueryableResource {
     /// - Parameter output: The output from the command.
     public static func collectionParse(_ output: Data) throws -> [DpkgState] {
         guard let stringFromData: String = String(data: output, encoding: .utf8) else {
-            throw QueryError.notAString
+            throw ResourceError.notAString
         }
         let collection = try DpkgState.PackageList().parse(Substring(stringFromData))
         return collection
@@ -142,7 +142,7 @@ extension DpkgState: StatefulResource {
     ///   - host: The host on which to resolve the resource.
     public func resolve(state: DebianPackageDeclaration, on host: Host) async throws -> (DpkgState, Date) {
         let (currentState, lastChecked) = try await DpkgState.query(state.name, from: host)
-        switch state.state {
+        switch state.declaredState {
         case .present:
             if currentState.desiredState == .install && currentState.statusCode == .installed {
                 return (currentState, lastChecked)
