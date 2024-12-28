@@ -83,7 +83,18 @@ public struct DpkgState: Sendable, Hashable, Resource {
     public let description: String
 
     /// The declaration for a Debian package resource.
-    public struct DebianPackageDeclaration: Hashable, Sendable {
+    public struct DebianPackageDeclaration: Hashable, Sendable, Command {
+        public var id: UUID
+        public var ignoreFailure: Bool
+        public var retry: Backoff
+        public var executionTimeout: Duration
+        public func run(host: Host) async throws -> CommandOutput {
+            if try await DpkgState.resolve(state: self, on: host) {
+                return .generalSuccess(msg: "Resolved")
+            } else {
+                return .generalFailure(msg: "Failed")
+            }
+        }
 
         /// The configurable state of a debian package.
         public enum DesiredPackageState: String, Hashable, Sendable {
@@ -102,12 +113,18 @@ public struct DpkgState: Sendable, Hashable, Resource {
         /// - Parameters:
         ///   - name: The name of the package.
         ///   - state: The desired state of the package.
-        public init(name: String, state: DesiredPackageState) {
+        public init(
+            name: String, state: DesiredPackageState, retry: Backoff = .never, resolveTimeout: Duration = .seconds(60)
+        ) {
             self.name = name
             self.declaredState = state
+            // Command details
+            self.id = UUID()
+            self.ignoreFailure = false
+            self.retry = retry
+            self.executionTimeout = resolveTimeout
         }
     }
-
 }
 
 extension DpkgState: CollectionResource {
@@ -140,19 +157,19 @@ extension DpkgState: StatefulResource {
     /// - Parameters:
     ///   - state: The declaration that identifies the resource and its desired state.
     ///   - host: The host on which to resolve the resource.
-    public func resolve(state: DebianPackageDeclaration, on host: Host) async throws -> (DpkgState, Date) {
-        let (currentState, lastChecked) = try await DpkgState.query(state.name, from: host)
+    public static func resolve(state: DebianPackageDeclaration, on host: Host) async throws -> Bool {
+        let (currentState, _) = try await DpkgState.query(state.name, from: host)
         switch state.declaredState {
         case .present:
             if currentState.desiredState == .install && currentState.statusCode == .installed {
-                return (currentState, lastChecked)
+                return true
             } else {
                 try await ShellCommand("apt-get install \(state.name)").run(host: host)
-                let (updatedState, lastChecked) = try await DpkgState.query(state.name, from: host)
+                let (updatedState, _) = try await DpkgState.query(state.name, from: host)
                 if updatedState.desiredState == .install && updatedState.statusCode == .installed {
-                    return (updatedState, lastChecked)
+                    return true
                 } else {
-                    throw ResourceError.failedToResolve(msg: "State of resource after install attempt: \(updatedState)")
+                    return false
                 }
             }
 
@@ -160,17 +177,17 @@ extension DpkgState: StatefulResource {
             if (currentState.desiredState == .unknown || currentState.desiredState == .remove)
                 && currentState.statusCode == .notInstalled
             {
-                return (currentState, lastChecked)
+                return true
             } else {
                 // do the removal
                 try await ShellCommand("apt-get remove \(state.name)").run(host: host)
-                let (updatedState, lastChecked) = try await DpkgState.query(state.name, from: host)
-                if (currentState.desiredState == .unknown || currentState.desiredState == .remove)
-                    && currentState.statusCode == .notInstalled
+                let (updatedState, _) = try await DpkgState.query(state.name, from: host)
+                if (updatedState.desiredState == .unknown || updatedState.desiredState == .remove)
+                    && updatedState.statusCode == .notInstalled
                 {
-                    return (updatedState, lastChecked)
+                    return true
                 } else {
-                    throw ResourceError.failedToResolve(msg: "State of resource after remove attempt: \(updatedState)")
+                    return false
                 }
             }
         }
