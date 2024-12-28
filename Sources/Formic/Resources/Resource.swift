@@ -47,7 +47,6 @@ public protocol Resource: Hashable, Sendable {
 // (I think a single command will do what we need for resources within an OS, but for resources
 // that span multiple hosts, we will need something different)
 
-
 extension Resource {
     /// Queries the state of the resource from the given host.
     /// - Parameter host: The host to inspect.

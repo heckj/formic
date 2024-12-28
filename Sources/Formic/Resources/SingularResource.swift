@@ -1,5 +1,5 @@
-import Foundation
 import Dependencies
+import Foundation
 
 /// A type of resource that exists in singular form on a Host.
 public protocol SingularResource: Resource {

@@ -39,5 +39,5 @@ public protocol StatefulResource<DeclarativeStateType>: Resource {
     /// - Parameters:
     ///   - state: The declaration that identifies the resource and its desired state.
     ///   - host: The host on which to resolve the resource.
-    func resolve(state: DeclarativeStateType, on host: Host) async throws -> (Self, Date)
+    static func resolve(state: DeclarativeStateType, on host: Host) async throws -> Bool
 }

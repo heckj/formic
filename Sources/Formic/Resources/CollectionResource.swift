@@ -1,5 +1,5 @@
-import Foundation
 import Dependencies
+import Foundation
 
 /// A collection of resources that can be found and queried from a host.
 public protocol CollectionResource: Resource {
@@ -67,4 +67,3 @@ extension CollectionResource {
         }
     }
 }
-
