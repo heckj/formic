@@ -29,7 +29,7 @@ public protocol Resource: Hashable, Sendable {
 
     // any instance of a resource should be able to get updated details about itself.
 
-    /// The shell command to use to get the state for this resource.
+    /// The command to use to get the state for this resource.
     var inquiry: (any Command) { get }
     /// Returns the state of the resource from the output of the shell command.
     /// - Parameter output: The string output of the shell command.
@@ -142,13 +142,19 @@ extension SingularResource {
 /// A type of resource that can be retrieved and resolved to a desired state using a declaration.
 public protocol StatefulResource<DeclarativeStateType>: Resource {
     associatedtype DeclarativeStateType: Sendable, Hashable
-    /// The state of this resource.
-    var state: DeclarativeStateType { get }
-
-    static func query(state: DeclarativeStateType, from host: Host) async throws -> (Self, Date)
     // a declaration alone should be enough to get the resource and resolve it to
     // whatever state is desired and supported.
-    func resolve(to: DeclarativeStateType, on: Host) async throws -> (Self, Date)
+
+    /// Queries and returns the state of the resource identified by a declaration you provide.
+    /// - Parameters:
+    ///   - state: The declaration that identifies the resource.
+    ///   - host: The host on which to find the resource.
+    static func query(state: DeclarativeStateType, from host: Host) async throws -> (Self, Date)
+    /// Queries and attempts to resolve the update to the desired state you provide.
+    /// - Parameters:
+    ///   - state: The declaration that identifies the resource and its desired state.
+    ///   - host: The host on which to resolve the resource.
+    func resolve(state: DeclarativeStateType, on host: Host) async throws -> (Self, Date)
 }
 
 /// A collection of resources that can be found and queried from a host.
