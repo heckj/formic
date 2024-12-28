@@ -35,7 +35,7 @@ let bigSample = """
 func verifyParsingOneLine() async throws {
     let sample =
         "ii  apt                           2.7.14build2                      arm64        commandline package manager"
-    let result = try DpkgState.PackageStatus().parse(sample)
+    let result = try Dpkg.PackageStatus().parse(sample)
     //print(result)
     #expect(result.name == "apt")
     #expect(result.version == "2.7.14build2")
@@ -54,7 +54,7 @@ func verifyHeaderParse() async throws {
         what?
         """
     var x: Substring = headerSample[...]
-    try DpkgState.DpkgHeader().parse(&x)
+    try Dpkg.DpkgHeader().parse(&x)
     #expect(x == "what?")
 }
 
@@ -69,7 +69,7 @@ func verifyParsingUnknownSinglePackage() async throws {
         un  docker         <none>       <none>       (no description available)
         """
 
-    let result: [DpkgState] = try DpkgState.PackageList().parse(sampleOutput)
+    let result: [Dpkg] = try Dpkg.PackageList().parse(sampleOutput)
     //print(result)
     #expect(result.count == 1)
 }
@@ -86,14 +86,14 @@ func verifyParsingKnownSinglePackage() async throws {
         ii  docker-ce      5:27.4.0-1~ubuntu.24.04~noble arm64        Docker: the open-source application container engine
         """
 
-    let result: [DpkgState] = try DpkgState.PackageList().parse(sampleOutput)
+    let result: [Dpkg] = try Dpkg.PackageList().parse(sampleOutput)
     //print(result)
     #expect(result.count == 1)
 }
 
 @Test("package parsing - dpkg output")
 func verifyParsingMultilineOutputString() async throws {
-    let result: [DpkgState] = try DpkgState.PackageList().parse(bigSample)
+    let result: [Dpkg] = try Dpkg.PackageList().parse(bigSample)
     //print(result)
     #expect(result.count == 19)
 }
