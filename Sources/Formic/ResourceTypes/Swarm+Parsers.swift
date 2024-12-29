@@ -53,4 +53,6 @@ public struct SwarmJoinCommand: Parser {
             }
         }
     }
+
+    public init() {}
 }
