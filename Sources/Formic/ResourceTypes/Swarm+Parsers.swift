@@ -54,5 +54,6 @@ public struct SwarmJoinCommand: Parser {
         }
     }
 
+    /// Creates a new parser for swarm init or join commands.
     public init() {}
 }
