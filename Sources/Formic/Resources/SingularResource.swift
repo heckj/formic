@@ -2,7 +2,7 @@ import Dependencies
 import Foundation
 
 /// A type of resource that exists in singular form on a Host.
-public protocol SingularResource: Resource {
+public protocol SingularResource: ParsedResource {
 
     // a singular resource should have a way to query for the kind of resource given
     // JUST the host, so any default query & parse setup should be accessible as

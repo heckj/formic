@@ -1,23 +1,27 @@
 import Dependencies
 import Foundation
 
-/// A type of resource that can be updated from a remote and supports collections and persistence.
+/// A type that can be queried from a host to provide information about itself.
 public protocol Resource: Hashable, Sendable {
 
     // IMPLEMENTATION NOTE:
     // A resource is fundamentally something you can query about a system to get details about it.
     // Any **instance** of a resource should be able to get updated details about itself.
 
+    /// Queries the state of the resource from the given host.
+    /// - Parameter from: The host to inspect.
+    /// - Returns: The state of the resource.
+    func query(from: Host) async throws -> (Self, Date)
+}
+
+/// A resource that provides an inquiry command and parser to return the state of the resource.
+public protocol ParsedResource: Resource {
     /// The command to use to get the state for this resource.
     var inquiry: (any Command) { get }
     /// Returns the state of the resource from the output of the shell command.
     /// - Parameter output: The string output of the shell command.
     /// - Throws: Any errors parsing the output.
     static func parse(_ output: Data) throws -> Self
-    /// Queries the state of the resource from the given host.
-    /// - Parameter from: The host to inspect.
-    /// - Returns: The state of the resource.
-    func query(from: Host) async throws -> (Self, Date)
 }
 
 // IMPLEMENTATION NOTE:
@@ -47,7 +51,7 @@ public protocol Resource: Hashable, Sendable {
 // (I think a single command will do what we need for resources within an OS, but for resources
 // that span multiple hosts, we will need something different)
 
-extension Resource {
+extension ParsedResource {
     /// Queries the state of the resource from the given host.
     /// - Parameter host: The host to inspect.
     /// - Returns: The state of the resource and the time that it was last updated.
