@@ -8,20 +8,14 @@
 
 ### Running Playbooks
 
-- ``schedule(_:delay:startRunner:)``
-- ``step(for:)``
-- ``cancel(_:)``
+- ``run(host:commands:displayProgress:verbosity:)``
+- ``run(hosts:commands:displayProgress:verbosity:)``
+
+### Running an individual command
+
+- ``run(host:command:)``
 
 ### Receiving Updates from the Engine
 
 - ``commandUpdates``
-- ``playbookUpdates``
-- ``status(_:)``
 
-### Inspecting the Engine
-
-- ``runnerOperating(for:)``
-
-### Controlling the Engine
-
-- ``cancelRunner(for:)``

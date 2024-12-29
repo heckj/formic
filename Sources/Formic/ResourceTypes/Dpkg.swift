@@ -113,6 +113,8 @@ public struct Dpkg: Sendable, Hashable, Resource {
         /// - Parameters:
         ///   - name: The name of the package.
         ///   - state: The desired state of the package.
+        ///   - retry: The retry settings for resolving the resource.
+        ///   - resolveTimeout: The execution timeout to allow the resource to resolve.
         public init(
             name: String, state: DesiredPackageState, retry: Backoff = .never, resolveTimeout: Duration = .seconds(60)
         ) {

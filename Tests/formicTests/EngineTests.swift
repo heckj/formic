@@ -18,7 +18,7 @@ func testEngineRun() async throws {
         dependencyValues.commandInvoker = TestCommandInvoker()
             .addSuccess(command: ["uname"], presentOutput: "Darwin\n")
     } operation: {
-        try await engine.run(command: cmd, host: .localhost)
+        try await engine.run(host: .localhost, command: cmd)
     }
 
     #expect(cmdExecOut.command.id == cmd.id)
@@ -172,7 +172,7 @@ func testCommandTimeout() async throws {
                 dependencyValues.localSystemAccess = TestFileSystemAccess()
                 dependencyValues.commandInvoker = mockCmdInvoker
             } operation: {
-                return try await engine.run(command: cmd1, host: fakeHost)
+                return try await engine.run(host: fakeHost, command: cmd1)
             }
         })
 }
@@ -197,7 +197,7 @@ func testCommandRetry() async throws {
         dependencyValues.localSystemAccess = TestFileSystemAccess()
         dependencyValues.commandInvoker = mockCmdInvoker
     } operation: {
-        return try await engine.run(command: cmd1, host: fakeHost)
+        return try await engine.run(host: fakeHost, command: cmd1)
     }
 
     #expect(result.command.id == cmd1.id)
