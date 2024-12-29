@@ -17,7 +17,6 @@ public struct CommandExecutionResult: Sendable {
     /// - Parameters:
     ///   - command: The command.
     ///   - host: The host for the command.
-    ///   - playbookId: The ID of the playbook the command is part of, it any.
     ///   - output: The output from the command
     ///   - duration: The duration of execution of the command.
     ///   - retries: The number of retries needed for the command.

@@ -17,10 +17,7 @@ Quite a is inspired by [Ansible](https://github.com/ansible/ansible), with a goa
 
 ### Running Playbooks
 
-- ``Playbook``
 - ``Engine``
-- ``PlaybookStatus``
-- ``PlaybookState``
 - ``CommandExecutionResult``
 - ``Verbosity``
 
@@ -41,7 +38,7 @@ Quite a is inspired by [Ansible](https://github.com/ansible/ansible), with a goa
 ### Resources
 
 - ``OperatingSystem``
-- ``DebianPackage``
+- ``Dpkg``
 
 - ``Resource``
 - ``StatefulResource``
@@ -52,5 +49,4 @@ Quite a is inspired by [Ansible](https://github.com/ansible/ansible), with a goa
 
 ### Collections of Resources
 
-- ``CollectionQueryableResource``
-- ``NamedResource``
+- ``CollectionResource``

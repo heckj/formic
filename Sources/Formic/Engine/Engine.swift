@@ -30,7 +30,7 @@ public actor Engine {
     ) async throws -> [CommandExecutionResult] {
         var results: [CommandExecutionResult] = []
         for command in commands {
-            let result = try await run(command: command, host: host)
+            let result = try await run(host: host, command: command)
             results.append(result)
             if displayProgress {
                 print(result.consoleOutput(verbosity: verbosity))
@@ -67,13 +67,12 @@ public actor Engine {
         return hostResults
     }
 
-    /// Directly runs a single command against a single host.
+    /// Directly runs a single command against a single host, applying the retry and timeout policies of the command.
     /// - Parameters:
-    ///   - command: The command to run.
     ///   - host: The host on which to run the command.
-    ///   - playbookId: The ID of the playbook the command is part of.
+    ///   - command: The command to run.
     /// - Returns: The result of the command execution.
-    public nonisolated func run(command: (any Command), host: Host) async throws
+    public nonisolated func run(host: Host, command: (any Command)) async throws
         -> CommandExecutionResult
     {
         // `nonisolated` + `async` means run on a cooperative thread pool and return the result

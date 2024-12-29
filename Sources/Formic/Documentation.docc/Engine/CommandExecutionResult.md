@@ -6,7 +6,6 @@
 
 - ``command``
 - ``host``
-- ``playbookId``
 - ``output``
 - ``duration``
 - ``retries``
