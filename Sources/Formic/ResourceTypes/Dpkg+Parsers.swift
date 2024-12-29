@@ -36,30 +36,22 @@ extension Dpkg {
             Parse(Dpkg.init) {
                 PackageCodes()
                 Skip {
-                    // whitespace
                     Whitespace()
-                    //Prefix { $0.isWhitespace }
                 }
                 // package name
                 Prefix { !$0.isWhitespace }.map(String.init)
                 Skip {
                     Whitespace()
-                    // whitespace
-                    //Prefix { $0.isWhitespace }
                 }
                 // version
                 Prefix { !$0.isWhitespace }.map(String.init)
                 Skip {
                     Whitespace()
-                    // whitespace
-                    //Prefix { $0.isWhitespace }
                 }
                 // architecture
                 Prefix { !$0.isWhitespace }.map(String.init)
                 Skip {
-                    // whitespace
                     Whitespace()
-                    //Prefix { $0.isWhitespace }
                 }
                 // description
                 Prefix {
