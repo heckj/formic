@@ -43,7 +43,7 @@ func testEngineRunList() async throws {
             .addSuccess(command: ["uname"], presentOutput: "Darwin\n")
             .addSuccess(command: ["whoami"], presentOutput: "docker-user")
     } operation: {
-        try await engine.run(host: .localhost, commands: [cmd1, cmd2], displayProgress: false)
+        try await engine.run(host: .localhost, displayProgress: false, commands: [cmd1, cmd2])
     }
 
     #expect(cmdExecOut.count == 2)
@@ -78,7 +78,7 @@ func testEngineRunPlaybook() async throws {
             .addSuccess(command: ["uname"], presentOutput: "Darwin\n")
             .addSuccess(command: ["whoami"], presentOutput: "docker-user")
     } operation: {
-        try await engine.run(hosts: .localhost, commands: [cmd1, cmd2], displayProgress: false)
+        try await engine.run(hosts: [.localhost], displayProgress: false, commands: [cmd1, cmd2])
     }
 
     #expect(collectedResults.count == 1)
@@ -109,7 +109,7 @@ func testEngineRunPlaybookWithFailure() async throws {
             .addSuccess(command: ["uname"], presentOutput: "Darwin\n")
             .addFailure(command: ["whoami"], presentOutput: "not tellin!")
     } operation: {
-        try await engine.run(hosts: .localhost, commands: [cmd1, cmd2], displayProgress: false)
+        try await engine.run(hosts: [.localhost], displayProgress: false, commands: [cmd1, cmd2])
     }
 
     #expect(collectedResults.count == 1)
@@ -144,7 +144,7 @@ func testEngineRunPlaybookWithException() async throws {
                     .addException(
                         command: ["whoami"], errorToThrow: TestError.unknown(msg: "Process failed in something"))
             } operation: {
-                try await engine.run(hosts: .localhost, commands: [cmd1, cmd2], displayProgress: false)
+                try await engine.run(hosts: [.localhost], displayProgress: false, commands: [cmd1, cmd2])
             }
         })
 }

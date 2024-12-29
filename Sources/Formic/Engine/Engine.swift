@@ -19,14 +19,16 @@ public actor Engine {
     /// Directly runs a series of commands against a single host.
     /// - Parameters:
     ///   - host: The host on which to run the command.
-    ///   - commands: The commands to run.
     ///   - displayProgress: A Boolean value that indicates whether to display progress while the commands are executed.
     ///   - verbosity: The level of verbosity for reporting progress.
+    ///   - commands: The commands to run.
     /// - Returns: A list of the results of the command executions.
     @discardableResult
     public func run(
-        host: Host, commands: [(any Command)], displayProgress: Bool,
-        verbosity: Verbosity = .silent(emoji: true)
+        host: Host,
+        displayProgress: Bool,
+        verbosity: Verbosity = .silent(emoji: true),
+        commands: [(any Command)]
     ) async throws -> [CommandExecutionResult] {
         var results: [CommandExecutionResult] = []
         for command in commands {
@@ -45,14 +47,17 @@ public actor Engine {
     /// Runs a series of commands on all of the hosts you provide.
     /// - Parameters:
     ///   - hosts: The hosts on which to run the commands.
-    ///   - commands: The commands to run.
     ///   - displayProgress: A Boolean value that indicates whether to display progress while the playbook is executed.
     ///   - verbosity: The verbosity level to use if you display progress.
+    ///   - commands: The commands to run.
     /// - Returns: A dictionary of the command results by host.
     /// - Throws: Any exceptions that occur while running the commands.
     @discardableResult
     public func run(
-        hosts: Host..., commands: [(any Command)], displayProgress: Bool, verbosity: Verbosity = .silent(emoji: true)
+        hosts: [Host],
+        displayProgress: Bool,
+        verbosity: Verbosity = .silent(emoji: true),
+        commands: [(any Command)]
     ) async throws
         -> [Host: [CommandExecutionResult]]
     {
@@ -60,7 +65,7 @@ public actor Engine {
 
         for host in hosts {
             async let resultsOfSingleHost = self.run(
-                host: host, commands: commands, displayProgress: displayProgress, verbosity: verbosity)
+                host: host, displayProgress: displayProgress, verbosity: verbosity, commands: commands)
             hostResults[host] = try await resultsOfSingleHost
         }
 
