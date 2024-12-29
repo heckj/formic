@@ -2,7 +2,7 @@ import Dependencies
 import Foundation
 
 /// A collection of resources that can be found and queried from a host.
-public protocol CollectionResource: Resource {
+public protocol CollectionResource: ParsedResource {
     /// The shell command to use to get the state for this resource.
     static var collectionInquiry: (any Command) { get }
     /// Returns a list of resources from the string output from a command.
