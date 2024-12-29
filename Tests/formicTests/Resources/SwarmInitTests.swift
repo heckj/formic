@@ -35,3 +35,13 @@ func verifyParsingSwarmJoinTokenWorkerCommand() async throws {
     #expect(cmd.args[4] == "SWMTKN-1-4co3ccnbcdrww0iq7f9te0478286pd168bhzfx9oyc1wyws0vi-1p35bj1i57s9h9dpf57mmeqq0")
     #expect(cmd.args[5] == "198.19.249.61:2377")
 }
+
+@Test("checking slicing")
+func checkSlicing() async throws {
+    let hosts = ["host1", "host2", "host3", "host4"]
+    let masters = Array(hosts[0...0])
+    let workers = Array(hosts[1...])
+
+    #expect(masters.count == 1)
+    #expect(workers.count == 3)
+}

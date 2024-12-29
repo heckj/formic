@@ -4,6 +4,7 @@ import Parsing
 // https://swiftpackageindex.com/pointfreeco/swift-parsing#user-content-getting-started
 // https://pointfreeco.github.io/swift-parsing/0.10.0/documentation/parsing/
 
+/// A parser that converts the STDOUT from a swarm init command into a ShellCommand.
 public struct SwarmJoinCommand: Parser {
 
     func convertToShellCommand(_ argTuple: (String, String, String, String, String, String)) -> ShellCommand {
