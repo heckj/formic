@@ -9,10 +9,11 @@ Structure playbooks **in Swift**, leveraging type safety and structured Resource
 A couple example playbooks:
 
 ```swift
-let createDockerHost = Playbook(name: "apply pending upgrades", hosts: hosts, commands: [
+let applyUpdates: [(any Command)] = [
     ShellCommand("sudo apt-get update -q"),
     ShellCommand("sudo apt-get upgrade -y"),
 ])
+try await Engine().run(hosts: [hosts...], commands: applyUpdates)
 ```
 
 ```swift
@@ -35,14 +36,13 @@ struct configureBastion: AsyncParsableCommand {
     mutating func run() async throws {
         let keyName = URL(fileURLWithPath: privateKeyLocation).lastPathComponent
         let netHost: Host = try Host(netAddress, sshPort: port, sshUser: user, sshIdentityFile: identityFile)
-        let setupSSHKey = Playbook(name: "install SSH private key", hosts: [netHost], commands: [
+        let verbosity: Verbosity = verbose ? .verbose(emoji: true) : .normal(emoji: true)
+        try await Engine().run(host: netHost, displayProgress: true, verbosity: verbosity, commands: ]
             ShellCommand("mkdir -p ~/.ssh"),
             ShellCommand("chmod 0700 ~/.ssh"),
             CopyInto(location: privateKeyLocation, from: "~/.ssh/\(keyName)"),
             ShellCommand("chmod 0600 ~/.ssh/\(keyName)"),
         ])
-        let verbosity: Verbosity = verbose ? .verbose(emoji: true) : .normal(emoji: true)
-        try await Engine().run(playbook: setupSSHKey, displayProgress: true, verbosity: verbosity)
     }
 }
 ```
@@ -58,95 +58,29 @@ ShellCommand() -> SHCmd(), Cmd() // for brevity?
 ideas for what declarative versions might look like:
 
 ```swift
-let packages = DebianPackage.query(host)
-let packages = DebianPackage.find(host)
-apply { host in
-    Package("docker.io", state: absent)
-    Package("curl", state: present)
-    Package("ca-certificates", state: present)  // alternately: "installed | removed" ?
-    User("docker-user", inGroup: "docker", state: enabled) // alternately: "exists | absent" ?
-    Directory("/etc/apt/keyrings", mode: 0755, state: present)
+let arch = Dpkg.find(host).architecture
+Engine().run(hosts: [hosts], commands: [
+    DebianPackageDeclaration("docker.io", state: .absent),
+    DebianPackageDeclaration("curl", state: .present),
+    DebianPackageDeclaration("ca-certificates", state: .present),
+    User("docker-user", inGroup: "docker", state: enabled), // alternately: "exists | absent" ?
+    Directory("/etc/apt/keyrings", mode: 0755, state: present),
     CopyFrom(location: "/etc/apt/keyrings/docker.asc", from "https://download.docker.com/linux/ubuntu/gpg")
-    let arch = DebianPackage(host).architecture
-    
     // install remote apt repo
     // echo \
   // "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
   // $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
   // sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
   
-    Package("docker-ce", installed: true)
-    
-    let envset = ENVSET("/etc/os-release")
-}
+    Package("docker-ce", state: .present)
+])
 ```
-
-At the start, Playbooks are a list of commands links to hosts. 
-I think for declarative setups we want to take that a bit farther, in particular allowing cross-host coordination. 
-The engine can't know up front how to coordinate things, so I think maybe putting that logic into a playbook, with a reasonable default (a .run() or something) would make sense.
-
-I'd also like to possibly allow parallelism within the playbook. 
-The execution parallelism should be controlled BY the playbook (so either declarative, or in the run() method).
-The "Owner" of the operations should be Engine, since that's an actor, and specifically "in the background" in terms of execution context. (Need to look into how to inherit isolation context).
-
-```swift
-InParallel(a,b,c) { host in
-Cmd,
-Cmd,
-Cmd,
-}
-CoordinatedThing(a,b)
-```
-
-```swift
-Playbook("myBook", hosts: [a,b,c]) { context in
-// "builder" structure - so these becomes various types that the playbook knows how to execute?
-  InParallel(a,b,c) {
-    Query(OSResource) // command that interrogates the host, and returns a resource info and state, storing into something available from the playbook and commands. A dynamic context.
-    Cmd("apply updates")
-    Query(Packages)
-    DockerResource(state: enabled, forUser: "docker-user")
-  }
-  SetupReplication(from: a, to: b) // executed as a unit after everything in InParallel is done.
-  SetupSwarm(masters: b workers: c,d) // Host... parameters?
-    playbook.context [Host: [Resources]] // inout parameter?
-    - .resolve() gets passed the dynamic context from the playbook
-}
-```
-
-Host('x').query(OSResource.self) -> OSResource
-Host('x').run(Cmd("apt-get update -q")) -> CommandOutput
-
-// in parallel playbook-like execution
-
-async let a = Host('a').run(cmd1,cmd2,cmd2) // no capture of output, just execution - return Bool?
-async let b = Host('b').run(cmd1,cmd2,cmd2)
-async let c = Host('c').run(cmd1,cmd2,cmd2)
-await a, b, c // wait for all to complete
-
-Where a playbook might be able to add a context that it maintains and updates?
-
-
-// running a playbook in the background
-pb = Playbook()
-pb.run()
-
-Alternately, its an async closure that gets invoked by Engine, where I can cobble in Swift directly and use TaskGroups and invoke commands directly.
-
-Playbooks might also want to have pre-requisites, and fail or not allow execution if they're not met - a set of "checks" up front. 
+At the moment, I've nixed an explicit struct to represent a playbook, but I might want to re-introduce 
+the concept to allow for dependencies or pre-requisites. The idea being to fail or not allow execution if they're not met - a set of "checks" up front. 
 ```swift
 Require(hostA["OS"] == "Ubuntu")
 ```
 
-Likewise, I can see a desire to query and "load" some dynamic context for the playbook while it's operational. 
-For example, gate on "What's my OS", or getting some values like from /etc/os-release or /etc/lsb-release to use as parameters in constructing commands.
-```swift
-Query(OSResource)
-Query(OSResource, for: hostA)
-withHosts(a,b,c,) { host in
-    Query(OSResource, for: host)
-}
-```
 
 ```bash
 docker-user@ubuntu:~$ cat /etc/os-release
@@ -169,73 +103,6 @@ DISTRIB_ID=Ubuntu
 DISTRIB_RELEASE=24.04
 DISTRIB_CODENAME=noble
 DISTRIB_DESCRIPTION="Ubuntu 24.04.1 LTS"
-```
-
-```swift
-struct MyPlaylist: AsyncParsableCommand {
-  @Argument host: String
-  @Option user: String?
-  ...
-  func run() async {
-    let myHost = Host(ip: host)
-    myHost.apply() {
-      allAvailableUpdatesInstalled(securityOnly: true)
-      DockerNode(state: enabled, service: active, forUser: user)
-    }
-  }
-}
-```
-
-```swift
-struct MyPlaylist: AsyncParsableCommand {
-  @Argument host: String
-  @Option user: String?
-  ...
-  func run() async {
-    let myHost = Host(ip: host)
-    myHost.apply() {
-      allAvailableUpdatesInstalled(securityOnly: true)
-      Docker(state: installed, service: active, forUser: user)
-    }
-  }
-}
-```
-
-another declarative playlist w/ a structure that requires multiple hosts:
-
-```swift
-struct MyPlaylist: AsyncCommand {
-  @Argument host: [String]
-  @Option user: String?
-  ...
-  func run() async {
-    let master = host[0]
-    let workers = host[1...]
-    DockerSwarm(masterNode: master, 
-                workerNodes: workers, 
-                state: active)
-    
-  }
-}
-```
-
-an example imperative playlist:
-
-```swift
-struct BackupDatabase: AsyncCommand {
-  @Option db: String
-  @Option user: String
-  @Option passwd: String
-  ...
-  func run() async {
-    let dbInstance = DB(ip: host)
-    Playlist(dbInstance) {
-      let localBackupFile = await DatabaseBackup(host: db, user: user, password: passwd)
-      S3Bucket.push(localBackupFile, toBucket: stringOfBucket)
-      Discord.notify("Successful backup!")
-    }
-  }
-}
 ```
 
 ### Resources
