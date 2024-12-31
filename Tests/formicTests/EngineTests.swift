@@ -185,6 +185,8 @@ func testCommandTimeout() async throws {
     #expect(outputFromRun.representsFailure() == true)
     #expect(outputFromRun.output.stderrString == nil)
     #expect(outputFromRun.output.stdoutString == nil)
+    #expect(outputFromRun.duration > .seconds(1))
+    //print(outputFromRun.consoleOutput(verbosity: .debug(emoji: true)))
 }
 
 @Test("verify retry works as expected")

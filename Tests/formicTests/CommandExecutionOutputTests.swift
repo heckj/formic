@@ -89,35 +89,50 @@ func testConsoleOutputForExecutionOuput() async throws {
     #expect(successResult.consoleOutput(verbosity: .normal(emoji: false)).contains("uname"))
     #expect(successResult.consoleOutput(verbosity: .normal(emoji: false)).contains("rc=0"))
     #expect(successResult.consoleOutput(verbosity: .normal(emoji: false)).contains("retries=0"))
+    #expect(successResult.consoleOutput(verbosity: .normal(emoji: false)).contains("[00:00"))
+    // duration marker
 
     #expect(failureResult.consoleOutput(verbosity: .normal(emoji: true)).contains("❌"))
     #expect(failureResult.consoleOutput(verbosity: .normal(emoji: true)).contains("uname"))
     #expect(failureResult.consoleOutput(verbosity: .normal(emoji: true)).contains("rc=-1"))
     #expect(failureResult.consoleOutput(verbosity: .normal(emoji: true)).contains("retries=0"))
     #expect(failureResult.consoleOutput(verbosity: .normal(emoji: true)).contains("I'm not telling you!"))
+    #expect(successResult.consoleOutput(verbosity: .normal(emoji: true)).contains("[00:00"))
+    // duration marker
 
     #expect(!failureResult.consoleOutput(verbosity: .normal(emoji: false)).contains("❌"))
     #expect(failureResult.consoleOutput(verbosity: .normal(emoji: false)).contains("uname"))
     #expect(failureResult.consoleOutput(verbosity: .normal(emoji: false)).contains("rc=-1"))
     #expect(failureResult.consoleOutput(verbosity: .normal(emoji: false)).contains("retries=0"))
     #expect(failureResult.consoleOutput(verbosity: .normal(emoji: false)).contains("I'm not telling you!"))
+    #expect(failureResult.consoleOutput(verbosity: .normal(emoji: false)).contains("[00:00"))
+    // duration marker
 
     #expect(ignoreFailureResult.consoleOutput(verbosity: .normal(emoji: true)).contains("⚠️"))
     #expect(ignoreFailureResult.consoleOutput(verbosity: .normal(emoji: true)).contains("uname"))
     #expect(ignoreFailureResult.consoleOutput(verbosity: .normal(emoji: true)).contains("rc=-1"))
     #expect(ignoreFailureResult.consoleOutput(verbosity: .normal(emoji: true)).contains("retries=0"))
     #expect(ignoreFailureResult.consoleOutput(verbosity: .normal(emoji: true)).contains("I'm not telling you!"))
+    #expect(ignoreFailureResult.consoleOutput(verbosity: .normal(emoji: true)).contains("[00:00"))
+    // duration marker
 
     #expect(!ignoreFailureResult.consoleOutput(verbosity: .normal(emoji: false)).contains("⚠️"))
     #expect(ignoreFailureResult.consoleOutput(verbosity: .normal(emoji: false)).contains("uname"))
     #expect(ignoreFailureResult.consoleOutput(verbosity: .normal(emoji: false)).contains("rc=-1"))
     #expect(ignoreFailureResult.consoleOutput(verbosity: .normal(emoji: false)).contains("retries=0"))
     #expect(ignoreFailureResult.consoleOutput(verbosity: .normal(emoji: false)).contains("I'm not telling you!"))
+    #expect(ignoreFailureResult.consoleOutput(verbosity: .normal(emoji: false)).contains("[00:00"))
+    // duration marker
 
     #expect(exceptionResult.consoleOutput(verbosity: .normal(emoji: true)).contains("🚫"))
     #expect(exceptionResult.consoleOutput(verbosity: .normal(emoji: true)).contains("exception reported"))
+    #expect(exceptionResult.consoleOutput(verbosity: .normal(emoji: true)).contains("[00:00"))
+    // duration marker
+
     #expect(!exceptionResult.consoleOutput(verbosity: .normal(emoji: false)).contains("🚫"))
     #expect(exceptionResult.consoleOutput(verbosity: .normal(emoji: false)).contains("exception reported"))
+    #expect(exceptionResult.consoleOutput(verbosity: .normal(emoji: false)).contains("[00:00"))
+    // duration marker
 
     // .verbose
     #expect(successResult.consoleOutput(verbosity: .verbose(emoji: true)).contains("✅"))
@@ -125,41 +140,58 @@ func testConsoleOutputForExecutionOuput() async throws {
     #expect(successResult.consoleOutput(verbosity: .verbose(emoji: true)).contains("rc=0"))
     #expect(successResult.consoleOutput(verbosity: .verbose(emoji: true)).contains("retries=0"))
     #expect(successResult.consoleOutput(verbosity: .verbose(emoji: true)).contains("Darwin"))
+    #expect(successResult.consoleOutput(verbosity: .verbose(emoji: true)).contains("[00:00"))
+    // duration marker
 
     #expect(!successResult.consoleOutput(verbosity: .verbose(emoji: false)).contains("✅"))
     #expect(successResult.consoleOutput(verbosity: .verbose(emoji: false)).contains("uname"))
     #expect(successResult.consoleOutput(verbosity: .verbose(emoji: false)).contains("rc=0"))
     #expect(successResult.consoleOutput(verbosity: .verbose(emoji: false)).contains("retries=0"))
-    #expect(successResult.consoleOutput(verbosity: .verbose(emoji: true)).contains("Darwin"))
+    #expect(successResult.consoleOutput(verbosity: .verbose(emoji: false)).contains("Darwin"))
+    #expect(successResult.consoleOutput(verbosity: .verbose(emoji: false)).contains("[00:00"))
+    // duration marker
 
     #expect(failureResult.consoleOutput(verbosity: .verbose(emoji: true)).contains("❌"))
     #expect(failureResult.consoleOutput(verbosity: .verbose(emoji: true)).contains("uname"))
     #expect(failureResult.consoleOutput(verbosity: .verbose(emoji: true)).contains("rc=-1"))
     #expect(failureResult.consoleOutput(verbosity: .verbose(emoji: true)).contains("retries=0"))
     #expect(failureResult.consoleOutput(verbosity: .verbose(emoji: true)).contains("I'm not telling you!"))
+    #expect(failureResult.consoleOutput(verbosity: .verbose(emoji: true)).contains("[00:00"))
+    // duration marker
 
     #expect(!failureResult.consoleOutput(verbosity: .verbose(emoji: false)).contains("❌"))
     #expect(failureResult.consoleOutput(verbosity: .verbose(emoji: false)).contains("uname"))
     #expect(failureResult.consoleOutput(verbosity: .verbose(emoji: false)).contains("rc=-1"))
     #expect(failureResult.consoleOutput(verbosity: .verbose(emoji: false)).contains("retries=0"))
     #expect(failureResult.consoleOutput(verbosity: .verbose(emoji: false)).contains("I'm not telling you!"))
+    #expect(failureResult.consoleOutput(verbosity: .verbose(emoji: false)).contains("[00:00"))
+    // duration marker
 
     #expect(ignoreFailureResult.consoleOutput(verbosity: .verbose(emoji: true)).contains("⚠️"))
     #expect(ignoreFailureResult.consoleOutput(verbosity: .verbose(emoji: true)).contains("uname"))
     #expect(ignoreFailureResult.consoleOutput(verbosity: .verbose(emoji: true)).contains("rc=-1"))
     #expect(ignoreFailureResult.consoleOutput(verbosity: .verbose(emoji: true)).contains("retries=0"))
     #expect(ignoreFailureResult.consoleOutput(verbosity: .verbose(emoji: true)).contains("I'm not telling you!"))
+    #expect(ignoreFailureResult.consoleOutput(verbosity: .verbose(emoji: true)).contains("[00:00"))
+    // duration marker
 
     #expect(!ignoreFailureResult.consoleOutput(verbosity: .verbose(emoji: false)).contains("⚠️"))
     #expect(ignoreFailureResult.consoleOutput(verbosity: .verbose(emoji: false)).contains("uname"))
     #expect(ignoreFailureResult.consoleOutput(verbosity: .verbose(emoji: false)).contains("rc=-1"))
     #expect(ignoreFailureResult.consoleOutput(verbosity: .verbose(emoji: false)).contains("retries=0"))
     #expect(ignoreFailureResult.consoleOutput(verbosity: .verbose(emoji: false)).contains("I'm not telling you!"))
+    #expect(ignoreFailureResult.consoleOutput(verbosity: .verbose(emoji: false)).contains("[00:00"))
+    // duration marker
 
     #expect(exceptionResult.consoleOutput(verbosity: .verbose(emoji: true)).contains("🚫"))
     #expect(exceptionResult.consoleOutput(verbosity: .verbose(emoji: true)).contains("exception reported"))
+    #expect(exceptionResult.consoleOutput(verbosity: .verbose(emoji: true)).contains("[00:00"))
+    // duration marker
+
     #expect(!exceptionResult.consoleOutput(verbosity: .verbose(emoji: false)).contains("🚫"))
     #expect(exceptionResult.consoleOutput(verbosity: .verbose(emoji: false)).contains("exception reported"))
+    #expect(exceptionResult.consoleOutput(verbosity: .verbose(emoji: false)).contains("[00:00"))
+    // duration marker
 
     // .debug
     #expect(successResult.consoleOutput(verbosity: .debug(emoji: true)).contains("✅"))
@@ -167,39 +199,56 @@ func testConsoleOutputForExecutionOuput() async throws {
     #expect(successResult.consoleOutput(verbosity: .debug(emoji: true)).contains("rc=0"))
     #expect(successResult.consoleOutput(verbosity: .debug(emoji: true)).contains("retries=0"))
     #expect(successResult.consoleOutput(verbosity: .debug(emoji: true)).contains("Darwin"))
+    #expect(successResult.consoleOutput(verbosity: .debug(emoji: true)).contains("[00:00"))
+    // duration marker
 
     #expect(!successResult.consoleOutput(verbosity: .debug(emoji: false)).contains("✅"))
     #expect(successResult.consoleOutput(verbosity: .debug(emoji: false)).contains("uname"))
     #expect(successResult.consoleOutput(verbosity: .debug(emoji: false)).contains("rc=0"))
     #expect(successResult.consoleOutput(verbosity: .debug(emoji: false)).contains("retries=0"))
-    #expect(successResult.consoleOutput(verbosity: .debug(emoji: true)).contains("Darwin"))
+    #expect(successResult.consoleOutput(verbosity: .debug(emoji: false)).contains("Darwin"))
+    #expect(successResult.consoleOutput(verbosity: .debug(emoji: false)).contains("[00:00"))
+    // duration marker
 
     #expect(failureResult.consoleOutput(verbosity: .debug(emoji: true)).contains("❌"))
     #expect(failureResult.consoleOutput(verbosity: .debug(emoji: true)).contains("uname"))
     #expect(failureResult.consoleOutput(verbosity: .debug(emoji: true)).contains("rc=-1"))
     #expect(failureResult.consoleOutput(verbosity: .debug(emoji: true)).contains("retries=0"))
     #expect(failureResult.consoleOutput(verbosity: .debug(emoji: true)).contains("I'm not telling you!"))
+    #expect(failureResult.consoleOutput(verbosity: .debug(emoji: true)).contains("[00:00"))
+    // duration marker
 
     #expect(!failureResult.consoleOutput(verbosity: .debug(emoji: false)).contains("❌"))
     #expect(failureResult.consoleOutput(verbosity: .debug(emoji: false)).contains("uname"))
     #expect(failureResult.consoleOutput(verbosity: .debug(emoji: false)).contains("rc=-1"))
     #expect(failureResult.consoleOutput(verbosity: .debug(emoji: false)).contains("retries=0"))
     #expect(failureResult.consoleOutput(verbosity: .debug(emoji: false)).contains("I'm not telling you!"))
+    #expect(failureResult.consoleOutput(verbosity: .debug(emoji: false)).contains("[00:00"))
+    // duration marker
 
     #expect(ignoreFailureResult.consoleOutput(verbosity: .debug(emoji: true)).contains("⚠️"))
     #expect(ignoreFailureResult.consoleOutput(verbosity: .debug(emoji: true)).contains("uname"))
     #expect(ignoreFailureResult.consoleOutput(verbosity: .debug(emoji: true)).contains("rc=-1"))
     #expect(ignoreFailureResult.consoleOutput(verbosity: .debug(emoji: true)).contains("retries=0"))
     #expect(ignoreFailureResult.consoleOutput(verbosity: .debug(emoji: true)).contains("I'm not telling you!"))
+    #expect(ignoreFailureResult.consoleOutput(verbosity: .debug(emoji: false)).contains("[00:00"))
+    // duration marker
 
     #expect(!ignoreFailureResult.consoleOutput(verbosity: .debug(emoji: false)).contains("⚠️"))
     #expect(ignoreFailureResult.consoleOutput(verbosity: .debug(emoji: false)).contains("uname"))
     #expect(ignoreFailureResult.consoleOutput(verbosity: .debug(emoji: false)).contains("rc=-1"))
     #expect(ignoreFailureResult.consoleOutput(verbosity: .debug(emoji: false)).contains("retries=0"))
     #expect(ignoreFailureResult.consoleOutput(verbosity: .debug(emoji: false)).contains("I'm not telling you!"))
+    #expect(ignoreFailureResult.consoleOutput(verbosity: .debug(emoji: false)).contains("[00:00"))
+    // duration marker
 
     #expect(exceptionResult.consoleOutput(verbosity: .debug(emoji: true)).contains("🚫"))
     #expect(exceptionResult.consoleOutput(verbosity: .debug(emoji: true)).contains("exception reported"))
+    #expect(exceptionResult.consoleOutput(verbosity: .debug(emoji: true)).contains("[00:00"))
+    // duration marker
+
     #expect(!exceptionResult.consoleOutput(verbosity: .debug(emoji: false)).contains("🚫"))
     #expect(exceptionResult.consoleOutput(verbosity: .debug(emoji: false)).contains("exception reported"))
+    #expect(exceptionResult.consoleOutput(verbosity: .debug(emoji: false)).contains("[00:00"))
+    // duration marker
 }

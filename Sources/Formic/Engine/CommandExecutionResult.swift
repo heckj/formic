@@ -78,9 +78,11 @@ extension CommandExecutionResult {
                 if includeEmoji {
                     stringOutput.append(" ")
                 }
+                stringOutput.append("[\(formattedDuration)] ")
                 stringOutput.append("exception: \(exception)")
             } else if output.returnCode != 0 {
                 stringOutput.append("command: \(command), rc=\(output.returnCode), retries=\(retries)")
+                stringOutput.append("[\(formattedDuration)] ")
                 if let errorOutput = output.stderrString {
                     stringOutput.append("\nSTDERR: \(errorOutput)")
                 } else {
@@ -88,6 +90,7 @@ extension CommandExecutionResult {
                 }
             } else {
                 stringOutput.append("command: \(command), rc=\(output.returnCode), retries=\(retries)")
+                stringOutput.append("[\(formattedDuration)] ")
             }
         case .verbose(emoji: let includeEmoji):
             // Reports host, command, duration, the result code, and stdout on success, or stderr on failure.
@@ -98,6 +101,7 @@ extension CommandExecutionResult {
                 if includeEmoji {
                     stringOutput.append(" ")
                 }
+                stringOutput.append("[\(formattedDuration)] ")
                 stringOutput.append("exception: \(exception)")
             } else if output.returnCode != 0 {
                 stringOutput.append("[\(formattedDuration)] ")
@@ -125,6 +129,7 @@ extension CommandExecutionResult {
                 if includeEmoji {
                     stringOutput.append(" ")
                 }
+                stringOutput.append("[\(formattedDuration)] ")
                 stringOutput.append("exception: \(exception)")
             } else {
                 stringOutput.append("[\(formattedDuration)] ")
