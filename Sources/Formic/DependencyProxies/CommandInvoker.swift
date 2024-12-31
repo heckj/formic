@@ -35,8 +35,10 @@ protocol CommandInvoker: Sendable {
         identityFile: String?,
         port: Int?,
         strictHostKeyChecking: Bool,
+        chdir: String?,
         cmd: [String],
-        env: [String: String]?
+        env: [String: String]?,
+        debugPrint: Bool
     ) async throws -> CommandOutput
 
     func remoteCopy(
@@ -54,7 +56,9 @@ protocol CommandInvoker: Sendable {
     func localShell(
         cmd: [String],
         stdIn: Pipe?,
-        env: [String: String]?
+        env: [String: String]?,
+        chdir: String?,
+        debugPrint: Bool
     ) async throws -> CommandOutput
 }
 
@@ -80,6 +84,9 @@ struct ProcessCommandInvoker: CommandInvoker {
     ///   - args: A list of strings that make up the command and any arguments.
     ///   - stdIn: An optional Pipe to provide `STDIN`.
     ///   - env: A dictionary of shell environment variables to apply.
+    ///   - cmd: The command to invoke, as a list of strings
+    ///   - debugPrint: A Boolean value that indicates if the invoker prints the raw command before running it.
+    ///   - chdir: An optional directory to change to before running the command.
     /// - Returns: The command output.
     /// - Throws: any errors from invoking the shell process.
     ///
@@ -87,7 +94,7 @@ struct ProcessCommandInvoker: CommandInvoker {
     /// followed by attempting to read the Pipe() outputs (fileHandleForReading.readToEnd()).
     /// The types of errors thrown from those locations aren't undocumented.
     func localShell(
-        cmd: [String], stdIn: Pipe? = nil, env: [String: String]? = nil
+        cmd: [String], stdIn: Pipe? = nil, env: [String: String]? = nil, chdir: String? = nil, debugPrint: Bool = false
     ) async throws -> CommandOutput {
         let task = Process()
         task.executableURL = URL(fileURLWithPath: "/usr/bin/env")
@@ -104,7 +111,14 @@ struct ProcessCommandInvoker: CommandInvoker {
             task.environment = ["TERM": "dumb"]
         }
 
-        task.arguments = cmd
+        if let chdir = chdir {
+            task.arguments = ["sh", "-c", "cd \(chdir); \(cmd.joined(separator: " "))"]
+        } else {
+            task.arguments = ["sh", "-c", "\(cmd.joined(separator: " "))"]
+        }
+        if debugPrint {
+            print(task.arguments?.joined(separator: " ") ?? "nil")
+        }
 
         let stdOutPipe = Pipe()
         let stdErrPipe = Pipe()
@@ -187,6 +201,9 @@ struct ProcessCommandInvoker: CommandInvoker {
     ///   - port: The port to use for SSH to the remote host.
     ///   - strictHostKeyChecking: A Boolean value that indicates whether to enable strict host checking, defaults to `false`.
     ///   - cmd: A list of strings that make up the command and any arguments.
+    ///   - chdir: An optional directory to change to before running the command.
+    ///   - env: A dictionary of shell environment variables to apply.
+    ///   - debugPrint: A Boolean value that indicates if the invoker prints the raw command before running it.
     /// - Returns: the command output.
     /// - Throws: any errors from invoking the shell process.
     func remoteShell(
@@ -195,8 +212,10 @@ struct ProcessCommandInvoker: CommandInvoker {
         identityFile: String? = nil,
         port: Int? = nil,
         strictHostKeyChecking: Bool = false,
+        chdir: String?,
         cmd: [String],
-        env: [String: String]? = nil
+        env: [String: String]? = nil,
+        debugPrint: Bool = false
     ) async throws -> CommandOutput {
         var args: [String] = ["ssh"]
         if strictHostKeyChecking {
@@ -214,13 +233,18 @@ struct ProcessCommandInvoker: CommandInvoker {
         args.append("-t")  // request a TTY at the remote host
         args.append("\(user)@\(host)")
 
-        args.append(contentsOf: cmd)
+        let joinedCmd = cmd.joined(separator: " ")
+        if let chdir = chdir {
+            args.append("cd \(chdir);\(joinedCmd)")
+        } else {
+            args.append("\(joinedCmd)")
+        }
 
         // NOTE(heckj): Ansible's SSH capability
         // (https://github.com/ansible/ansible/blob/devel/lib/ansible/plugins/connection/ssh.py)
-        // does this with significantly more finness, checking the output as it's returned and providing a pass
-        // to use sshpass to authenticate, or to escalate commands with sudo and a password, before the core
-        // command is invoked.
+        // does this with significantly more finesse. It checks the output as it's returned and
+        // provides a password through that uses sshpass to authenticate, or escalates commands
+        // with sudo and a password, before the core command is invoked.
         let rcAndPipe = try await localShell(cmd: args, env: env)
         return rcAndPipe
     }

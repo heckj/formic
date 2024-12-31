@@ -30,12 +30,12 @@ public struct CopyFrom: Command {
     ///   - retry: The retry settings for the command.
     ///   - executionTimeout: The maximum duration to allow for the command.
     public init(
-        location: String, from: URL, env: [String: String]? = nil, ignoreFailure: Bool = false,
+        into: String, from: URL, env: [String: String]? = nil, ignoreFailure: Bool = false,
         retry: Backoff = .never, executionTimeout: Duration = .seconds(30)
     ) {
         self.from = from
         self.env = env
-        self.destinationPath = location
+        self.destinationPath = into
         self.retry = retry
         self.ignoreFailure = ignoreFailure
         self.executionTimeout = executionTimeout
@@ -68,7 +68,8 @@ public struct CopyFrom: Command {
                 localPath: tempFile.path,
                 remotePath: destinationPath)
         } else {
-            return try await invoker.localShell(cmd: ["cp", tempFile.path, destinationPath], stdIn: nil, env: nil)
+            return try await invoker.localShell(
+                cmd: ["cp", tempFile.path, destinationPath], stdIn: nil, env: nil, chdir: nil, debugPrint: false)
         }
     }
 }

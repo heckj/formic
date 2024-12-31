@@ -48,10 +48,12 @@ public struct VerifyAccess: Command {
                 identityFile: sshCreds.identityFile,
                 port: host.sshPort,
                 strictHostKeyChecking: false,
+                chdir: nil,
                 cmd: cmdArgs,
-                env: nil)
+                env: nil,
+                debugPrint: false)
         } else {
-            answer = try await invoker.localShell(cmd: cmdArgs, stdIn: nil, env: nil)
+            answer = try await invoker.localShell(cmd: cmdArgs, stdIn: nil, env: nil, chdir: nil, debugPrint: false)
         }
         if answer.stdoutString != "hello" {
             return CommandOutput(returnCode: -1, stdOut: nil, stdErr: "Unable to verify access.".data(using: .utf8))

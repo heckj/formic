@@ -4,11 +4,14 @@ import Foundation
 /// A command to run on a local or remote host.
 ///
 /// This command uses SSH through a local process to invoke commands on a remote host.
+/// Do not use shell control or redirect operators in the command string.
 public struct ShellCommand: Command {
     /// The command and arguments to run.
     public let args: [String]
     /// An optional dictionary of environment variables the system sets when it runs the command.
     public let env: [String: String]?
+    /// An optional directory to change to before running the command.
+    public let chdir: String?
     /// A Boolean value that indicates whether a failing command should fail a playbook.
     public let ignoreFailure: Bool
     /// The retry settings for the command.
@@ -22,18 +25,21 @@ public struct ShellCommand: Command {
     /// - Parameters:
     ///   - arguments: the command and arguments to run, each argument as a separate string.
     ///   - env: An optional dictionary of environment variables the system sets when it runs the command.
+    ///   - chdir: An optional directory to change to before running the command.
     ///   - ignoreFailure: A Boolean value that indicates whether a failing command should fail a playbook.
     ///   - retry: The retry settings for the command.
     ///   - executionTimeout: The maximum duration to allow for the command.
     public init(
-        arguments: [String], env: [String: String]? = nil, ignoreFailure: Bool = false,
-        retry: Backoff = .never, executionTimeout: Duration = .seconds(30)
+        arguments: [String], env: [String: String]? = nil, chdir: String? = nil,
+        ignoreFailure: Bool = false, retry: Backoff = .never,
+        executionTimeout: Duration = .seconds(30)
     ) {
         self.args = arguments
         self.env = env
         self.retry = retry
         self.ignoreFailure = ignoreFailure
         self.executionTimeout = executionTimeout
+        self.chdir = chdir
         id = UUID()
     }
 
@@ -88,10 +94,13 @@ public struct ShellCommand: Command {
                 identityFile: sshCreds.identityFile,
                 port: host.sshPort,
                 strictHostKeyChecking: false,
+                chdir: chdir,
                 cmd: args,
-                env: env)
+                env: env,
+                debugPrint: false
+            )
         } else {
-            return try await invoker.localShell(cmd: args, stdIn: nil, env: env)
+            return try await invoker.localShell(cmd: args, stdIn: nil, env: env, chdir: chdir, debugPrint: false)
         }
     }
 }
