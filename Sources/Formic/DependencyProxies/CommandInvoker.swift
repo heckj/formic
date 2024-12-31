@@ -54,7 +54,7 @@ protocol CommandInvoker: Sendable {
     func getDataAtURL(url: URL) async throws -> Data
 
     func localShell(
-        cmd: String,
+        cmd: [String],
         stdIn: Pipe?,
         env: [String: String]?,
         chdir: String?,
@@ -94,7 +94,7 @@ struct ProcessCommandInvoker: CommandInvoker {
     /// followed by attempting to read the Pipe() outputs (fileHandleForReading.readToEnd()).
     /// The types of errors thrown from those locations aren't undocumented.
     func localShell(
-        cmd: String, stdIn: Pipe? = nil, env: [String: String]? = nil, chdir: String? = nil, debugPrint: Bool = false
+        cmd: [String], stdIn: Pipe? = nil, env: [String: String]? = nil, chdir: String? = nil, debugPrint: Bool = false
     ) async throws -> CommandOutput {
         let task = Process()
         task.executableURL = URL(fileURLWithPath: "/usr/bin/env")
@@ -112,10 +112,10 @@ struct ProcessCommandInvoker: CommandInvoker {
         }
 
         if let chdir = chdir {
-            task.arguments = ["sh", "-c", "cd \(chdir); \(cmd)"]
-        } else {
-            task.arguments = ["sh", "-c", "\(cmd)"]
+            task.currentDirectoryURL = URL(fileURLWithPath: chdir)
         }
+        task.arguments = cmd
+        
         if debugPrint {
             print(task.arguments?.joined(separator: " ") ?? "nil")
         }
@@ -186,10 +186,10 @@ struct ProcessCommandInvoker: CommandInvoker {
 
         args.append(localPath)
         args.append("\(user)@\(host):\(remotePath)")
-        let commandString: String = args.joined(separator: " ")
+        
         // loose form:
         // scp -o StrictHostKeyChecking=no get-docker.sh "docker-user@${IP_ADDRESS}:get-docker.sh"
-        let rcAndPipe = try await localShell(cmd: commandString)
+        let rcAndPipe = try await localShell(cmd: args)
         return rcAndPipe
     }
 
@@ -218,26 +218,26 @@ struct ProcessCommandInvoker: CommandInvoker {
         env: [String: String]? = nil,
         debugPrint: Bool = false
     ) async throws -> CommandOutput {
-        var args: String = "ssh"
+        var args: [String] = ["ssh"]
         if strictHostKeyChecking {
-            args.append(" -o")
-            args.append(" StrictHostKeyChecking=no")
+            args.append("-o")
+            args.append("StrictHostKeyChecking=no")
         }
         if let identityFile {
-            args.append(" -i")
-            args.append(" \(identityFile)")
+            args.append("-i")
+            args.append("\(identityFile)")
         }
         if let port {
-            args.append(" -p")
-            args.append(" \(port)")
+            args.append("-p")
+            args.append("\(port)")
         }
-        args.append(" -t")  // request a TTY at the remote host
-        args.append(" \(user)@\(host)")
+        //args.append(" -t")  // request a TTY at the remote host
+        args.append("\(user)@\(host)")
 
         if let chdir = chdir {
-            args.append(" cd \(chdir);\(cmd)")
+            args.append("cd \(chdir);\(cmd)")
         } else {
-            args.append(" \(cmd)")
+            args.append("\(cmd)")
         }
 
         // NOTE(heckj): Ansible's SSH capability
