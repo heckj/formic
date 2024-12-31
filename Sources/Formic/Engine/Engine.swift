@@ -89,22 +89,31 @@ public actor Engine {
         repeat {
             numberOfRetries += 1
             let start = clock.now
-            outputOfLastAttempt = try await withThrowingTaskGroup(of: CommandOutput.self, returning: CommandOutput.self)
-            {
-                group in
-                group.addTask {
-                    return try await command.run(host: host)
+            do {
+                outputOfLastAttempt = try await withThrowingTaskGroup(
+                    of: CommandOutput.self, returning: CommandOutput.self
+                ) {
+                    group in
+                    group.addTask {
+                        return try await command.run(host: host)
+                    }
+                    group.addTask {
+                        try await Task.sleep(for: command.executionTimeout)
+                        try Task.checkCancellation()
+                        throw CommandError.timeoutExceeded(cmd: command)
+                    }
+                    guard let output = try await group.next() else {
+                        throw CommandError.noOutputFromCommand(cmd: command)
+                    }
+                    group.cancelAll()
+                    return output
                 }
-                group.addTask {
-                    try await Task.sleep(for: command.executionTimeout)
-                    try Task.checkCancellation()
-                    throw CommandError.timeoutExceeded(cmd: command)
-                }
-                guard let output = try await group.next() else {
-                    throw CommandError.noOutputFromCommand(cmd: command)
-                }
-                group.cancelAll()
-                return output
+            } catch {
+                // catch inner exception conditions and treat as a failure to allow for
+                // retries and timeouts to be handled.
+                print("Caught error while executing command: \(command)")
+                print("error: \(error)")
+                outputOfLastAttempt = .generalFailure(msg: error.localizedDescription)
             }
             durationOfLastAttempt = clock.now - start
 
@@ -115,6 +124,7 @@ public actor Engine {
                     exception: nil)
             } else {
                 let delay = command.retry.strategy.delay(for: numberOfRetries, withJitter: true)
+                print("delaying for \(delay) due to failure before retrying command: \(command)")
                 try await Task.sleep(for: delay)
             }
         } while command.retry.retryOnFailure && numberOfRetries < command.retry.maxRetries
