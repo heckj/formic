@@ -18,18 +18,18 @@ struct TestCommandInvoker: CommandInvoker {
     }
 
     // proxyResults is keyed by arguments, returns a tuple of seconds delay to apply, then the result
-    var proxyResults: [[String]: (Duration, CommandOutput)]
-    var proxyErrors: [[String]: (any Error)]
+    var proxyResults: [String: (Duration, CommandOutput)]
+    var proxyErrors: [String: (any Error)]
     var proxyData: [URL: Data]
 
     func remoteCopy(
         host: String, user: String, identityFile: String?, port: Int?, strictHostKeyChecking: Bool, localPath: String,
         remotePath: String
     ) async throws -> Formic.CommandOutput {
-        if let errorToThrow = proxyErrors[[localPath, remotePath]] {
+        if let errorToThrow = proxyErrors["\(localPath) \(remotePath)"] {
             throw errorToThrow
         }
-        if let (delay, storedResponse) = proxyResults[[localPath, remotePath]] {
+        if let (delay, storedResponse) = proxyResults["\(localPath) \(remotePath)"] {
             try await Task.sleep(for: delay)
             return storedResponse
         }
@@ -38,7 +38,7 @@ struct TestCommandInvoker: CommandInvoker {
 
     func remoteShell(
         host: String, user: String, identityFile: String?, port: Int?, strictHostKeyChecking: Bool, chdir: String?,
-        cmd: [String], env: [String: String]?, debugPrint: Bool
+        cmd: String, env: [String: String]?, debugPrint: Bool
     ) async throws -> Formic.CommandOutput {
         if let errorToThrow = proxyErrors[cmd] {
             throw errorToThrow
@@ -51,7 +51,7 @@ struct TestCommandInvoker: CommandInvoker {
         return CommandOutput(returnCode: 0, stdOut: "".data(using: .utf8), stdErr: nil)
     }
 
-    func localShell(cmd: [String], stdIn: Pipe?, env: [String: String]?, chdir: String?, debugPrint: Bool) async throws
+    func localShell(cmd: String, stdIn: Pipe?, env: [String: String]?, chdir: String?, debugPrint: Bool) async throws
         -> Formic.CommandOutput
     {
         if let errorToThrow = proxyErrors[cmd] {
@@ -66,8 +66,8 @@ struct TestCommandInvoker: CommandInvoker {
     }
 
     init(
-        _ outputs: [[String]: (Duration, CommandOutput)],
-        _ errors: [[String]: (any Error)],
+        _ outputs: [String: (Duration, CommandOutput)],
+        _ errors: [String: (any Error)],
         _ data: [URL: Data]
     ) {
         proxyResults = outputs
@@ -81,7 +81,7 @@ struct TestCommandInvoker: CommandInvoker {
         proxyData = [:]
     }
 
-    func addSuccess(command: [String], presentOutput: String, delay: Duration = .zero) -> Self {
+    func addSuccess(command: String, presentOutput: String, delay: Duration = .zero) -> Self {
         var existingResult = proxyResults
         existingResult[command] = (
             delay,
@@ -93,7 +93,7 @@ struct TestCommandInvoker: CommandInvoker {
         return TestCommandInvoker(existingResult, proxyErrors, proxyData)
     }
 
-    func addFailure(command: [String], presentOutput: String, delay: Duration = .zero, returnCode: Int32 = -1) -> Self {
+    func addFailure(command: String, presentOutput: String, delay: Duration = .zero, returnCode: Int32 = -1) -> Self {
         var existingResult = proxyResults
         existingResult[command] = (
             delay,
@@ -106,7 +106,7 @@ struct TestCommandInvoker: CommandInvoker {
         return TestCommandInvoker(existingResult, proxyErrors, proxyData)
     }
 
-    func addException(command: [String], errorToThrow: (any Error)) -> Self {
+    func addException(command: String, errorToThrow: (any Error)) -> Self {
         var existingErrors = proxyErrors
         existingErrors[command] = errorToThrow
         return TestCommandInvoker(proxyResults, existingErrors, proxyData)

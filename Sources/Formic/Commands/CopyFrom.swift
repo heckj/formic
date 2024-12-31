@@ -69,7 +69,7 @@ public struct CopyFrom: Command {
                 remotePath: destinationPath)
         } else {
             return try await invoker.localShell(
-                cmd: ["cp", tempFile.path, destinationPath], stdIn: nil, env: nil, chdir: nil, debugPrint: false)
+                cmd: "cp \(tempFile.path) \(destinationPath)", stdIn: nil, env: nil, chdir: nil, debugPrint: false)
         }
     }
 }

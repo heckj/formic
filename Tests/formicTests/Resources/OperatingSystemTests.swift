@@ -31,7 +31,7 @@ func testOSStringInitializer() async throws {
 func testOperatingSystemSingularInquiry() async throws {
     let shellResult: CommandOutput = try await withDependencies {
         $0.commandInvoker = TestCommandInvoker()
-            .addSuccess(command: ["uname"], presentOutput: "Linux\n")
+            .addSuccess(command: "uname", presentOutput: "Linux\n")
     } operation: {
         try await OperatingSystem.inquiry.run(host: .localhost)
     }
@@ -53,7 +53,7 @@ func testOperatingSystemQuery() async throws {
 
     let (parsedOS, _) = try await withDependencies {
         $0.commandInvoker = TestCommandInvoker()
-            .addSuccess(command: ["uname"], presentOutput: "Linux\n")
+            .addSuccess(command: "uname", presentOutput: "Linux\n")
 
         $0.date.now = Date(timeIntervalSince1970: 1_234_567_890)
     } operation: {
@@ -70,7 +70,7 @@ func testOperatingSystemInstanceQuery() async throws {
 
     let (parsedOS, _) = try await withDependencies {
         $0.commandInvoker = TestCommandInvoker()
-            .addSuccess(command: ["uname"], presentOutput: "Linux\n")
+            .addSuccess(command: "uname", presentOutput: "Linux\n")
         $0.date.now = Date(timeIntervalSince1970: 1_234_567_890)
     } operation: {
         try await instance.query(from: .localhost)

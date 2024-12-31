@@ -22,7 +22,7 @@ import Foundation
 //
 // - https://github.com/Zollerboy1/SwiftCommand
 // I like the structure of SwiftCommand, but it has a few swift6 concurrency warnings about fiddling
-// with mutable buffers that are _just_ slightly concerning to me. There also doesn't appear to
+// with mutable buffers that are slightly concerning to me. There also doesn't appear to
 // be a convenient way to capture STDERR separately (it's mixed together).
 
 // Dependency injection docs:
@@ -36,7 +36,7 @@ protocol CommandInvoker: Sendable {
         port: Int?,
         strictHostKeyChecking: Bool,
         chdir: String?,
-        cmd: [String],
+        cmd: String,
         env: [String: String]?,
         debugPrint: Bool
     ) async throws -> CommandOutput
@@ -54,7 +54,7 @@ protocol CommandInvoker: Sendable {
     func getDataAtURL(url: URL) async throws -> Data
 
     func localShell(
-        cmd: [String],
+        cmd: String,
         stdIn: Pipe?,
         env: [String: String]?,
         chdir: String?,
@@ -94,7 +94,7 @@ struct ProcessCommandInvoker: CommandInvoker {
     /// followed by attempting to read the Pipe() outputs (fileHandleForReading.readToEnd()).
     /// The types of errors thrown from those locations aren't undocumented.
     func localShell(
-        cmd: [String], stdIn: Pipe? = nil, env: [String: String]? = nil, chdir: String? = nil, debugPrint: Bool = false
+        cmd: String, stdIn: Pipe? = nil, env: [String: String]? = nil, chdir: String? = nil, debugPrint: Bool = false
     ) async throws -> CommandOutput {
         let task = Process()
         task.executableURL = URL(fileURLWithPath: "/usr/bin/env")
@@ -112,9 +112,9 @@ struct ProcessCommandInvoker: CommandInvoker {
         }
 
         if let chdir = chdir {
-            task.arguments = ["sh", "-c", "cd \(chdir); \(cmd.joined(separator: " "))"]
+            task.arguments = ["sh", "-c", "cd \(chdir); \(cmd)"]
         } else {
-            task.arguments = ["sh", "-c", "\(cmd.joined(separator: " "))"]
+            task.arguments = ["sh", "-c", "\(cmd)"]
         }
         if debugPrint {
             print(task.arguments?.joined(separator: " ") ?? "nil")
@@ -186,9 +186,10 @@ struct ProcessCommandInvoker: CommandInvoker {
 
         args.append(localPath)
         args.append("\(user)@\(host):\(remotePath)")
+        let commandString: String = args.joined(separator: " ")
         // loose form:
         // scp -o StrictHostKeyChecking=no get-docker.sh "docker-user@${IP_ADDRESS}:get-docker.sh"
-        let rcAndPipe = try await localShell(cmd: args)
+        let rcAndPipe = try await localShell(cmd: commandString)
         return rcAndPipe
     }
 
@@ -213,31 +214,30 @@ struct ProcessCommandInvoker: CommandInvoker {
         port: Int? = nil,
         strictHostKeyChecking: Bool = false,
         chdir: String?,
-        cmd: [String],
+        cmd: String,
         env: [String: String]? = nil,
         debugPrint: Bool = false
     ) async throws -> CommandOutput {
-        var args: [String] = ["ssh"]
+        var args: String = "ssh"
         if strictHostKeyChecking {
-            args.append("-o")
-            args.append("StrictHostKeyChecking=no")
+            args.append(" -o")
+            args.append(" StrictHostKeyChecking=no")
         }
         if let identityFile {
-            args.append("-i")
-            args.append(identityFile)
+            args.append(" -i")
+            args.append(" \(identityFile)")
         }
         if let port {
-            args.append("-p")
-            args.append("\(port)")
+            args.append(" -p")
+            args.append(" \(port)")
         }
-        args.append("-t")  // request a TTY at the remote host
-        args.append("\(user)@\(host)")
+        args.append(" -t")  // request a TTY at the remote host
+        args.append(" \(user)@\(host)")
 
-        let joinedCmd = cmd.joined(separator: " ")
         if let chdir = chdir {
-            args.append("cd \(chdir);\(joinedCmd)")
+            args.append(" cd \(chdir);\(cmd)")
         } else {
-            args.append("\(joinedCmd)")
+            args.append(" \(cmd)")
         }
 
         // NOTE(heckj): Ansible's SSH capability
