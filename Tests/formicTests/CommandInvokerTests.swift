@@ -82,9 +82,9 @@ func invokeRemoteCommandWithChdir() async throws {
     .timeLimit(.minutes(1)),
     .tags(.integrationTest))
 func invokeRemoteCommandWithTilde() async throws {
-//    let shellResult = try await ProcessCommandInvoker().remoteShell(
-//        host: "127.0.0.1", user: "heckj", identityFile: "~/.orbstack/ssh/id_ed25519", port: 32222, chdir: "..",
-//        cmd: "mkdir ~/.ssh", env: nil)
+    //    let shellResult = try await ProcessCommandInvoker().remoteShell(
+    //        host: "127.0.0.1", user: "heckj", identityFile: "~/.orbstack/ssh/id_ed25519", port: 32222, chdir: "..",
+    //        cmd: "mkdir ~/.ssh", env: nil)
     let shellResult = try await ProcessCommandInvoker().remoteShell(
         host: "172.190.172.6", user: "docker-user", identityFile: "~/.ssh/bastion_id_ed25519", chdir: nil,
         cmd: "mkdir -p ~/.ssh", env: nil)

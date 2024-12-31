@@ -115,7 +115,7 @@ struct ProcessCommandInvoker: CommandInvoker {
             task.currentDirectoryURL = URL(fileURLWithPath: chdir)
         }
         task.arguments = cmd
-        
+
         if debugPrint {
             print(task.arguments?.joined(separator: " ") ?? "nil")
         }
@@ -186,7 +186,7 @@ struct ProcessCommandInvoker: CommandInvoker {
 
         args.append(localPath)
         args.append("\(user)@\(host):\(remotePath)")
-        
+
         // loose form:
         // scp -o StrictHostKeyChecking=no get-docker.sh "docker-user@${IP_ADDRESS}:get-docker.sh"
         let rcAndPipe = try await localShell(cmd: args)
