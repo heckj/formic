@@ -8,8 +8,8 @@
 
 ### Running Playbooks
 
-- ``run(host:commands:displayProgress:verbosity:)``
-- ``run(hosts:commands:displayProgress:verbosity:)``
+- ``run(host:displayProgress:verbosity:commands:)``
+- ``run(hosts:displayProgress:verbosity:commands:)``
 
 ### Running an individual command
 

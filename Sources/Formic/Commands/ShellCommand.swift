@@ -52,7 +52,7 @@ public struct ShellCommand: Command {
     ///   - executionTimeout: The maximum duration to allow for the command.
     ///
     /// This initializer is useful when you have a space-separated string of arguments, and splits all arguments by whitespace.
-    /// If a command, or argument, requires a whitespace within it, use ``init(arguments:env:ignoreFailure:retry:executionTimeout:)`` instead.
+    /// If a command, or argument, requires a whitespace within it, use ``init(arguments:env:chdir:ignoreFailure:retry:executionTimeout:)`` instead.
     public init(
         _ argString: String, env: [String: String]? = nil, ignoreFailure: Bool = false,
         retry: Backoff = .never, executionTimeout: Duration = .seconds(30)
