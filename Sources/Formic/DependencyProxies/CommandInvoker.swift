@@ -245,7 +245,7 @@ struct ProcessCommandInvoker: CommandInvoker {
         // does this with significantly more finesse. It checks the output as it's returned and
         // provides a password through that uses sshpass to authenticate, or escalates commands
         // with sudo and a password, before the core command is invoked.
-        let rcAndPipe = try await localShell(cmd: args, env: env)
+        let rcAndPipe = try await localShell(cmd: args, env: env, debugPrint: debugPrint)
         return rcAndPipe
     }
 }
