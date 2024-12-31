@@ -52,6 +52,12 @@ public struct CommandOutput: Sendable {
     public static func generalFailure(msg: String) -> CommandOutput {
         CommandOutput(returnCode: -1, stdOut: nil, stdErr: msg.data(using: .utf8))
     }
+
+    /// Creates a command out that represents an exception thrown failure, and has no output.
+    public static func exceptionFailure() -> CommandOutput {
+        CommandOutput(returnCode: -1, stdOut: nil, stdErr: nil)
+    }
+
 }
 
 extension CommandOutput: Hashable {}

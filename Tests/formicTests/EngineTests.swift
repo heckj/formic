@@ -129,24 +129,31 @@ func testEngineRunPlaybookWithFailure() async throws {
 }
 
 @Test("Direct engine execution - playbook w/ exception")
-func testEngineRunPlaybookWithException() async throws {
+func testEngineRunPlaybookCommandsWithException() async throws {
     let engine = Engine()
     let cmd1 = ShellCommand("uname")
     let cmd2 = ShellCommand("whoami")
 
-    await #expect(
-        throws: TestError.self,
-        performing: {
-            let _ = try await withDependencies { dependencyValues in
-                dependencyValues.localSystemAccess = TestFileSystemAccess()
-                dependencyValues.commandInvoker = TestCommandInvoker()
-                    .addSuccess(command: "uname", presentOutput: "Darwin\n")
-                    .addException(
-                        command: "whoami", errorToThrow: TestError.unknown(msg: "Process failed in something"))
-            } operation: {
-                try await engine.run(hosts: [.localhost], displayProgress: false, commands: [cmd1, cmd2])
-            }
-        })
+    let output = try await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess()
+        dependencyValues.commandInvoker = TestCommandInvoker()
+            .addSuccess(command: "uname", presentOutput: "Darwin\n")
+            .addException(
+                command: "whoami", errorToThrow: TestError.unknown(msg: "Process whoami failed in something"))
+    } operation: {
+        try await engine.run(hosts: [.localhost], displayProgress: false, commands: [cmd1, cmd2])
+    }
+
+    #expect(output.count == 1)  // # of hosts
+    #expect(output[.localhost]?.count == 2)  // # of commands returned
+    let failedCmdResult = try #require(output[.localhost]?.last)
+
+    #expect(failedCmdResult.exception?.localizedDescription == "Unknown error: Process whoami failed in something")
+    #expect(failedCmdResult.output.returnCode == -1)
+    #expect(failedCmdResult.retries == 0)
+    #expect(failedCmdResult.representsFailure() == true)
+    #expect(failedCmdResult.output.stderrString == nil)
+    #expect(failedCmdResult.output.stdoutString == nil)
 }
 
 @Test("verify timeout is triggered on long command")
@@ -165,16 +172,19 @@ func testCommandTimeout() async throws {
     let mockCmdInvoker = TestCommandInvoker()
         .addSuccess(command: "uname", presentOutput: "Linux\n", delay: .seconds(2))
 
-    await #expect(
-        throws: CommandError.self, "Slow command should invoke timeout",
-        performing: {
-            let _ = try await withDependencies { dependencyValues in
-                dependencyValues.localSystemAccess = TestFileSystemAccess()
-                dependencyValues.commandInvoker = mockCmdInvoker
-            } operation: {
-                return try await engine.run(host: fakeHost, command: cmd1)
-            }
-        })
+    let outputFromRun = try await withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = TestFileSystemAccess()
+        dependencyValues.commandInvoker = mockCmdInvoker
+    } operation: {
+        return try await engine.run(host: fakeHost, command: cmd1)
+    }
+    let exceptionFromOutput = try #require(outputFromRun.exception)
+    #expect(exceptionFromOutput.localizedDescription == "Timeout exceeded for command: uname")
+    #expect(outputFromRun.output.returnCode == -1)
+    #expect(outputFromRun.retries == 0)
+    #expect(outputFromRun.representsFailure() == true)
+    #expect(outputFromRun.output.stderrString == nil)
+    #expect(outputFromRun.output.stdoutString == nil)
 }
 
 @Test("verify retry works as expected")

@@ -11,7 +11,7 @@ public struct CommandExecutionResult: Sendable {
     /// The number of retries needed for the command.
     public let retries: Int
     /// The description of the exception thrown while invoking the command, if any.
-    public let exception: String?
+    public let exception: (any Error)?
 
     /// Creates an annotated command execution result.
     /// - Parameters:
@@ -23,7 +23,7 @@ public struct CommandExecutionResult: Sendable {
     ///   - exception: The description of the exception thrown while invoking the command, if any.
     public init(
         command: any Command, host: Host, output: CommandOutput, duration: Duration,
-        retries: Int, exception: String?
+        retries: Int, exception: (any Error)?
     ) {
         self.command = command
         self.host = host
@@ -163,7 +163,7 @@ extension CommandExecutionResult: Equatable {
     public static func == (lhs: CommandExecutionResult, rhs: CommandExecutionResult) -> Bool {
         lhs.command.id == rhs.command.id && lhs.host == rhs.host
             && lhs.output == rhs.output && lhs.duration == rhs.duration && lhs.retries == rhs.retries
-            && lhs.exception == rhs.exception
+            && lhs.exception?.localizedDescription == rhs.exception?.localizedDescription
     }
 }
 
@@ -177,6 +177,6 @@ extension CommandExecutionResult: Hashable {
         hasher.combine(output)
         hasher.combine(duration)
         hasher.combine(retries)
-        hasher.combine(exception)
+        hasher.combine(exception?.localizedDescription)
     }
 }

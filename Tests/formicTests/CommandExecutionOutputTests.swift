@@ -28,7 +28,8 @@ func testEmojiForExecutionOuput() async throws {
     #expect(
         CommandExecutionResult(
             command: cmd, host: .localhost, output: failureOutput, duration: .milliseconds(1),
-            retries: 0, exception: "Error desc"
+            retries: 0, exception: TestError.unknown(msg: "Error desc")
+
         ).emojiString() == "🚫")
 
 }
@@ -55,7 +56,7 @@ func testConsoleOutputForExecutionOuput() async throws {
 
     let exceptionResult = CommandExecutionResult(
         command: cmd, host: .localhost, output: failureOutput, duration: .milliseconds(1), retries: 0,
-        exception: "exception reported")
+        exception: TestError.unknown(msg: "exception reported"))
 
     //TODO: This is probably more sanely refactored into parameterized tests
 

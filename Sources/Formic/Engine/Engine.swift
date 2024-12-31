@@ -32,15 +32,18 @@ public actor Engine {
     ) async throws -> [CommandExecutionResult] {
         var results: [CommandExecutionResult] = []
         for command in commands {
+            //print("running command: \(command)")
             let result = try await run(host: host, command: command)
             results.append(result)
             if displayProgress {
                 print(result.consoleOutput(verbosity: verbosity))
             }
             if result.representsFailure() {
+                //print("result: \(result) represents failure - breaking")
                 break
             }
         }
+        print("returning \(results.count) CEResults")
         return results
     }
 
@@ -85,8 +88,10 @@ public actor Engine {
         var numberOfRetries: Int = -1
         var durationOfLastAttempt: Duration = .zero
         var outputOfLastAttempt: CommandOutput = .empty
+        var capturedException: (any Error)? = nil
 
         repeat {
+            capturedException = nil
             numberOfRetries += 1
             let start = clock.now
             do {
@@ -111,18 +116,23 @@ public actor Engine {
             } catch {
                 // catch inner exception conditions and treat as a failure to allow for
                 // retries and timeouts to be handled.
-                print("Caught error while executing command: \(command)")
-                print("error: \(error)")
-                outputOfLastAttempt = .generalFailure(msg: error.localizedDescription)
+                capturedException = error
+                // mark as a failure due to the exception capture - if not marked
+                // as a failure explicitly, .empty is assumed to be a success.
+                outputOfLastAttempt = .exceptionFailure()
             }
             durationOfLastAttempt = clock.now - start
 
+            // if successful, return the output immediately
             if outputOfLastAttempt.returnCode == 0 {
                 return CommandExecutionResult(
                     command: command, host: host, output: outputOfLastAttempt,
                     duration: durationOfLastAttempt, retries: numberOfRetries,
                     exception: nil)
-            } else {
+            }
+
+            // otherwise, prep for possible retry
+            if command.retry.retryOnFailure && numberOfRetries < command.retry.maxRetries {
                 let delay = command.retry.strategy.delay(for: numberOfRetries, withJitter: true)
                 print("delaying for \(delay) due to failure before retrying command: \(command)")
                 try await Task.sleep(for: delay)
@@ -132,6 +142,6 @@ public actor Engine {
         return CommandExecutionResult(
             command: command, host: host, output: outputOfLastAttempt,
             duration: durationOfLastAttempt, retries: numberOfRetries,
-            exception: nil)
+            exception: capturedException)
     }
 }
