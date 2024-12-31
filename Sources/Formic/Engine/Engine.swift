@@ -80,6 +80,7 @@ public actor Engine {
     ///   - host: The host on which to run the command.
     ///   - command: The command to run.
     /// - Returns: The result of the command execution.
+    /// - Throws: exceptions from Task.sleep delay while retrying.
     public nonisolated func run(host: Host, command: (any Command)) async throws
         -> CommandExecutionResult
     {
