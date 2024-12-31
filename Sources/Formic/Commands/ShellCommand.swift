@@ -47,6 +47,7 @@ public struct ShellCommand: Command {
     /// - Parameters:
     ///   - argString: the command and arguments to run as a single string separated by spaces.
     ///   - env: An optional dictionary of environment variables the system sets when it runs the command.
+    ///   - chdir: An optional directory to change to before running the command.
     ///   - ignoreFailure: A Boolean value that indicates whether a failing command should fail a playbook.
     ///   - retry: The retry settings for the command.
     ///   - executionTimeout: The maximum duration to allow for the command.
@@ -54,28 +55,13 @@ public struct ShellCommand: Command {
     /// This initializer is useful when you have a space-separated string of arguments, and splits all arguments by whitespace.
     /// If a command, or argument, requires a whitespace within it, use ``init(arguments:env:chdir:ignoreFailure:retry:executionTimeout:)`` instead.
     public init(
-        _ argString: String, env: [String: String]? = nil, ignoreFailure: Bool = false,
+        _ argString: String, env: [String: String]? = nil, chdir: String? = nil,
+        ignoreFailure: Bool = false,
         retry: Backoff = .never, executionTimeout: Duration = .seconds(30)
     ) {
         let splitArgs: [String] = argString.split(separator: .whitespace).map(String.init)
         self.init(
-            arguments: splitArgs, env: env, ignoreFailure: ignoreFailure, retry: retry,
-            executionTimeout: executionTimeout)
-    }
-
-    /// Creates a new command declaration that the engine runs as a shell command.
-    /// - Parameters:
-    ///   - argumentStrings: the command and arguments to run, each argument as a separate string.
-    ///   - env: An optional dictionary of environment variables the system sets when it runs the command.
-    ///   - ignoreFailure: A Boolean value that indicates whether a failing command should fail a playbook.
-    ///   - retry: The retry settings for the command.
-    ///   - executionTimeout: The maximum duration to allow for the command.
-    public init(
-        argumentStrings: String..., env: [String: String]? = nil, ignoreFailure: Bool = false,
-        retry: Backoff = .never, executionTimeout: Duration = .seconds(30)
-    ) {
-        self.init(
-            arguments: argumentStrings, env: env, ignoreFailure: ignoreFailure, retry: retry,
+            arguments: splitArgs, env: env, chdir: chdir, ignoreFailure: ignoreFailure, retry: retry,
             executionTimeout: executionTimeout)
     }
 
