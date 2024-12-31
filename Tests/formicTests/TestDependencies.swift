@@ -5,6 +5,7 @@ import Foundation
 @testable import Formic
 
 struct TestCommandInvoker: CommandInvoker {
+
     func getDataAtURL(url: URL) async throws -> Data {
         if let data = proxyData[url] {
             return data
@@ -36,8 +37,8 @@ struct TestCommandInvoker: CommandInvoker {
     }
 
     func remoteShell(
-        host: String, user: String, identityFile: String?, port: Int?, strictHostKeyChecking: Bool, cmd: [String],
-        env: [String: String]?
+        host: String, user: String, identityFile: String?, port: Int?, strictHostKeyChecking: Bool, chdir: String?,
+        cmd: [String], env: [String: String]?, debugPrint: Bool
     ) async throws -> Formic.CommandOutput {
         if let errorToThrow = proxyErrors[cmd] {
             throw errorToThrow
@@ -50,7 +51,9 @@ struct TestCommandInvoker: CommandInvoker {
         return CommandOutput(returnCode: 0, stdOut: "".data(using: .utf8), stdErr: nil)
     }
 
-    func localShell(cmd: [String], stdIn: Pipe?, env: [String: String]?) async throws -> Formic.CommandOutput {
+    func localShell(cmd: [String], stdIn: Pipe?, env: [String: String]?, chdir: String?, debugPrint: Bool) async throws
+        -> Formic.CommandOutput
+    {
         if let errorToThrow = proxyErrors[cmd] {
             throw errorToThrow
         }
@@ -108,12 +111,6 @@ struct TestCommandInvoker: CommandInvoker {
         existingErrors[command] = errorToThrow
         return TestCommandInvoker(proxyResults, existingErrors, proxyData)
     }
-
-    //    func addURLException(command: [String], errorToThrow: (any Error)) -> Self {
-    //        var existingErrors = proxyErrors
-    //        existingErrors[command] = errorToThrow
-    //        return TestCommandInvoker(proxyResults, existingErrors, proxyData)
-    //    }
 
     func addData(url: URL, data: Data?) -> Self {
         guard let data = data else {
