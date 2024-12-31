@@ -23,7 +23,7 @@ public struct CopyFrom: Command {
 
     /// Transfers a file from the host where this is run to the destination host.
     /// - Parameters:
-    ///   - location: The destination path on the remote host.
+    ///   - into: The destination path on the remote host.
     ///   - from: The URL from which to copy the file.
     ///   - env: An optional dictionary of environment variables the system sets when the engine runs the the command.
     ///   - ignoreFailure: A Boolean value that indicates whether a failing command should fail a playbook.
