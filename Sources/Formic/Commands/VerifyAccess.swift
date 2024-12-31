@@ -36,7 +36,7 @@ public struct VerifyAccess: Command {
     @discardableResult
     public func run(host: Host) async throws -> CommandOutput {
         @Dependency(\.commandInvoker) var invoker: any CommandInvoker
-        let cmdArgs = ["echo", "'hello'"]
+        let command = "echo 'hello'"
 
         let answer: CommandOutput
         if host.remote {
@@ -49,11 +49,11 @@ public struct VerifyAccess: Command {
                 port: host.sshPort,
                 strictHostKeyChecking: false,
                 chdir: nil,
-                cmd: cmdArgs,
+                cmd: command,
                 env: nil,
                 debugPrint: false)
         } else {
-            answer = try await invoker.localShell(cmd: cmdArgs, stdIn: nil, env: nil, chdir: nil, debugPrint: false)
+            answer = try await invoker.localShell(cmd: command, stdIn: nil, env: nil, chdir: nil, debugPrint: false)
         }
         if answer.stdoutString != "hello" {
             return CommandOutput(returnCode: -1, stdOut: nil, stdErr: "Unable to verify access.".data(using: .utf8))

@@ -17,9 +17,9 @@ func verifyParsingSwarmInitIntoWorkerCommand() async throws {
         """
     let cmd = try SwarmJoinCommand().parse(sample)
 
-    #expect(cmd.args.count == 6)
-    #expect(cmd.args[4] == "SWMTKN-1-4co3ccnbcdrww0iq7f9te0478286pd168bhzfx9oyc1wyws0vi-1p35bj1i57s9h9dpf57mmeqq0")
-    #expect(cmd.args[5] == "198.19.249.61:2377")
+    #expect(
+        cmd.commandString.contains(
+            "SWMTKN-1-4co3ccnbcdrww0iq7f9te0478286pd168bhzfx9oyc1wyws0vi-1p35bj1i57s9h9dpf57mmeqq0"))
 }
 
 @Test("docker swarm join-token worker parsing")
@@ -31,9 +31,14 @@ func verifyParsingSwarmJoinTokenWorkerCommand() async throws {
         """
     let cmd = try SwarmJoinCommand().parse(sample)
 
-    #expect(cmd.args.count == 6)
-    #expect(cmd.args[4] == "SWMTKN-1-4co3ccnbcdrww0iq7f9te0478286pd168bhzfx9oyc1wyws0vi-1p35bj1i57s9h9dpf57mmeqq0")
-    #expect(cmd.args[5] == "198.19.249.61:2377")
+    //    #expect(cmd.args.count == 6)
+    //    #expect(cmd.args[4] == "SWMTKN-1-4co3ccnbcdrww0iq7f9te0478286pd168bhzfx9oyc1wyws0vi-1p35bj1i57s9h9dpf57mmeqq0")
+    //    #expect(cmd.args[5] == "198.19.249.61:2377")
+    #expect(
+        cmd.commandString.contains(
+            "SWMTKN-1-4co3ccnbcdrww0iq7f9te0478286pd168bhzfx9oyc1wyws0vi-1p35bj1i57s9h9dpf57mmeqq0"))
+    #expect(cmd.commandString.contains("198.19.249.61:2377"))
+
 }
 
 @Test("checking slicing")

@@ -16,7 +16,7 @@ func testEngineRun() async throws {
     let cmdExecOut = try await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess()
         dependencyValues.commandInvoker = TestCommandInvoker()
-            .addSuccess(command: ["uname"], presentOutput: "Darwin\n")
+            .addSuccess(command: "uname", presentOutput: "Darwin\n")
     } operation: {
         try await engine.run(host: .localhost, command: cmd)
     }
@@ -40,8 +40,8 @@ func testEngineRunList() async throws {
     let cmdExecOut = try await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess()
         dependencyValues.commandInvoker = TestCommandInvoker()
-            .addSuccess(command: ["uname"], presentOutput: "Darwin\n")
-            .addSuccess(command: ["whoami"], presentOutput: "docker-user")
+            .addSuccess(command: "uname", presentOutput: "Darwin\n")
+            .addSuccess(command: "whoami", presentOutput: "docker-user")
     } operation: {
         try await engine.run(host: .localhost, displayProgress: false, commands: [cmd1, cmd2])
     }
@@ -75,8 +75,8 @@ func testEngineRunPlaybook() async throws {
     let collectedResults = try await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess()
         dependencyValues.commandInvoker = TestCommandInvoker()
-            .addSuccess(command: ["uname"], presentOutput: "Darwin\n")
-            .addSuccess(command: ["whoami"], presentOutput: "docker-user")
+            .addSuccess(command: "uname", presentOutput: "Darwin\n")
+            .addSuccess(command: "whoami", presentOutput: "docker-user")
     } operation: {
         try await engine.run(hosts: [.localhost], displayProgress: false, commands: [cmd1, cmd2])
     }
@@ -106,8 +106,8 @@ func testEngineRunPlaybookWithFailure() async throws {
     let collectedResults = try await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess()
         dependencyValues.commandInvoker = TestCommandInvoker()
-            .addSuccess(command: ["uname"], presentOutput: "Darwin\n")
-            .addFailure(command: ["whoami"], presentOutput: "not tellin!")
+            .addSuccess(command: "uname", presentOutput: "Darwin\n")
+            .addFailure(command: "whoami", presentOutput: "not tellin!")
     } operation: {
         try await engine.run(hosts: [.localhost], displayProgress: false, commands: [cmd1, cmd2])
     }
@@ -140,9 +140,9 @@ func testEngineRunPlaybookWithException() async throws {
             let _ = try await withDependencies { dependencyValues in
                 dependencyValues.localSystemAccess = TestFileSystemAccess()
                 dependencyValues.commandInvoker = TestCommandInvoker()
-                    .addSuccess(command: ["uname"], presentOutput: "Darwin\n")
+                    .addSuccess(command: "uname", presentOutput: "Darwin\n")
                     .addException(
-                        command: ["whoami"], errorToThrow: TestError.unknown(msg: "Process failed in something"))
+                        command: "whoami", errorToThrow: TestError.unknown(msg: "Process failed in something"))
             } operation: {
                 try await engine.run(hosts: [.localhost], displayProgress: false, commands: [cmd1, cmd2])
             }
@@ -163,7 +163,7 @@ func testCommandTimeout() async throws {
     }
 
     let mockCmdInvoker = TestCommandInvoker()
-        .addSuccess(command: ["uname"], presentOutput: "Linux\n", delay: .seconds(2))
+        .addSuccess(command: "uname", presentOutput: "Linux\n", delay: .seconds(2))
 
     await #expect(
         throws: CommandError.self, "Slow command should invoke timeout",
@@ -191,7 +191,7 @@ func testCommandRetry() async throws {
     }
 
     let mockCmdInvoker = TestCommandInvoker()
-        .addFailure(command: ["uname"], presentOutput: "not tellin!")
+        .addFailure(command: "uname", presentOutput: "not tellin!")
 
     let result = try await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess()

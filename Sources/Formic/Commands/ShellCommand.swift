@@ -7,7 +7,7 @@ import Foundation
 /// Do not use shell control or redirect operators in the command string.
 public struct ShellCommand: Command {
     /// The command and arguments to run.
-    public let args: [String]
+    public let commandString: String
     /// An optional dictionary of environment variables the system sets when it runs the command.
     public let env: [String: String]?
     /// An optional directory to change to before running the command.
@@ -20,28 +20,8 @@ public struct ShellCommand: Command {
     public let executionTimeout: Duration
     /// The ID of the command.
     public let id: UUID
-
-    /// Creates a new command declaration that the engine runs as a shell command.
-    /// - Parameters:
-    ///   - arguments: the command and arguments to run, each argument as a separate string.
-    ///   - env: An optional dictionary of environment variables the system sets when it runs the command.
-    ///   - chdir: An optional directory to change to before running the command.
-    ///   - ignoreFailure: A Boolean value that indicates whether a failing command should fail a playbook.
-    ///   - retry: The retry settings for the command.
-    ///   - executionTimeout: The maximum duration to allow for the command.
-    public init(
-        arguments: [String], env: [String: String]? = nil, chdir: String? = nil,
-        ignoreFailure: Bool = false, retry: Backoff = .never,
-        executionTimeout: Duration = .seconds(30)
-    ) {
-        self.args = arguments
-        self.env = env
-        self.retry = retry
-        self.ignoreFailure = ignoreFailure
-        self.executionTimeout = executionTimeout
-        self.chdir = chdir
-        id = UUID()
-    }
+    /// A Boolean flag that enables additional debug output.
+    public let debug: Bool
 
     /// Creates a new command declaration that the engine runs as a shell command.
     /// - Parameters:
@@ -51,18 +31,20 @@ public struct ShellCommand: Command {
     ///   - ignoreFailure: A Boolean value that indicates whether a failing command should fail a playbook.
     ///   - retry: The retry settings for the command.
     ///   - executionTimeout: The maximum duration to allow for the command.
-    ///
-    /// This initializer is useful when you have a space-separated string of arguments, and splits all arguments by whitespace.
-    /// If a command, or argument, requires a whitespace within it, use ``init(arguments:env:chdir:ignoreFailure:retry:executionTimeout:)`` instead.
+    ///   - debug: An optional Boolean value the presents additional debug output on execution.
     public init(
         _ argString: String, env: [String: String]? = nil, chdir: String? = nil,
         ignoreFailure: Bool = false,
-        retry: Backoff = .never, executionTimeout: Duration = .seconds(30)
+        retry: Backoff = .never, executionTimeout: Duration = .seconds(30), debug: Bool = false
     ) {
-        let splitArgs: [String] = argString.split(separator: .whitespace).map(String.init)
-        self.init(
-            arguments: splitArgs, env: env, chdir: chdir, ignoreFailure: ignoreFailure, retry: retry,
-            executionTimeout: executionTimeout)
+        self.commandString = argString
+        self.env = env
+        self.retry = retry
+        self.ignoreFailure = ignoreFailure
+        self.executionTimeout = executionTimeout
+        self.chdir = chdir
+        self.debug = debug
+        id = UUID()
     }
 
     /// Runs the command on the host you provide.
@@ -81,12 +63,13 @@ public struct ShellCommand: Command {
                 port: host.sshPort,
                 strictHostKeyChecking: false,
                 chdir: chdir,
-                cmd: args,
+                cmd: commandString,
                 env: env,
-                debugPrint: false
+                debugPrint: debug
             )
         } else {
-            return try await invoker.localShell(cmd: args, stdIn: nil, env: env, chdir: chdir, debugPrint: false)
+            return try await invoker.localShell(
+                cmd: commandString, stdIn: nil, env: env, chdir: chdir, debugPrint: debug)
         }
     }
 }
@@ -94,6 +77,6 @@ public struct ShellCommand: Command {
 extension ShellCommand: CustomStringConvertible {
     /// A textual representation of the command.
     public var description: String {
-        return args.joined(separator: " ")
+        return commandString
     }
 }

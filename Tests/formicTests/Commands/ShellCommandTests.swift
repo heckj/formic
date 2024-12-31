@@ -8,7 +8,7 @@ import Testing
 func shellCommandDeclarationTest() async throws {
     let command = ShellCommand("uname")
     #expect(command.retry == .never)
-    #expect(command.args == ["uname"])
+    #expect(command.commandString == "uname")
     #expect(command.env == nil)
     #expect(command.id != nil)
 
@@ -27,7 +27,7 @@ func shellCommandFullDeclarationTest() async throws {
     let command = ShellCommand(
         "ls", env: ["PATH": "/usr/bin"],
         retry: Backoff(maxRetries: 200, strategy: .exponential(maxDelay: .seconds(60))))
-    #expect(command.args == ["ls"])
+    #expect(command.commandString == "ls")
     #expect(command.env == ["PATH": "/usr/bin"])
     #expect(command.retry == Backoff(maxRetries: 200, strategy: .exponential(maxDelay: .seconds(60))))
     #expect(command.description == "ls")

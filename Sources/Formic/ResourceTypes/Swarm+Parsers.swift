@@ -8,7 +8,7 @@ import Parsing
 public struct SwarmJoinCommand: Parser {
 
     func convertToShellCommand(_ argTuple: (String, String, String, String, String, String)) -> ShellCommand {
-        ShellCommand(arguments: [argTuple.0, argTuple.1, argTuple.2, argTuple.3, argTuple.4, argTuple.5])
+        ShellCommand("\(argTuple.0) \(argTuple.1) \(argTuple.2) \(argTuple.3) \(argTuple.4) \(argTuple.5)")
     }
 
     public var body: some Parser<Substring, ShellCommand> {
