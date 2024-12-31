@@ -68,8 +68,9 @@ public struct ShellCommand: Command {
                 debugPrint: debug
             )
         } else {
+            let parsedArgsBySpace: [String] = commandString.split(separator: .whitespace).map(String.init)
             return try await invoker.localShell(
-                cmd: commandString, stdIn: nil, env: env, chdir: chdir, debugPrint: debug)
+                cmd: parsedArgsBySpace, stdIn: nil, env: env, chdir: chdir, debugPrint: debug)
         }
     }
 }

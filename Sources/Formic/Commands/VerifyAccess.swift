@@ -53,7 +53,7 @@ public struct VerifyAccess: Command {
                 env: nil,
                 debugPrint: false)
         } else {
-            answer = try await invoker.localShell(cmd: command, stdIn: nil, env: nil, chdir: nil, debugPrint: false)
+            answer = try await invoker.localShell(cmd: ["echo", "'hello'"], stdIn: nil, env: nil, chdir: nil, debugPrint: false)
         }
         if answer.stdoutString != "hello" {
             return CommandOutput(returnCode: -1, stdOut: nil, stdErr: "Unable to verify access.".data(using: .utf8))

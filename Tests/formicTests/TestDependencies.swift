@@ -51,13 +51,14 @@ struct TestCommandInvoker: CommandInvoker {
         return CommandOutput(returnCode: 0, stdOut: "".data(using: .utf8), stdErr: nil)
     }
 
-    func localShell(cmd: String, stdIn: Pipe?, env: [String: String]?, chdir: String?, debugPrint: Bool) async throws
+    func localShell(cmd: [String], stdIn: Pipe?, env: [String: String]?, chdir: String?, debugPrint: Bool) async throws
         -> Formic.CommandOutput
     {
-        if let errorToThrow = proxyErrors[cmd] {
+        let hashKey = cmd.joined(separator: " ")
+        if let errorToThrow = proxyErrors[hashKey] {
             throw errorToThrow
         }
-        if let (delay, storedResponse) = proxyResults[cmd] {
+        if let (delay, storedResponse) = proxyResults[hashKey] {
             try await Task.sleep(for: delay)
             return storedResponse
         }
