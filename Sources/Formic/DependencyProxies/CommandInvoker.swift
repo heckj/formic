@@ -137,6 +137,7 @@ struct ProcessCommandInvoker: CommandInvoker {
             tcsetpgrp(STDOUT_FILENO, task.processIdentifier)
         }
 
+        // appears to be hang location for https://github.com/heckj/formic/issues/76
         task.waitUntilExit()
 
         let stdOutData = try stdOutPipe.fileHandleForReading.readToEnd()
