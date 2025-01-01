@@ -56,10 +56,11 @@ public struct VerifyAccess: Command {
             answer = try await invoker.localShell(
                 cmd: ["echo", "'hello'"], stdIn: nil, env: nil, chdir: nil, debugPrint: false)
         }
-        if answer.stdoutString != "hello" {
-            return CommandOutput(returnCode: -1, stdOut: nil, stdErr: "Unable to verify access.".data(using: .utf8))
-        } else {
+
+        if let answerString = answer.stdoutString, answerString.contains("hello") {
             return CommandOutput(returnCode: 0, stdOut: "hello".data(using: .utf8), stdErr: nil)
+        } else {
+            return CommandOutput(returnCode: -1, stdOut: nil, stdErr: "Unable to verify access.".data(using: .utf8))
         }
     }
 }

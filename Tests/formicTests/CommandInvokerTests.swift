@@ -92,3 +92,24 @@ func invokeRemoteCommandWithTilde() async throws {
     print("out: \(shellResult.stdoutString ?? "nil")")
     print("err: \(shellResult.stderrString ?? "nil")")
 }
+
+@Test(
+    "invoking a remote command w/ tilde",
+    .enabled(if: ProcessInfo.processInfo.environment.keys.contains("INTEGRATION_ENABLED")),
+    .timeLimit(.minutes(1)),
+    .tags(.integrationTest))
+func invokeVerifyAccess() async throws {
+    let engine = Engine()
+    let orbStackAddress = try #require(Formic.Host.NetworkAddress("127.0.0.1"))
+    let orbStackHost = Formic.Host(
+        remote: true,
+        address: orbStackAddress,
+        sshPort: 32222,
+        sshAccessCredentials: .init(
+            username: "heckj",
+            identityFile: "/Users/heckj/.orbstack/ssh/id_ed25519"),
+        strictHostKeyChecking: false)
+
+    let result = try await engine.run(host: orbStackHost, command: VerifyAccess())
+    print(result.consoleOutput(verbosity: .verbose(emoji: true)))
+}
