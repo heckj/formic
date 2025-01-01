@@ -232,7 +232,7 @@ struct ProcessCommandInvoker: CommandInvoker {
             args.append("-p")
             args.append("\(port)")
         }
-        //args.append(" -t")  // request a TTY at the remote host
+        args.append(" -t")  // request a TTY at the remote host
         args.append("\(user)@\(host)")
 
         if let chdir = chdir {
