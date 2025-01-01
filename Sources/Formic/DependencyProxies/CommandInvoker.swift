@@ -232,7 +232,8 @@ struct ProcessCommandInvoker: CommandInvoker {
             args.append("-p")
             args.append("\(port)")
         }
-        args.append(" -t")  // request a TTY at the remote host
+        args.append("-t")
+        // request a TTY from the remote host - // notably reports connections closed on STDERR
         args.append("\(user)@\(host)")
 
         var cmdString = ""
