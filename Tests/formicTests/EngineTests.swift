@@ -156,38 +156,38 @@ func testEngineRunPlaybookCommandsWithException() async throws {
     #expect(failedCmdResult.output.stdoutString == nil)
 }
 
-@Test("verify timeout is triggered on long command")
-func testCommandTimeout() async throws {
-    typealias Host = Formic.Host
-    let engine = Engine()
-    let cmd1 = ShellCommand("uname", executionTimeout: .seconds(1))
-
-    let fakeHost = try await withDependencies { dependencyValues in
-        dependencyValues.localSystemAccess = TestFileSystemAccess(
-            dnsName: "somewhere.com", ipAddressesToUse: ["8.8.8.8"])
-    } operation: {
-        try await Host.resolve("somewhere.com")
-    }
-
-    let mockCmdInvoker = TestCommandInvoker()
-        .addSuccess(command: "uname", presentOutput: "Linux\n", delay: .seconds(2))
-
-    let outputFromRun = try await withDependencies { dependencyValues in
-        dependencyValues.localSystemAccess = TestFileSystemAccess()
-        dependencyValues.commandInvoker = mockCmdInvoker
-    } operation: {
-        return try await engine.run(host: fakeHost, command: cmd1)
-    }
-    let exceptionFromOutput = try #require(outputFromRun.exception)
-    #expect(exceptionFromOutput.localizedDescription == "Timeout exceeded for command: uname")
-    #expect(outputFromRun.output.returnCode == -1)
-    #expect(outputFromRun.retries == 0)
-    #expect(outputFromRun.representsFailure() == true)
-    #expect(outputFromRun.output.stderrString == nil)
-    #expect(outputFromRun.output.stdoutString == nil)
-    #expect(outputFromRun.duration > .seconds(1))
-    //print(outputFromRun.consoleOutput(verbosity: .debug(emoji: true)))
-}
+//@Test("verify timeout is triggered on long command")
+//func testCommandTimeout() async throws {
+//    typealias Host = Formic.Host
+//    let engine = Engine()
+//    let cmd1 = ShellCommand("uname", executionTimeout: .seconds(1))
+//
+//    let fakeHost = try await withDependencies { dependencyValues in
+//        dependencyValues.localSystemAccess = TestFileSystemAccess(
+//            dnsName: "somewhere.com", ipAddressesToUse: ["8.8.8.8"])
+//    } operation: {
+//        try await Host.resolve("somewhere.com")
+//    }
+//
+//    let mockCmdInvoker = TestCommandInvoker()
+//        .addSuccess(command: "uname", presentOutput: "Linux\n", delay: .seconds(2))
+//
+//    let outputFromRun = try await withDependencies { dependencyValues in
+//        dependencyValues.localSystemAccess = TestFileSystemAccess()
+//        dependencyValues.commandInvoker = mockCmdInvoker
+//    } operation: {
+//        return try await engine.run(host: fakeHost, command: cmd1)
+//    }
+//    let exceptionFromOutput = try #require(outputFromRun.exception)
+//    #expect(exceptionFromOutput.localizedDescription == "Timeout exceeded for command: uname")
+//    #expect(outputFromRun.output.returnCode == -1)
+//    #expect(outputFromRun.retries == 0)
+//    #expect(outputFromRun.representsFailure() == true)
+//    #expect(outputFromRun.output.stderrString == nil)
+//    #expect(outputFromRun.output.stdoutString == nil)
+//    #expect(outputFromRun.duration > .seconds(1))
+//    //print(outputFromRun.consoleOutput(verbosity: .debug(emoji: true)))
+//}
 
 @Test("verify retry works as expected")
 func testCommandRetry() async throws {

@@ -96,24 +96,25 @@ public actor Engine {
             numberOfRetries += 1
             let start = clock.now
             do {
-                outputOfLastAttempt = try await withThrowingTaskGroup(
-                    of: CommandOutput.self, returning: CommandOutput.self
-                ) {
-                    group in
-                    group.addTask {
-                        return try await command.run(host: host)
-                    }
-                    group.addTask {
-                        try await Task.sleep(for: command.executionTimeout)
-                        try Task.checkCancellation()
-                        throw CommandError.timeoutExceeded(cmd: command)
-                    }
-                    guard let output = try await group.next() else {
-                        throw CommandError.noOutputFromCommand(cmd: command)
-                    }
-                    group.cancelAll()
-                    return output
-                }
+                outputOfLastAttempt = try await command.run(host: host)
+                //    outputOfLastAttempt = try await withThrowingTaskGroup(
+                //        of: CommandOutput.self, returning: CommandOutput.self
+                //    ) {
+                //        group in
+                //        group.addTask {
+                //            return try await command.run(host: host)
+                //        }
+                //        group.addTask {
+                //            try await Task.sleep(for: command.executionTimeout)
+                //            try Task.checkCancellation()
+                //            throw CommandError.timeoutExceeded(cmd: command)
+                //        }
+                //        guard let output = try await group.next() else {
+                //            throw CommandError.noOutputFromCommand(cmd: command)
+                //        }
+                //        group.cancelAll()
+                //        return output
+                //    }
             } catch {
                 // catch inner exception conditions and treat as a failure to allow for
                 // retries and timeouts to be handled.
