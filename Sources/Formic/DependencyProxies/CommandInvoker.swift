@@ -235,18 +235,28 @@ struct ProcessCommandInvoker: CommandInvoker {
         args.append(" -t")  // request a TTY at the remote host
         args.append("\(user)@\(host)")
 
+        var cmdString = ""
+        // first change directory, if applied
         if let chdir = chdir {
-            args.append("cd \(chdir);\(cmd)")
-        } else {
-            args.append("\(cmd)")
+            cmdString.append("cd \(chdir);")
         }
+        // set up any set ENV variables PRIOR to command
+        if let env = env {
+            for (key, value) in env {
+                cmdString.append("\(key)=\(value) ")
+            }
+        }
+        // and the command
+        cmdString.append("\(cmd)")
+        // Apply this as a single string argument to pass down
+        args.append(cmdString)
 
         // NOTE(heckj): Ansible's SSH capability
         // (https://github.com/ansible/ansible/blob/devel/lib/ansible/plugins/connection/ssh.py)
         // does this with significantly more finesse. It checks the output as it's returned and
         // provides a password through that uses sshpass to authenticate, or escalates commands
         // with sudo and a password, before the core command is invoked.
-        let rcAndPipe = try await localShell(cmd: args, env: env, debugPrint: debugPrint)
+        let rcAndPipe = try await localShell(cmd: args, env: nil, debugPrint: debugPrint)
         return rcAndPipe
     }
 }
