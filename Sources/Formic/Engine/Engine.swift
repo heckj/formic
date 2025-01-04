@@ -1,16 +1,19 @@
 import Foundation
+import Logging
 
 /// An engine that runs playbooks and exposes the results.
 public actor Engine {
     let clock: ContinuousClock
+    let logger: Logger?
 
     /// An asynchronous stream of command execution results.
     public nonisolated let commandUpdates: AsyncStream<(CommandExecutionResult)>
     let commandContinuation: AsyncStream<(CommandExecutionResult)>.Continuation
 
     /// Creates a new engine.
-    public init() {
+    public init(logger: Logger? = nil) {
         clock = ContinuousClock()
+        self.logger = logger
 
         // assemble the streams and continuations
         (commandUpdates, commandContinuation) = AsyncStream.makeStream(of: CommandExecutionResult.self)
@@ -32,18 +35,19 @@ public actor Engine {
     ) async throws -> [CommandExecutionResult] {
         var results: [CommandExecutionResult] = []
         for command in commands {
-            //print("running command: \(command)")
+            logger?.debug("running command: \(command)")
+
             let result = try await run(host: host, command: command)
             results.append(result)
             if displayProgress {
-                print(result.consoleOutput(verbosity: verbosity))
+                logger?.info("\(result.consoleOutput(verbosity: verbosity))")
             }
             if result.representsFailure() {
-                //print("result: \(result) represents failure - breaking")
+                logger?.debug("result: \(result) represents failure - breaking")
                 break
             }
         }
-        print("returning \(results.count) CEResults")
+        logger?.debug("returning \(results.count) CEResults")
         return results
     }
 
@@ -96,6 +100,7 @@ public actor Engine {
             numberOfRetries += 1
             let start = clock.now
             do {
+                logger?.debug("running command \(command) against \(host)")
                 outputOfLastAttempt = try await command.run(host: host)
                 //    outputOfLastAttempt = try await withThrowingTaskGroup(
                 //        of: CommandOutput.self, returning: CommandOutput.self
@@ -136,7 +141,7 @@ public actor Engine {
             // otherwise, prep for possible retry
             if command.retry.retryOnFailure && numberOfRetries < command.retry.maxRetries {
                 let delay = command.retry.strategy.delay(for: numberOfRetries, withJitter: true)
-                print("delaying for \(delay) due to failure before retrying command: \(command)")
+                logger?.info("delaying for \(delay) due to failure before retrying command: \(command)")
                 try await Task.sleep(for: delay)
             }
         } while command.retry.retryOnFailure && numberOfRetries < command.retry.maxRetries

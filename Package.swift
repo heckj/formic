@@ -20,6 +20,7 @@ let package = Package(
             .upToNextMajor(from: "0.1.0")
         ),
         // .package(url: "https://github.com/Zollerboy1/SwiftCommand.git", from: "1.4.0"),
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-parsing", from: "0.13.0"),
         .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.0.0"),
         .package(url: "https://github.com/swiftlang/swift-format.git",
@@ -34,6 +35,7 @@ let package = Package(
                 // .product(name: "SwiftCommand", package: "SwiftCommand"),
                 .product(name: "Parsing", package: "swift-parsing"),
                 .product(name: "Dependencies", package: "swift-dependencies"),
+                .product(name: "Logging", package: "swift-log")
             ]
         ),
         .testTarget(
