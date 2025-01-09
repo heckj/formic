@@ -1,12 +1,12 @@
 import AsyncDNSResolver
 import Dependencies
 import Foundation
+import Logging
 
 @testable import Formic
 
 struct TestCommandInvoker: CommandInvoker {
-
-    func getDataAtURL(url: URL) async throws -> Data {
+    func getDataAtURL(url: URL, logger: Logger?) async throws -> Data {
         if let data = proxyData[url] {
             return data
         } else {
@@ -23,8 +23,10 @@ struct TestCommandInvoker: CommandInvoker {
     var proxyData: [URL: Data]
 
     func remoteCopy(
-        host: String, user: String, identityFile: String?, port: Int?, strictHostKeyChecking: Bool, localPath: String,
-        remotePath: String
+        host: String, user: String, identityFile: String?, port: Int?, strictHostKeyChecking: Bool,
+        localPath: String,
+        remotePath: String,
+        logger: Logger?
     ) async throws -> Formic.CommandOutput {
         if let errorToThrow = proxyErrors["\(localPath) \(remotePath)"] {
             throw errorToThrow
@@ -38,7 +40,7 @@ struct TestCommandInvoker: CommandInvoker {
 
     func remoteShell(
         host: String, user: String, identityFile: String?, port: Int?, strictHostKeyChecking: Bool, chdir: String?,
-        cmd: String, env: [String: String]?, debugPrint: Bool
+        cmd: String, env: [String: String]?, logger: Logger?
     ) async throws -> Formic.CommandOutput {
         if let errorToThrow = proxyErrors[cmd] {
             throw errorToThrow
@@ -51,7 +53,7 @@ struct TestCommandInvoker: CommandInvoker {
         return CommandOutput(returnCode: 0, stdOut: "".data(using: .utf8), stdErr: nil)
     }
 
-    func localShell(cmd: [String], stdIn: Pipe?, env: [String: String]?, chdir: String?, debugPrint: Bool) async throws
+    func localShell(cmd: [String], stdIn: Pipe?, env: [String: String]?, chdir: String?, logger: Logger?) async throws
         -> Formic.CommandOutput
     {
         let hashKey = cmd.joined(separator: " ")

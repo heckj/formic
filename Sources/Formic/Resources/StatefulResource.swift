@@ -1,4 +1,5 @@
 import Foundation
+import Logging
 
 /// A type of resource that can be retrieved and resolved to a desired state using a declaration.
 public protocol StatefulResource<DeclarativeStateType>: Resource {
@@ -34,10 +35,10 @@ public protocol StatefulResource<DeclarativeStateType>: Resource {
     /// - Parameters:
     ///   - state: The declaration that identifies the resource.
     ///   - host: The host on which to find the resource.
-    static func query(state: DeclarativeStateType, from host: Host) async throws -> (Self, Date)
+    static func query(state: DeclarativeStateType, from host: Host, logger: Logger?) async throws -> (Self, Date)
     /// Queries and attempts to resolve the update to the desired state you provide.
     /// - Parameters:
     ///   - state: The declaration that identifies the resource and its desired state.
     ///   - host: The host on which to resolve the resource.
-    static func resolve(state: DeclarativeStateType, on host: Host) async throws -> Bool
+    static func resolve(state: DeclarativeStateType, on host: Host, logger: Logger?) async throws -> Bool
 }

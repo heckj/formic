@@ -1,5 +1,6 @@
 import Dependencies
 import Foundation
+import Logging
 
 /// A collection of resources that can be found and queried from a host.
 public protocol CollectionResource: ParsedResource {
@@ -10,7 +11,7 @@ public protocol CollectionResource: ParsedResource {
     static func collectionParse(_ output: Data) throws -> [Self]
     /// Returns a list of resources for the host you provide.
     /// - Parameter from: The host to inspect.
-    static func queryCollection(from: Host) async throws -> ([Self], Date)
+    static func queryCollection(from: Host, logger: Logger?) async throws -> ([Self], Date)
     /// Returns an inquiry command that retrieves the output to parse into a resource.
     /// - Parameter name: The name of the resource to find.
     static func namedInquiry(_ name: String) -> (any Command)
@@ -20,12 +21,12 @@ extension CollectionResource {
     /// Queries the state of the resource from the given host.
     /// - Parameter host: The host to inspect.
     /// - Returns: The state of the resource and the time that it was last updated.
-    public static func queryCollection(from host: Host) async throws -> ([Self], Date) {
+    public static func queryCollection(from host: Host, logger: Logger?) async throws -> ([Self], Date) {
         // default implementation:
 
         @Dependency(\.date.now) var date
         // run the command on the relevant host, capturing the output
-        let output: CommandOutput = try await collectionInquiry.run(host: host)
+        let output: CommandOutput = try await collectionInquiry.run(host: host, logger: logger)
         // verify the return code is 0
         if output.returnCode != 0 {
             throw CommandError.commandFailed(rc: output.returnCode, errmsg: output.stderrString ?? "")
@@ -45,12 +46,12 @@ extension CollectionResource {
     /// Returns the individual resource from a collection for the host you provide.
     /// - Parameter name: The name of the resource to find.
     /// - Parameter host: The host to inspect for the resource.
-    static func query(_ name: String, from host: Host) async throws -> (Self, Date) {
+    static func query(_ name: String, from host: Host, logger: Logger?) async throws -> (Self, Date) {
         // default implementation:
 
         @Dependency(\.date.now) var date
         // run the command on the relevant host, capturing the output
-        let output: CommandOutput = try await Self.namedInquiry(name).run(host: host)
+        let output: CommandOutput = try await Self.namedInquiry(name).run(host: host, logger: logger)
         // verify the return code is 0
         if output.returnCode != 0 {
             throw CommandError.commandFailed(rc: output.returnCode, errmsg: output.stderrString ?? "")

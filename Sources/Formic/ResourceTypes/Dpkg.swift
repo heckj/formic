@@ -1,4 +1,5 @@
 import Foundation
+import Logging
 import Parsing
 
 // An example resource
@@ -88,8 +89,8 @@ public struct Dpkg: Sendable, Hashable, Resource {
         public var ignoreFailure: Bool
         public var retry: Backoff
         public var executionTimeout: Duration
-        public func run(host: Host) async throws -> CommandOutput {
-            if try await Dpkg.resolve(state: self, on: host) {
+        public func run(host: Host, logger: Logger?) async throws -> CommandOutput {
+            if try await Dpkg.resolve(state: self, on: host, logger: logger) {
                 return .generalSuccess(msg: "Resolved")
             } else {
                 return .generalFailure(msg: "Failed")
@@ -151,23 +152,25 @@ extension Dpkg: StatefulResource {
     /// - Parameters:
     ///   - state: The declaration that identifies the resource.
     ///   - host: The host on which to find the resource.
-    public static func query(state: DebianPackageDeclaration, from host: Host) async throws -> (Dpkg, Date) {
-        return try await Dpkg.query(state.name, from: host)
+    public static func query(state: DebianPackageDeclaration, from host: Host, logger: Logger?) async throws -> (
+        Dpkg, Date
+    ) {
+        return try await Dpkg.query(state.name, from: host, logger: logger)
     }
 
     /// Queries and attempts to resolve the update to the desired state you provide.
     /// - Parameters:
     ///   - state: The declaration that identifies the resource and its desired state.
     ///   - host: The host on which to resolve the resource.
-    public static func resolve(state: DebianPackageDeclaration, on host: Host) async throws -> Bool {
-        let (currentState, _) = try await Dpkg.query(state.name, from: host)
+    public static func resolve(state: DebianPackageDeclaration, on host: Host, logger: Logger?) async throws -> Bool {
+        let (currentState, _) = try await Dpkg.query(state.name, from: host, logger: logger)
         switch state.declaredState {
         case .present:
             if currentState.desiredState == .install && currentState.statusCode == .installed {
                 return true
             } else {
-                try await ShellCommand("apt-get install \(state.name)").run(host: host)
-                let (updatedState, _) = try await Dpkg.query(state.name, from: host)
+                try await ShellCommand("apt-get install \(state.name)").run(host: host, logger: logger)
+                let (updatedState, _) = try await Dpkg.query(state.name, from: host, logger: logger)
                 if updatedState.desiredState == .install && updatedState.statusCode == .installed {
                     return true
                 } else {
@@ -182,8 +185,8 @@ extension Dpkg: StatefulResource {
                 return true
             } else {
                 // do the removal
-                try await ShellCommand("apt-get remove \(state.name)").run(host: host)
-                let (updatedState, _) = try await Dpkg.query(state.name, from: host)
+                try await ShellCommand("apt-get remove \(state.name)").run(host: host, logger: logger)
+                let (updatedState, _) = try await Dpkg.query(state.name, from: host, logger: logger)
                 if (updatedState.desiredState == .unknown || updatedState.desiredState == .remove)
                     && updatedState.statusCode == .notInstalled
                 {

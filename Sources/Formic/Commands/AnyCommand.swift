@@ -1,4 +1,5 @@
 import Foundation
+import Logging
 
 /// A general command that is run against a host.
 public struct AnyCommand: Command {
@@ -11,7 +12,7 @@ public struct AnyCommand: Command {
     /// The ID of the command.
     public let id: UUID
     let name: String
-    let commandClosure: @Sendable (Host) async throws -> CommandOutput
+    let commandClosure: @Sendable (Host, Logger?) async throws -> CommandOutput
 
     /// Invokes a command on the host to verify access.
     /// - Parameters:
@@ -25,7 +26,7 @@ public struct AnyCommand: Command {
         ignoreFailure: Bool,
         retry: Backoff,
         executionTimeout: Duration,
-        commandClosure: @escaping @Sendable (Host) async throws -> CommandOutput
+        commandClosure: @escaping @Sendable (Host, Logger?) async throws -> CommandOutput
     ) {
         self.retry = retry
         self.ignoreFailure = ignoreFailure
@@ -39,8 +40,8 @@ public struct AnyCommand: Command {
     /// - Parameter host: The host on which to run the command.
     /// - Returns: The command output.
     @discardableResult
-    public func run(host: Host) async throws -> CommandOutput {
-        try await commandClosure(host)
+    public func run(host: Host, logger: Logger?) async throws -> CommandOutput {
+        try await commandClosure(host, logger)
     }
 }
 

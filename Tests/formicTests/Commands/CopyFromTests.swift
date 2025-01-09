@@ -48,7 +48,7 @@ func testInvokingCopyFromCommand() async throws {
     let cmdOut = try await withDependencies {
         $0.commandInvoker = testInvoker
     } operation: {
-        try await CopyFrom(into: "/dest/path", from: url).run(host: host)
+        try await CopyFrom(into: "/dest/path", from: url).run(host: host, logger: nil)
     }
 
     #expect(cmdOut.returnCode == 0)

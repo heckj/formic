@@ -1,5 +1,6 @@
 import Dependencies
 import Foundation
+import Logging
 
 #if canImport(FoundationNetworking)  // Required for Linux
     import FoundationNetworking
@@ -38,7 +39,7 @@ protocol CommandInvoker: Sendable {
         chdir: String?,
         cmd: String,
         env: [String: String]?,
-        debugPrint: Bool
+        logger: Logger?
     ) async throws -> CommandOutput
 
     func remoteCopy(
@@ -48,17 +49,18 @@ protocol CommandInvoker: Sendable {
         port: Int?,
         strictHostKeyChecking: Bool,
         localPath: String,
-        remotePath: String
+        remotePath: String,
+        logger: Logger?
     ) async throws -> CommandOutput
 
-    func getDataAtURL(url: URL) async throws -> Data
+    func getDataAtURL(url: URL, logger: Logger?) async throws -> Data
 
     func localShell(
         cmd: [String],
         stdIn: Pipe?,
         env: [String: String]?,
         chdir: String?,
-        debugPrint: Bool
+        logger: Logger?
     ) async throws -> CommandOutput
 }
 

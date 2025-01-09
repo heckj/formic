@@ -42,7 +42,7 @@ func invokeBasicCommandLocallyWithChdir() async throws {
 func invokeRemoteCommand() async throws {
     let shellResult = try await ProcessCommandInvoker().remoteShell(
         host: "127.0.0.1", user: "heckj", identityFile: "~/.orbstack/ssh/id_ed25519", port: 32222, chdir: nil,
-        cmd: "ls -al", env: nil)
+        cmd: "ls -al", env: nil, logger: nil)
     print("rc: \(shellResult.returnCode)")
     print("out: \(shellResult.stdoutString ?? "nil")")
     print("err: \(shellResult.stderrString ?? "nil")")
@@ -56,7 +56,7 @@ func invokeRemoteCommand() async throws {
 func invokeRemoteCommandWithEnv() async throws {
     let shellResult = try await ProcessCommandInvoker().remoteShell(
         host: "127.0.0.1", user: "heckj", identityFile: "~/.orbstack/ssh/id_ed25519", port: 32222, chdir: nil,
-        cmd: "echo ${FIDDLY}", env: ["FIDDLY": "FADDLY"])
+        cmd: "echo ${FIDDLY}", env: ["FIDDLY": "FADDLY"], logger: nil)
     print("rc: \(shellResult.returnCode)")
     print("out: \(shellResult.stdoutString ?? "nil")")
     print("err: \(shellResult.stderrString ?? "nil")")
@@ -70,7 +70,7 @@ func invokeRemoteCommandWithEnv() async throws {
 func invokeRemoteCommandWithChdir() async throws {
     let shellResult = try await ProcessCommandInvoker().remoteShell(
         host: "127.0.0.1", user: "heckj", identityFile: "~/.orbstack/ssh/id_ed25519", port: 32222, chdir: "..",
-        cmd: "ls -al", env: nil)
+        cmd: "ls -al", env: nil, logger: nil)
     print("rc: \(shellResult.returnCode)")
     print("out: \(shellResult.stdoutString ?? "nil")")
     print("err: \(shellResult.stderrString ?? "nil")")
@@ -87,7 +87,7 @@ func invokeRemoteCommandWithTilde() async throws {
     //        cmd: "mkdir ~/.ssh", env: nil)
     let shellResult = try await ProcessCommandInvoker().remoteShell(
         host: "172.190.172.6", user: "docker-user", identityFile: "~/.ssh/bastion_id_ed25519", chdir: nil,
-        cmd: "mkdir -p ~/.ssh", env: nil)
+        cmd: "mkdir -p ~/.ssh", env: nil, logger: nil)
     print("rc: \(shellResult.returnCode)")
     print("out: \(shellResult.stdoutString ?? "nil")")
     print("err: \(shellResult.stderrString ?? "nil")")

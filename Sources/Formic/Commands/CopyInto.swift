@@ -1,5 +1,6 @@
 import Dependencies
 import Foundation
+import Logging
 
 /// A command to transfer a file into the host.
 ///
@@ -45,7 +46,7 @@ public struct CopyInto: Command {
     /// - Parameter host: The host on which to run the command.
     /// - Returns: The command output.
     @discardableResult
-    public func run(host: Host) async throws -> CommandOutput {
+    public func run(host: Host, logger: Logger?) async throws -> CommandOutput {
         @Dependency(\.commandInvoker) var invoker: any CommandInvoker
         if host.remote {
             let sshCreds = host.sshAccessCredentials
@@ -57,7 +58,8 @@ public struct CopyInto: Command {
                 port: host.sshPort,
                 strictHostKeyChecking: false,
                 localPath: from,
-                remotePath: destinationPath)
+                remotePath: destinationPath,
+                logger: logger)
         } else {
             throw CommandError.invalidCommand(msg: "CopyInto is only supported for remote hosts")
         }
