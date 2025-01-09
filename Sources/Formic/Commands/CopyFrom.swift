@@ -1,5 +1,6 @@
 import Dependencies
 import Foundation
+import Logging
 
 /// A command to transfer a file from a remote URL into the host.
 ///
@@ -46,11 +47,11 @@ public struct CopyFrom: Command {
     /// - Parameter host: The host on which to run the command.
     /// - Returns: The command output.
     @discardableResult
-    public func run(host: Host) async throws -> CommandOutput {
+    public func run(host: Host, logger: Logger?) async throws -> CommandOutput {
         @Dependency(\.commandInvoker) var invoker: any CommandInvoker
         let tempFile = FileManager.default.temporaryDirectory.appendingPathComponent(from.lastPathComponent)
         do {
-            let data = try await invoker.getDataAtURL(url: from)
+            let data = try await invoker.getDataAtURL(url: from, logger: logger)
             try data.write(to: tempFile)
         } catch {
             return CommandOutput(
@@ -66,10 +67,11 @@ public struct CopyFrom: Command {
                 port: host.sshPort,
                 strictHostKeyChecking: false,
                 localPath: tempFile.path,
-                remotePath: destinationPath)
+                remotePath: destinationPath,
+                logger: logger)
         } else {
             return try await invoker.localShell(
-                cmd: ["cp", tempFile.path, destinationPath], stdIn: nil, env: nil, chdir: nil, debugPrint: false)
+                cmd: ["cp", tempFile.path, destinationPath], stdIn: nil, env: nil, chdir: nil, logger: logger)
         }
     }
 }

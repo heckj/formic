@@ -43,7 +43,7 @@ func testInvokingCopyIntoCommand() async throws {
     let cmdOut = try await withDependencies {
         $0.commandInvoker = testInvoker
     } operation: {
-        try await CopyInto(location: "/etc/configFile", from: "~/datafile").run(host: host)
+        try await CopyInto(location: "/etc/configFile", from: "~/datafile").run(host: host, logger: nil)
     }
 
     #expect(cmdOut.returnCode == 0)

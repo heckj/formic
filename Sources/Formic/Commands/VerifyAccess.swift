@@ -1,5 +1,6 @@
 import Dependencies
 import Foundation
+import Logging
 
 /// A command to verify access to a host.
 public struct VerifyAccess: Command {
@@ -34,7 +35,7 @@ public struct VerifyAccess: Command {
     /// - Parameter host: The host on which to run the command.
     /// - Returns: The command output.
     @discardableResult
-    public func run(host: Host) async throws -> CommandOutput {
+    public func run(host: Host, logger: Logger?) async throws -> CommandOutput {
         @Dependency(\.commandInvoker) var invoker: any CommandInvoker
         let command = "echo 'hello'"
 
@@ -51,10 +52,10 @@ public struct VerifyAccess: Command {
                 chdir: nil,
                 cmd: command,
                 env: nil,
-                debugPrint: false)
+                logger: logger)
         } else {
             answer = try await invoker.localShell(
-                cmd: ["echo", "'hello'"], stdIn: nil, env: nil, chdir: nil, debugPrint: false)
+                cmd: ["echo", "'hello'"], stdIn: nil, env: nil, chdir: nil, logger: logger)
         }
 
         if let answerString = answer.stdoutString, answerString.contains("hello") {

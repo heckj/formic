@@ -1,5 +1,6 @@
 import Dependencies
 import Foundation
+import Logging
 
 /// A type of resource that exists in singular form on a Host.
 public protocol SingularResource: ParsedResource {
@@ -13,19 +14,19 @@ public protocol SingularResource: ParsedResource {
     /// Queries the state of the resource from the given host.
     /// - Parameter from: The host to inspect.
     /// - Returns: The state of the resource.
-    static func query(from: Host) async throws -> (Self, Date)
+    static func query(from: Host, logger: Logger?) async throws -> (Self, Date)
 }
 
 extension SingularResource {
     /// Queries the state of the resource from the given host.
     /// - Parameter host: The host to inspect.
     /// - Returns: The state of the resource and the time that it was last updated.
-    public static func query(from host: Host) async throws -> (Self, Date) {
+    public static func query(from host: Host, logger: Logger?) async throws -> (Self, Date) {
         // default implementation:
 
         @Dependency(\.date.now) var date
         // run the command on the relevant host, capturing the output
-        let output: CommandOutput = try await Self.inquiry.run(host: host)
+        let output: CommandOutput = try await Self.inquiry.run(host: host, logger: logger)
         // verify the return code is 0
         if output.returnCode != 0 {
             throw CommandError.commandFailed(rc: output.returnCode, errmsg: output.stderrString ?? "")

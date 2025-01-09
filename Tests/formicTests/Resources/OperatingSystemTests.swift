@@ -33,7 +33,7 @@ func testOperatingSystemSingularInquiry() async throws {
         $0.commandInvoker = TestCommandInvoker()
             .addSuccess(command: "uname", presentOutput: "Linux\n")
     } operation: {
-        try await OperatingSystem.inquiry.run(host: .localhost)
+        try await OperatingSystem.inquiry.run(host: .localhost, logger: nil)
     }
 
     // results proxied for a linux host
@@ -57,7 +57,7 @@ func testOperatingSystemQuery() async throws {
 
         $0.date.now = Date(timeIntervalSince1970: 1_234_567_890)
     } operation: {
-        try await OperatingSystem.query(from: .localhost)
+        try await OperatingSystem.query(from: .localhost, logger: nil)
     }
 
     #expect(parsedOS.name == .linux)
@@ -73,7 +73,7 @@ func testOperatingSystemInstanceQuery() async throws {
             .addSuccess(command: "uname", presentOutput: "Linux\n")
         $0.date.now = Date(timeIntervalSince1970: 1_234_567_890)
     } operation: {
-        try await instance.query(from: .localhost)
+        try await instance.query(from: .localhost, logger: nil)
     }
 
     #expect(parsedOS.name == .linux)

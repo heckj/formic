@@ -101,7 +101,7 @@ public actor Engine {
             let start = clock.now
             do {
                 logger?.debug("running command \(command) against \(host)")
-                outputOfLastAttempt = try await command.run(host: host)
+                outputOfLastAttempt = try await command.run(host: host, logger: logger)
                 //    outputOfLastAttempt = try await withThrowingTaskGroup(
                 //        of: CommandOutput.self, returning: CommandOutput.self
                 //    ) {

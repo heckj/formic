@@ -1,4 +1,5 @@
 import Foundation
+import Logging
 
 /// A type that represents a command, run locally or remotely.
 public protocol Command: Sendable, Identifiable, Hashable {
@@ -7,5 +8,5 @@ public protocol Command: Sendable, Identifiable, Hashable {
     var retry: Backoff { get }
     var executionTimeout: Duration { get }
 
-    func run(host: Host) async throws -> CommandOutput
+    func run(host: Host, logger: Logger?) async throws -> CommandOutput
 }

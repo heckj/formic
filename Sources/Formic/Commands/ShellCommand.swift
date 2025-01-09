@@ -1,5 +1,6 @@
 import Dependencies
 import Foundation
+import Logging
 
 /// A command to run on a local or remote host.
 ///
@@ -51,7 +52,7 @@ public struct ShellCommand: Command {
     /// - Parameter host: The host on which to run the command.
     /// - Returns: The command output.
     @discardableResult
-    public func run(host: Host) async throws -> CommandOutput {
+    public func run(host: Host, logger: Logger?) async throws -> CommandOutput {
         @Dependency(\.commandInvoker) var invoker: any CommandInvoker
         if host.remote {
             let sshCreds = host.sshAccessCredentials
@@ -65,12 +66,12 @@ public struct ShellCommand: Command {
                 chdir: chdir,
                 cmd: commandString,
                 env: env,
-                debugPrint: debug
+                logger: logger
             )
         } else {
             let parsedArgsBySpace: [String] = commandString.split(separator: .whitespace).map(String.init)
             return try await invoker.localShell(
-                cmd: parsedArgsBySpace, stdIn: nil, env: env, chdir: chdir, debugPrint: debug)
+                cmd: parsedArgsBySpace, stdIn: nil, env: env, chdir: chdir, logger: logger)
         }
     }
 }

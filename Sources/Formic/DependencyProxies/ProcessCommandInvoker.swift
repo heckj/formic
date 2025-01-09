@@ -23,10 +23,8 @@ struct ProcessCommandInvoker: CommandInvoker {
     /// followed by attempting to read the Pipe() outputs (fileHandleForReading.readToEnd()).
     /// The types of errors thrown from those locations aren't undocumented.
     func localShell(
-        cmd: [String], stdIn: Pipe? = nil, env: [String: String]? = nil, chdir: String? = nil, debugPrint: Bool = false
+        cmd: [String], stdIn: Pipe? = nil, env: [String: String]? = nil, chdir: String? = nil, logger: Logger? = nil
     ) async throws -> CommandOutput {
-        let logger = Logger(label: "com.github.heckj.formic.commandInvoker")
-
         let task = Process()
         task.executableURL = URL(fileURLWithPath: "/usr/bin/env")
 
@@ -47,9 +45,7 @@ struct ProcessCommandInvoker: CommandInvoker {
         }
         task.arguments = cmd
 
-        if debugPrint {
-            logger.debug("forking command: \(task.arguments?.joined(separator: " ") ?? "nil")")
-        }
+        logger?.trace("invoking command: \(task.arguments?.joined(separator: " ") ?? "nil")")
 
         let stdOutPipe = Pipe()
         let stdErrPipe = Pipe()
@@ -77,15 +73,17 @@ struct ProcessCommandInvoker: CommandInvoker {
         return CommandOutput(returnCode: task.terminationStatus, stdOut: stdOutData, stdErr: stdErrData)
     }
 
-    func getDataAtURL(url: URL) async throws -> Data {
+    func getDataAtURL(url: URL, logger: Logger?) async throws -> Data {
         let ephemeral = URLSession(configuration: .ephemeral)
         let request = URLRequest(url: url)
         let (data, response) = try await ephemeral.data(for: request)
         guard let httpResponse: HTTPURLResponse = response as? HTTPURLResponse else {
+            logger?.warning("Unable to parse response from \(url): \(response.debugDescription)")
             throw CommandError.noOutputToParse(
                 msg: "Unable to parse response from \(url): \(response.debugDescription)")
         }
         if data.isEmpty {
+            logger?.warning("No data returned from \(url): \(httpResponse.debugDescription)")
             throw CommandError.noOutputToParse(msg: "No data returned from \(url): \(httpResponse.debugDescription)")
         } else {
             return data
@@ -99,7 +97,8 @@ struct ProcessCommandInvoker: CommandInvoker {
         port: Int? = nil,
         strictHostKeyChecking: Bool = false,
         localPath: String,
-        remotePath: String
+        remotePath: String,
+        logger: Logger?
     ) async throws -> CommandOutput {
         var args: [String] = ["scp"]
 
@@ -121,7 +120,7 @@ struct ProcessCommandInvoker: CommandInvoker {
 
         // loose form:
         // scp -o StrictHostKeyChecking=no get-docker.sh "docker-user@${IP_ADDRESS}:get-docker.sh"
-        let rcAndPipe = try await localShell(cmd: args)
+        let rcAndPipe = try await localShell(cmd: args, logger: logger)
         return rcAndPipe
     }
 
@@ -148,7 +147,7 @@ struct ProcessCommandInvoker: CommandInvoker {
         chdir: String?,
         cmd: String,
         env: [String: String]? = nil,
-        debugPrint: Bool = false
+        logger: Logger?
     ) async throws -> CommandOutput {
         var args: [String] = ["ssh"]
         if strictHostKeyChecking {
@@ -188,7 +187,7 @@ struct ProcessCommandInvoker: CommandInvoker {
         // does this with significantly more finesse. It checks the output as it's returned and
         // provides a password through that uses sshpass to authenticate, or escalates commands
         // with sudo and a password, before the core command is invoked.
-        let rcAndPipe = try await localShell(cmd: args, env: nil, debugPrint: debugPrint)
+        let rcAndPipe = try await localShell(cmd: args, env: nil, logger: logger)
         return rcAndPipe
     }
 }
