@@ -24,7 +24,8 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-parsing", from: "0.13.0"),
         .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.0.0"),
         .package(url: "https://github.com/swiftlang/swift-format.git",
-            .upToNextMajor(from: "600.0.0"))
+            .upToNextMajor(from: "600.0.0")),
+        .package(url: "https://github.com/orlandos-nl/Citadel/", from: "0.9.0"),
     ],
     targets: [
         .target(
@@ -35,7 +36,8 @@ let package = Package(
                 // .product(name: "SwiftCommand", package: "SwiftCommand"),
                 .product(name: "Parsing", package: "swift-parsing"),
                 .product(name: "Dependencies", package: "swift-dependencies"),
-                .product(name: "Logging", package: "swift-log")
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "Citadel", package: "Citadel"),
             ]
         ),
         .testTarget(
