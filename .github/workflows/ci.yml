@@ -14,6 +14,16 @@ on:
 jobs:
   linux:
     runs-on: ubuntu-latest
+    services:
+      ssh-server:
+        image: lscr.io/linuxserver/openssh-server
+        # docs: https://hub.docker.com/r/linuxserver/openssh-server
+        ports:
+          - 2222:2222
+        env:
+          USER_NAME: fred
+          USER_PASSWORD: flipl5s
+          PASSWORD_ACCESS: true
     timeout-minutes: 15
     strategy:
       matrix:
@@ -29,6 +39,11 @@ jobs:
     - name: Test
       run: |
         swift test --enable-code-coverage
+      env:
+        SSH_HOST: ssh-server
+        SSH_PORT: 2222
+        SSH_USERNAME: fred
+        SSH_PASSWORD: flipl5s
     - name: Convert coverage files
       run: |
         llvm-cov export --format="lcov" \
