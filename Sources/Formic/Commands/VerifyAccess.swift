@@ -31,9 +31,11 @@ public struct VerifyAccess: Command {
         id = UUID()
     }
 
-    /// Runs the command to verify access to the host you provide.
-    /// - Parameter host: The host on which to run the command.
-    /// - Returns: The command output.
+    /// The function that is invoked by an engine to run the command.
+    /// - Parameters:
+    ///   - host: The host on which the command is run.
+    ///   - logger: An optional logger to record the command output or errors.
+    /// - Returns: The combined output from the command execution.
     @discardableResult
     public func run(host: Host, logger: Logger?) async throws -> CommandOutput {
         @Dependency(\.commandInvoker) var invoker: any CommandInvoker

@@ -13,6 +13,7 @@ public protocol SingularResource: ParsedResource {
     static var inquiry: (any Command) { get }
     /// Queries the state of the resource from the given host.
     /// - Parameter from: The host to inspect.
+    /// - Parameter logger: An optional logger to record the command output or errors.
     /// - Returns: The state of the resource.
     static func query(from: Host, logger: Logger?) async throws -> (Self, Date)
 }
@@ -20,6 +21,7 @@ public protocol SingularResource: ParsedResource {
 extension SingularResource {
     /// Queries the state of the resource from the given host.
     /// - Parameter host: The host to inspect.
+    /// - Parameter logger: An optional logger to record the command output or errors.
     /// - Returns: The state of the resource and the time that it was last updated.
     public static func query(from host: Host, logger: Logger?) async throws -> (Self, Date) {
         // default implementation:

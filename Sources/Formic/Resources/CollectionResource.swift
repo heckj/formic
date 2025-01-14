@@ -11,6 +11,7 @@ public protocol CollectionResource: ParsedResource {
     static func collectionParse(_ output: Data) throws -> [Self]
     /// Returns a list of resources for the host you provide.
     /// - Parameter from: The host to inspect.
+    /// - Parameter logger: An optional logger to record the command output or errors.
     static func queryCollection(from: Host, logger: Logger?) async throws -> ([Self], Date)
     /// Returns an inquiry command that retrieves the output to parse into a resource.
     /// - Parameter name: The name of the resource to find.
@@ -20,6 +21,7 @@ public protocol CollectionResource: ParsedResource {
 extension CollectionResource {
     /// Queries the state of the resource from the given host.
     /// - Parameter host: The host to inspect.
+    /// - Parameter logger: An optional logger to record the command output or errors.
     /// - Returns: The state of the resource and the time that it was last updated.
     public static func queryCollection(from host: Host, logger: Logger?) async throws -> ([Self], Date) {
         // default implementation:
@@ -46,6 +48,7 @@ extension CollectionResource {
     /// Returns the individual resource from a collection for the host you provide.
     /// - Parameter name: The name of the resource to find.
     /// - Parameter host: The host to inspect for the resource.
+    /// - Parameter logger: An optional logger to record the command output or errors.
     static func query(_ name: String, from host: Host, logger: Logger?) async throws -> (Self, Date) {
         // default implementation:
 

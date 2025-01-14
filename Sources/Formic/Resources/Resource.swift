@@ -11,6 +11,7 @@ public protocol Resource: Hashable, Sendable {
 
     /// Queries the state of the resource from the given host.
     /// - Parameter from: The host to inspect.
+    /// - Parameter logger: An optional logger to record the command output or errors.
     /// - Returns: The state of the resource.
     func query(from: Host, logger: Logger?) async throws -> (Self, Date)
 }
@@ -55,6 +56,7 @@ public protocol ParsedResource: Resource {
 extension ParsedResource {
     /// Queries the state of the resource from the given host.
     /// - Parameter host: The host to inspect.
+    /// - Parameter logger: An optional logger to record the command output or errors.
     /// - Returns: The state of the resource and the time that it was last updated.
     public func query(from host: Host, logger: Logger?) async throws -> (Self, Date) {
         // default implementation to get updated details from an _instance_ of a resource

@@ -152,6 +152,8 @@ extension Dpkg: StatefulResource {
     /// - Parameters:
     ///   - state: The declaration that identifies the resource.
     ///   - host: The host on which to find the resource.
+    ///   - logger: An optional logger to record the command output or errors.
+    /// - Returns: A tuple of the resource state and a timestamp for the state.
     public static func query(state: DebianPackageDeclaration, from host: Host, logger: Logger?) async throws -> (
         Dpkg, Date
     ) {
@@ -162,6 +164,8 @@ extension Dpkg: StatefulResource {
     /// - Parameters:
     ///   - state: The declaration that identifies the resource and its desired state.
     ///   - host: The host on which to resolve the resource.
+    ///   - logger: An optional logger to record the command output or errors.
+    /// - Returns: A tuple of the resource state and a timestamp for the state.
     public static func resolve(state: DebianPackageDeclaration, on host: Host, logger: Logger?) async throws -> Bool {
         let (currentState, _) = try await Dpkg.query(state.name, from: host, logger: logger)
         switch state.declaredState {

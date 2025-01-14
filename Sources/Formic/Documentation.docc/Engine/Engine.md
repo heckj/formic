@@ -4,7 +4,7 @@
 
 ### Creating an Engine
 
-- ``init()``
+- ``init(logger:)``
 
 ### Running Playbooks
 
