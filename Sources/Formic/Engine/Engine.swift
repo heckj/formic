@@ -40,7 +40,7 @@ public actor Engine {
             let result = try await run(host: host, command: command)
             results.append(result)
             if displayProgress {
-                logger?.info("\(result.consoleOutput(verbosity: verbosity))")
+                logger?.debug("\(result.consoleOutput(verbosity: verbosity))")
             }
             if result.representsFailure() {
                 logger?.debug("result: \(result) represents failure - breaking")
@@ -141,7 +141,7 @@ public actor Engine {
             // otherwise, prep for possible retry
             if command.retry.retryOnFailure && numberOfRetries < command.retry.maxRetries {
                 let delay = command.retry.strategy.delay(for: numberOfRetries, withJitter: true)
-                logger?.info("delaying for \(delay) due to failure before retrying command: \(command)")
+                logger?.trace("delaying for \(delay) due to failure before retrying command: \(command)")
                 try await Task.sleep(for: delay)
             }
         } while command.retry.retryOnFailure && numberOfRetries < command.retry.maxRetries
