@@ -14,7 +14,6 @@ let package = Package(
         .package(
             url: "https://github.com/apple/swift-argument-parser.git",
             .upToNextMajor(from: "1.5.0")),
-    
         .package(
             url: "https://github.com/apple/swift-async-dns-resolver",
             .upToNextMajor(from: "0.1.0")
@@ -26,6 +25,7 @@ let package = Package(
         .package(url: "https://github.com/swiftlang/swift-format.git",
             .upToNextMajor(from: "600.0.0")),
         .package(url: "https://github.com/orlandos-nl/Citadel/", from: "0.9.0"),
+        .package(url: "https://github.com/neallester/swift-log-testing.git", from: "0.0.1"),
     ],
     targets: [
         .target(
@@ -43,7 +43,8 @@ let package = Package(
         .testTarget(
             name: "FormicTests",
             dependencies: [
-                "Formic"
+                "Formic",
+                .product(name: "SwiftLogTesting", package: "swift-log-testing")
             ],
             resources: [
                 .copy("formicTests/Fixtures/id_ed25519"),
