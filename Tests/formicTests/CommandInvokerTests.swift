@@ -1,5 +1,7 @@
 import Dependencies
 import Foundation
+import Logging
+import SwiftLogTesting
 import Testing
 
 @testable import Formic
@@ -30,6 +32,12 @@ func invokeBasicCommandLocally() async throws {
     .tags(.functionalTest))
 func invokeBasicCommandOverSSH() async throws {
 
+    TestLogMessages.bootstrap()
+    let logger = Logger(label: "MyTestLabel")
+    let container = TestLogMessages.container(forLabel: "MyTestLabel")
+    container.reset()  // Wipes out any existing messages
+
+    //let x = TestLogMessages.container(forLabel: "MyTestLabel")
     // To check this test locally, run a local SSH server in docker:
     // docker run --name openSSH-server -d -p 2222:2222 -e USER_NAME=fred -e PUBLIC_KEY='ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINvu92Ykn9Yr7jxemV9MVXPK8nchioFkPUs7rC+5Yus9 heckj@Sparrow.local' lscr.io/linuxserver/openssh-server:latest
     //
@@ -75,13 +83,14 @@ func invokeBasicCommandOverSSH() async throws {
     let output: CommandOutput = try await withDependencies { dependencyValues in
         dependencyValues.commandInvoker = ProcessCommandInvoker()
     } operation: {
-        try await ShellCommand("uname").run(host: explicitHost, logger: nil)
+        try await ShellCommand("uname").run(host: explicitHost, logger: logger)
     }
 
     print("===TEST DEBUGGING===")
     print("rc: \(output.returnCode)")
     print("out: \(output.stdoutString ?? "nil")")
     print("err: \(output.stderrString ?? "nil")")
+    container.print()
     print("===TEST DEBUGGING===")
 
     // results expected on a Linux host only
