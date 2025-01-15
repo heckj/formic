@@ -44,6 +44,10 @@ let package = Package(
             name: "FormicTests",
             dependencies: [
                 "Formic"
+            ],
+            resources: [
+                .copy("formicTests/Fixtures/id_ed25519"),
+                .copy("formicTests/Fixtures/id_ed25519.pub")
             ]
         ),
     ],
