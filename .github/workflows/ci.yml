@@ -22,8 +22,7 @@ jobs:
           - 2222:2222
         env:
           USER_NAME: fred
-          USER_PASSWORD: flipl5s
-          PASSWORD_ACCESS: true
+          PUBLIC_KEY: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILKOAW7T4zC85n97IR/rxe+LDzyny2a8xa22htpNm+e+ heckj@Sparrow.local
     timeout-minutes: 15
     strategy:
       matrix:
@@ -43,7 +42,6 @@ jobs:
         SSH_HOST: ssh-server
         SSH_PORT: 2222
         SSH_USERNAME: fred
-        SSH_PASSWORD: flipl5s
     - name: Convert coverage files
       run: |
         llvm-cov export --format="lcov" \
