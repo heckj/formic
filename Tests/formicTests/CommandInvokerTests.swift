@@ -1,3 +1,4 @@
+import Dependencies
 import Foundation
 import Testing
 
@@ -45,14 +46,18 @@ func invokeBasicCommandOverSSH() async throws {
         throw CITestError.general(msg: "MISSING ENVIRONMENT VARIABLE - SSH_USERNAME")
     }
 
-    guard
-        let host = try Formic.Host(
-            hostname, sshPort: port, sshUser: username, sshIdentityFile: nil, strictHostKeyChecking: false)
-    else {
-        throw CITestError.general(msg: "Failed to resolve host")
+    let host: Formic.Host? = try withDependencies { dependencyValues in
+        dependencyValues.localSystemAccess = LiveLocalSystemAccess()
+        //            dependencyValues.commandInvoker = TestCommandInvoker()
+        //                .addSuccess(command: "uname", presentOutput: "Darwin\n")
+    } operation: {
+        try Formic.Host(
+            hostname, sshPort: port, sshUser: username, sshIdentityFile: "Tests/formicTests/Fixtures/id_ed25519",
+            strictHostKeyChecking: false)
     }
+    let explicitHost: Formic.Host = try #require(host)
 
-    let output: CommandOutput = try await ShellCommand("uname").run(host: host, logger: nil)
+    let output: CommandOutput = try await ShellCommand("uname").run(host: explicitHost, logger: nil)
 
     // print("rc: \(output.returnCode)")
     // print("out: \(output.stdoutString ?? "nil")")

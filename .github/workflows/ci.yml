@@ -22,7 +22,7 @@ jobs:
           - 2222:2222
         env:
           USER_NAME: fred
-          PUBLIC_KEY: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILKOAW7T4zC85n97IR/rxe+LDzyny2a8xa22htpNm+e+ heckj@Sparrow.local
+          PUBLIC_KEY: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINvu92Ykn9Yr7jxemV9MVXPK8nchioFkPUs7rC+5Yus9 heckj@Sparrow.local
     timeout-minutes: 15
     strategy:
       matrix:
