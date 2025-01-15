@@ -22,6 +22,49 @@ func invokeBasicCommandLocally() async throws {
 }
 
 @Test(
+    "invoking a command over SSH",
+    .enabled(if: ProcessInfo.processInfo.environment.keys.contains("CI")),
+    .timeLimit(.minutes(1)),
+    .tags(.functionalTest))
+func invokeBasicCommandOverSSH() async throws {
+
+    guard
+        let hostname = ProcessInfo.processInfo.environment["SSH_HOST"]
+    else {
+        throw CITestError.general(msg: "MISSING ENVIRONMENT VARIABLE - SSH_HOST")
+    }
+    guard
+        let _port = ProcessInfo.processInfo.environment["SSH_PORT"],
+        let port = Int(_port)
+    else {
+        throw CITestError.general(msg: "MISSING ENVIRONMENT VARIABLE - SSH_PORT")
+    }
+    guard
+        let username = ProcessInfo.processInfo.environment["SSH_USERNAME"]
+    else {
+        throw CITestError.general(msg: "MISSING ENVIRONMENT VARIABLE - SSH_USERNAME")
+    }
+
+    guard
+        let host = try Formic.Host(
+            hostname, sshPort: port, sshUser: username, sshIdentityFile: nil, strictHostKeyChecking: false)
+    else {
+        throw CITestError.general(msg: "Failed to resolve host")
+    }
+
+    let output: CommandOutput = try await ShellCommand("uname").run(host: host, logger: nil)
+
+    // print("rc: \(output.returnCode)")
+    // print("out: \(output.stdoutString ?? "nil")")
+    // print("err: \(output.stderrString ?? "nil")")
+
+    // results expected on a Linux host only
+    #expect(output.returnCode == 0)
+    #expect(output.stdoutString == "Linux\n")
+    #expect(output.stderrString == nil)
+}
+
+@Test(
     "invoking a local command w/ chdir",
     .enabled(if: ProcessInfo.processInfo.environment.keys.contains("INTEGRATION_ENABLED")),
     .timeLimit(.minutes(1)),
