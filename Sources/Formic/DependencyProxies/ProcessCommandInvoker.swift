@@ -162,11 +162,18 @@ struct ProcessCommandInvoker: CommandInvoker {
             args.append("-p")
             args.append("\(port)")
         }
+
+        // assert/request no TTY is needed
         args.append("-T")
-        // assert no TTY is needed
-//        args.append("-t")
-//        // request a TTY from the remote host - // notably reports connections closed on STDERR
-        
+
+        //        // args.append("-t")
+        //        // request a TTY from the remote host - // notably reports connections closed on STDERR
+
+        // refs:
+        // https://stackoverflow.com/questions/7085429/terminating-ssh-session-executed-by-bash-script
+        // https://stackoverflow.com/questions/7114990/pseudo-terminal-will-not-be-allocated-because-stdin-is-not-a-terminal
+        // https://www.baeldung.com/linux/ssh-pseudo-terminal-allocation
+
         args.append("\(user)@\(host)")
 
         var cmdString = ""
