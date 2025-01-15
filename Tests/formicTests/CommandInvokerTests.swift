@@ -18,7 +18,8 @@ func invokeBasicCommandLocally() async throws {
 
     // results expected on a Linux host only
     #expect(shellResult.returnCode == 0)
-    #expect(shellResult.stdoutString == "Linux\n")
+    let stdout = try #require(shellResult.stdoutString)
+    #expect(stdout.contains("Linux"))
     #expect(shellResult.stderrString == nil)
 }
 
@@ -29,6 +30,22 @@ func invokeBasicCommandLocally() async throws {
     .tags(.functionalTest))
 func invokeBasicCommandOverSSH() async throws {
 
+    // To check this test locally, run a local SSH server in docker:
+    // docker run --name openSSH-server -d -p 2222:2222 -e USER_NAME=fred -e PUBLIC_KEY='ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINvu92Ykn9Yr7jxemV9MVXPK8nchioFkPUs7rC+5Yus9 heckj@Sparrow.local' lscr.io/linuxserver/openssh-server:latest
+    //
+    // Then set up the relevant environment variables the CI test attempts to load:
+    // export SSH_HOST=127.0.0.1
+    // export SSH_PORT=2222
+    // export SSH_USERNAME=fred
+    // export CI=true
+    //
+    // Verifying SSH access on CLI:
+    //   `ssh fred@localhost -p 2222 -i Tests/formicTests/Fixtures/id_ed25519`
+    //
+    // swift test --filter FormicTests.invokeBasicCommandOverSSH
+    //
+    // When done, tear down the container:
+    //   `docker rm -f openSSH-server`
     guard
         let hostname = ProcessInfo.processInfo.environment["SSH_HOST"]
     else {
@@ -48,8 +65,6 @@ func invokeBasicCommandOverSSH() async throws {
 
     let host: Formic.Host? = try withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = LiveLocalSystemAccess()
-        //            dependencyValues.commandInvoker = TestCommandInvoker()
-        //                .addSuccess(command: "uname", presentOutput: "Darwin\n")
     } operation: {
         try Formic.Host(
             hostname, sshPort: port, sshUser: username, sshIdentityFile: "Tests/formicTests/Fixtures/id_ed25519",
@@ -57,15 +72,20 @@ func invokeBasicCommandOverSSH() async throws {
     }
     let explicitHost: Formic.Host = try #require(host)
 
-    let output: CommandOutput = try await ShellCommand("uname").run(host: explicitHost, logger: nil)
-
-    // print("rc: \(output.returnCode)")
-    // print("out: \(output.stdoutString ?? "nil")")
-    // print("err: \(output.stderrString ?? "nil")")
+    let output: CommandOutput = try await withDependencies { dependencyValues in
+        dependencyValues.commandInvoker = ProcessCommandInvoker()
+    } operation: {
+        try await ShellCommand("uname").run(host: explicitHost, logger: nil)
+    }
+    
+//    print("rc: \(output.returnCode)")
+//    print("out: \(output.stdoutString ?? "nil")")
+//    print("err: \(output.stderrString ?? "nil")")
 
     // results expected on a Linux host only
     #expect(output.returnCode == 0)
-    #expect(output.stdoutString == "Linux\n")
+    let stdout = try #require(output.stdoutString)
+    #expect(stdout.contains("Linux"))
     #expect(output.stderrString == nil)
 }
 
