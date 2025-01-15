@@ -78,9 +78,11 @@ func invokeBasicCommandOverSSH() async throws {
         try await ShellCommand("uname").run(host: explicitHost, logger: nil)
     }
 
-    //    print("rc: \(output.returnCode)")
-    //    print("out: \(output.stdoutString ?? "nil")")
-    //    print("err: \(output.stderrString ?? "nil")")
+    print("===TEST DEBUGGING===")
+    print("rc: \(output.returnCode)")
+    print("out: \(output.stdoutString ?? "nil")")
+    print("err: \(output.stderrString ?? "nil")")
+    print("===TEST DEBUGGING===")
 
     // results expected on a Linux host only
     #expect(output.returnCode == 0)
