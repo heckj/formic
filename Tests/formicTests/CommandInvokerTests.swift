@@ -36,7 +36,14 @@ func invokeBasicCommandOverSSH() async throws {
     // TestLogMessages is meant to verify that the "right" things get logged out
     // examples of using it are in the repo for the project:
     // https://github.com/neallester/swift-log-testing/blob/master/Tests/SwiftLogTestingTests/ExampleTests.swift
+
+    TestLogMessages.set(logLevel: .trace, forLabel: "MyTestLabel")
+    // Use set (logLevel:, forLabel:) to set the level for newly created loggers
+    // Messages with priority below logLevel: are not placed in the TestLogMessages.Container
+    // Does not affect behavior of existing loggers.
+
     let logger = Logger(label: "MyTestLabel")
+
     let container = TestLogMessages.container(forLabel: "MyTestLabel")
     container.reset()  // Wipes out any existing messages
 

@@ -39,6 +39,8 @@ jobs:
       run: ls -al Tests/formicTests/Fixtures
     - name: Enforce permissions for private key fixture
       run: chmod 0600 Tests/formicTests/Fixtures/id_ed25519
+    - name: Verify stricter permission for private key usage in functional tests
+      run: ls -al Tests/formicTests/Fixtures
     - name: Test
       run: |
         swift test --enable-code-coverage
