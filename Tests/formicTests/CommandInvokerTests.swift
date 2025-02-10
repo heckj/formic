@@ -33,6 +33,9 @@ func invokeBasicCommandLocally() async throws {
 func invokeBasicCommandOverSSH() async throws {
 
     TestLogMessages.bootstrap()
+    // TestLogMessages is meant to verify that the "right" things get logged out
+    // examples of using it are in the repo for the project:
+    // https://github.com/neallester/swift-log-testing/blob/master/Tests/SwiftLogTestingTests/ExampleTests.swift
     let logger = Logger(label: "MyTestLabel")
     let container = TestLogMessages.container(forLabel: "MyTestLabel")
     container.reset()  // Wipes out any existing messages
