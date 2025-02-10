@@ -35,11 +35,9 @@ jobs:
       uses: actions/checkout@v4
     - name: Lint
       run: swift package lint-source-code
-    - name: Review setup
-      run: ls -al Tests/formicTests/Fixtures
-    - name: Enforce permissions for private key fixture
+    - name: Enforce permissions for private key fixture integration tests
       run: chmod 0600 Tests/formicTests/Fixtures/id_ed25519
-    - name: Verify stricter permission for private key usage in functional tests
+    - name: Display permissions for private key usage in functional tests
       run: ls -al Tests/formicTests/Fixtures
     - name: Test
       run: |

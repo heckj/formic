@@ -160,11 +160,9 @@ struct ProcessCommandInvoker: CommandInvoker {
             args.append("\(port)")
         }
 
-        // assert/request no TTY is needed
-        args.append("-T")
-
-        //        // args.append("-t")
-        //        // request a TTY from the remote host - // notably reports connections closed on STDERR
+        // assert/request no TTY needed: -T
+        // request a pseudo tty: -t
+        args.append("-t")
 
         // refs:
         // https://stackoverflow.com/questions/7085429/terminating-ssh-session-executed-by-bash-script
@@ -190,6 +188,7 @@ struct ProcessCommandInvoker: CommandInvoker {
         args.append(cmdString)
 
         logger?.trace("invoking local shell with: \(args)")
+
         // NOTE(heckj): Ansible's SSH capability
         // (https://github.com/ansible/ansible/blob/devel/lib/ansible/plugins/connection/ssh.py)
         // does this with significantly more finesse. It checks the output as it's returned and
