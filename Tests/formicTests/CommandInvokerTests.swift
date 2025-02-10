@@ -89,7 +89,7 @@ func invokeBasicCommandOverSSH() async throws {
     }
 
     print("===TEST DEBUGGING===")
-    print("host: \(explicitHost.debugDescription)")
+    print("\(explicitHost.debugDescription)")
     print("rc: \(output.returnCode)")
     print("out: \(output.stdoutString ?? "nil")")
     print("err: \(output.stderrString ?? "nil")")

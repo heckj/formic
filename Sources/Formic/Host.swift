@@ -128,7 +128,7 @@ public struct Host: Sendable {
 extension Host: CustomDebugStringConvertible {
     /// The debug description of the host.
     public var debugDescription: String {
-        "\(remote ? "remote": "local") host: \(networkAddress)@\(sshPort), user: \(sshAccessCredentials)"
+        "\(remote ? "remote": "local") host \(networkAddress)@\(sshPort), user: \(sshAccessCredentials), \(strictHostKeyChecking ? "strict key checking": "disabled key checking")"
     }
 }
 
