@@ -45,6 +45,7 @@ struct ProcessCommandInvoker: CommandInvoker {
         }
         task.arguments = cmd
 
+        logger?.trace("[cmd] provided: \(cmd)")
         logger?.trace("local command to invoke: \(task.arguments?.joined(separator: " ") ?? "nil")")
 
         let stdOutPipe = Pipe()
@@ -105,6 +106,8 @@ struct ProcessCommandInvoker: CommandInvoker {
         if strictHostKeyChecking {
             args.append("-o")
             args.append("StrictHostKeyChecking=no")
+            args.append("-o")
+            args.append("CheckHostIP=no")
         }
         if let identityFile {
             args.append("-i")
@@ -149,10 +152,16 @@ struct ProcessCommandInvoker: CommandInvoker {
         env: [String: String]? = nil,
         logger: Logger?
     ) async throws -> CommandOutput {
+        logger?.trace(
+            "remote shell inputs: host: \(host), user: \(user), identityFile: \(identityFile ?? "nil"), port: \(port ?? 22), strictHostKeyChecking: \(strictHostKeyChecking), chdir: \(chdir ?? "nil"), cmd: \(cmd), env: \(env ?? [:])"
+        )
+
         var args: [String] = ["ssh"]
         if strictHostKeyChecking {
             args.append("-o")
             args.append("StrictHostKeyChecking=no")
+            args.append("-o")
+            args.append("CheckHostIP=no")
         }
         if let identityFile {
             args.append("-i")
@@ -192,6 +201,7 @@ struct ProcessCommandInvoker: CommandInvoker {
         // Apply this as a single string argument to pass down
         args.append(cmdString)
 
+        logger?.trace("invoking local shell with: \(args)")
         // NOTE(heckj): Ansible's SSH capability
         // (https://github.com/ansible/ansible/blob/devel/lib/ansible/plugins/connection/ssh.py)
         // does this with significantly more finesse. It checks the output as it's returned and
