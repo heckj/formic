@@ -37,7 +37,6 @@ func invokeBasicCommandOverSSH() async throws {
     let container = TestLogMessages.container(forLabel: "MyTestLabel")
     container.reset()  // Wipes out any existing messages
 
-    //let x = TestLogMessages.container(forLabel: "MyTestLabel")
     // To check this test locally, run a local SSH server in docker:
     // docker run --name openSSH-server -d -p 2222:2222 -e USER_NAME=fred -e PUBLIC_KEY='ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINvu92Ykn9Yr7jxemV9MVXPK8nchioFkPUs7rC+5Yus9 heckj@Sparrow.local' lscr.io/linuxserver/openssh-server:latest
     //
@@ -87,6 +86,7 @@ func invokeBasicCommandOverSSH() async throws {
     }
 
     print("===TEST DEBUGGING===")
+    print("host: \(explicitHost.debugDescription)")
     print("rc: \(output.returnCode)")
     print("out: \(output.stdoutString ?? "nil")")
     print("err: \(output.stderrString ?? "nil")")
