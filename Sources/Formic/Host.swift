@@ -125,6 +125,13 @@ public struct Host: Sendable {
     }
 }
 
+extension Host: CustomDebugStringConvertible {
+    /// The debug description of the host.
+    public var debugDescription: String {
+        "\(remote ? "remote": "local") host: \(networkAddress)@\(sshPort), user: \(sshAccessCredentials)"
+    }
+}
+
 extension Host: CustomStringConvertible {
     /// The description of the host.
     public var description: String {
