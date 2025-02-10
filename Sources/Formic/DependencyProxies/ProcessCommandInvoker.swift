@@ -45,7 +45,7 @@ struct ProcessCommandInvoker: CommandInvoker {
         }
         task.arguments = cmd
 
-        logger?.trace("invoking command: \(task.arguments?.joined(separator: " ") ?? "nil")")
+        logger?.trace("local command to invoke: \(task.arguments?.joined(separator: " ") ?? "nil")")
 
         let stdOutPipe = Pipe()
         let stdErrPipe = Pipe()

@@ -64,7 +64,7 @@ public struct ShellCommand: Command {
                 user: sshCreds.username,
                 identityFile: sshCreds.identityFile,
                 port: host.sshPort,
-                strictHostKeyChecking: false,
+                strictHostKeyChecking: host.strictHostKeyChecking,
                 chdir: chdir,
                 cmd: commandString,
                 env: env,

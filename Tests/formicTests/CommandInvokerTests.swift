@@ -93,8 +93,18 @@ func invokeBasicCommandOverSSH() async throws {
     print("rc: \(output.returnCode)")
     print("out: \(output.stdoutString ?? "nil")")
     print("err: \(output.stderrString ?? "nil")")
+    print("log container messages:")
     container.print()
     print("===TEST DEBUGGING===")
+
+    //    ===TEST DEBUGGING===
+    //    remote host NetworkAddress(address: 172.18.0.3, dnsName: Optional("ssh-server"))@2222, user: SSHAccessCredentials(username: "fred", identityFile: "Tests/formicTests/Fixtures/id_ed25519"), disabled key checking
+    //    rc: 255
+    //    out: nil
+    //    err: Host key verification failed.
+    //    log container messages:
+    //
+    //    ===TEST DEBUGGING===
 
     // results expected on a Linux host only
     #expect(output.returnCode == 0)
