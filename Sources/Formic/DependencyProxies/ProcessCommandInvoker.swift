@@ -103,7 +103,7 @@ struct ProcessCommandInvoker: CommandInvoker {
     ) async throws -> CommandOutput {
         var args: [String] = ["scp"]
 
-        if strictHostKeyChecking {
+        if !strictHostKeyChecking {
             args.append("-o")
             args.append("StrictHostKeyChecking=no")
             args.append("-o")
@@ -157,7 +157,7 @@ struct ProcessCommandInvoker: CommandInvoker {
         )
 
         var args: [String] = ["ssh"]
-        if strictHostKeyChecking {
+        if !strictHostKeyChecking {
             args.append("-o")
             args.append("StrictHostKeyChecking=no")
             args.append("-o")
