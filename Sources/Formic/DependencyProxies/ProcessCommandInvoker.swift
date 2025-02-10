@@ -45,9 +45,6 @@ struct ProcessCommandInvoker: CommandInvoker {
         }
         task.arguments = cmd
 
-        logger?.trace("[cmd] provided: \(cmd)")
-        logger?.trace("local command to invoke: \(task.arguments?.joined(separator: " ") ?? "nil")")
-
         let stdOutPipe = Pipe()
         let stdErrPipe = Pipe()
         task.standardOutput = stdOutPipe
@@ -103,12 +100,9 @@ struct ProcessCommandInvoker: CommandInvoker {
     ) async throws -> CommandOutput {
         var args: [String] = ["scp"]
 
-        if !strictHostKeyChecking {
-            args.append("-o")
-            args.append("StrictHostKeyChecking=no")
-            args.append("-o")
-            args.append("CheckHostIP=no")
-        }
+        args.append("-o")
+        args.append("StrictHostKeyChecking=\(strictHostKeyChecking ? "yes" : "no")")
+
         if let identityFile {
             args.append("-i")
             args.append(identityFile)
@@ -152,17 +146,11 @@ struct ProcessCommandInvoker: CommandInvoker {
         env: [String: String]? = nil,
         logger: Logger?
     ) async throws -> CommandOutput {
-        logger?.trace(
-            "remote shell inputs: host: \(host), user: \(user), identityFile: \(identityFile ?? "nil"), port: \(port ?? 22), strictHostKeyChecking: \(strictHostKeyChecking), chdir: \(chdir ?? "nil"), cmd: \(cmd), env: \(env ?? [:])"
-        )
-
         var args: [String] = ["ssh"]
-        if !strictHostKeyChecking {
-            args.append("-o")
-            args.append("StrictHostKeyChecking=no")
-            args.append("-o")
-            args.append("CheckHostIP=no")
-        }
+
+        args.append("-o")
+        args.append("StrictHostKeyChecking=\(strictHostKeyChecking ? "yes" : "no")")
+
         if let identityFile {
             args.append("-i")
             args.append("\(identityFile)")
