@@ -101,7 +101,11 @@ struct ProcessCommandInvoker: CommandInvoker {
         var args: [String] = ["scp"]
 
         args.append("-o")
+        args.append("BatchMode=yes")
+        args.append("-o")
         args.append("StrictHostKeyChecking=\(strictHostKeyChecking ? "yes" : "no")")
+        args.append("-o")
+        args.append("UpdateHostKeys=\(strictHostKeyChecking ? "yes" : "no")")
 
         if let identityFile {
             args.append("-i")
@@ -149,7 +153,11 @@ struct ProcessCommandInvoker: CommandInvoker {
         var args: [String] = ["ssh"]
 
         args.append("-o")
+        args.append("BatchMode=yes")
+        args.append("-o")
         args.append("StrictHostKeyChecking=\(strictHostKeyChecking ? "yes" : "no")")
+        args.append("-o")
+        args.append("UpdateHostKeys=\(strictHostKeyChecking ? "yes" : "no")")
 
         if let identityFile {
             args.append("-i")
