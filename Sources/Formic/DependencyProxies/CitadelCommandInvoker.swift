@@ -167,27 +167,31 @@ struct CitadelCommandInvoker: CommandInvoker {
             reconnect: .never
         )
 
-        //let stdoutAndStderr = try await client.executeCommand(cmd, mergeStreams: true)
-        // let foo = try await client.executeCommandPair(cmd, inShell: true)
-
-        let streams = try await client.executeCommandStream(cmd, inShell: true)
-
         var stdoutData: Data = Data()
         var stderrData: Data = Data()
-
-        for try await event in streams {
-            switch event {
-            case .stdout(let stdout):
-                stdoutData.append(Data(buffer: stdout))
-            case .stderr(let stderr):
-                stderrData.append(Data(buffer: stderr))
+        
+        do {
+            let streams = try await client.executeCommandStream(cmd, inShell: true)
+            
+            for try await event in streams {
+                switch event {
+                case .stdout(let stdout):
+                    stdoutData.append(Data(buffer: stdout))
+                case .stderr(let stderr):
+                    stderrData.append(Data(buffer: stderr))
+                }
             }
+            // Citadel API appears to provide a return code on failure, but not on success -
+            // and through the process of throwing an exception while reading the above streams.
+
+            let results: CommandOutput = CommandOutput(returnCode: 0, stdOut: stdoutData, stdErr: stderrData)
+            return results
+        } catch let error as SSHClient.CommandFailed {
+            let results: CommandOutput = CommandOutput(returnCode: Int32(error.exitCode), stdOut: stdoutData, stdErr: stderrData)
+            return results
+        } catch {
+            throw error
         }
-
-        // Citadel API appears to provide a return code on failure, but not on success -
-        // and through the process of throwing an exception while reading the above streams.
-
-        let results: CommandOutput = CommandOutput(returnCode: 0, stdOut: stdoutData, stdErr: stderrData)
-        return results
+            
     }
 }
