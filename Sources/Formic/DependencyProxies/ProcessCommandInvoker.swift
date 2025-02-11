@@ -28,16 +28,8 @@ struct ProcessCommandInvoker: CommandInvoker {
         let task = Process()
         task.executableURL = URL(fileURLWithPath: "/usr/bin/env")
 
-        if var env = env {
-            // if the environment is passed in, and an explicit bit is set, then don't override it
-            if env["TERM"] == nil {
-                // otherwise set `TERM=dumb` to hint to CLI tooling that console characters aren't useful
-                // in this context.
-                env["TERM"] = "dumb"
-            }
+        if let env = env {
             task.environment = env
-        } else {
-            task.environment = ["TERM": "dumb"]
         }
 
         if let chdir = chdir {
@@ -56,6 +48,8 @@ struct ProcessCommandInvoker: CommandInvoker {
 
         try task.run()
 
+        // *NOTE*: this doesn't seem to be propagating the termination signals when shelling down
+        // and invoking `ssh` locally...
         // Attach this process to our process group so that Ctrl-C and other signals work
         let pgid = tcgetpgrp(STDOUT_FILENO)
         if pgid != -1 {

@@ -21,8 +21,6 @@ public struct ShellCommand: Command {
     public let executionTimeout: Duration
     /// The ID of the command.
     public let id: UUID
-    /// A Boolean flag that enables additional debug output.
-    public let debug: Bool
 
     /// Creates a new command declaration that the engine runs as a shell command.
     /// - Parameters:
@@ -36,7 +34,7 @@ public struct ShellCommand: Command {
     public init(
         _ argString: String, env: [String: String]? = nil, chdir: String? = nil,
         ignoreFailure: Bool = false,
-        retry: Backoff = .never, executionTimeout: Duration = .seconds(30), debug: Bool = false
+        retry: Backoff = .never, executionTimeout: Duration = .seconds(30)
     ) {
         self.commandString = argString
         self.env = env
@@ -44,7 +42,6 @@ public struct ShellCommand: Command {
         self.ignoreFailure = ignoreFailure
         self.executionTimeout = executionTimeout
         self.chdir = chdir
-        self.debug = debug
         id = UUID()
     }
 
