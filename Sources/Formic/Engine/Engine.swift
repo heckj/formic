@@ -40,7 +40,7 @@ public actor Engine {
             let result = try await run(host: host, command: command)
             results.append(result)
             if displayProgress {
-                logger?.debug("\(result.consoleOutput(verbosity: verbosity))")
+                logger?.info("\(result.consoleOutput(verbosity: verbosity))")
             }
             if result.representsFailure() {
                 logger?.debug("result: \(result) represents failure - breaking")
@@ -102,6 +102,10 @@ public actor Engine {
             do {
                 logger?.debug("running command \(command) against \(host)")
                 outputOfLastAttempt = try await command.run(host: host, logger: logger)
+                // - DISABLED execution timeout checking because it's hanging when
+                // the process that invokes the commands is Foundation.process, which is all
+                // synchronous/blocking code, and fairly incompatible with async/await.
+                //
                 //    outputOfLastAttempt = try await withThrowingTaskGroup(
                 //        of: CommandOutput.self, returning: CommandOutput.self
                 //    ) {
