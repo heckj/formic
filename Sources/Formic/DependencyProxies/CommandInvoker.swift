@@ -15,7 +15,7 @@ import Logging
 // than the see the internals as it flows. It *looks* a lot nicer - gives a feeling of
 // progress that's really great - but isn't strictly needed for the core functionality.
 //
-// Two options for async shell command execution:
+// Two options for (existing) async shell command execution:
 //
 // - https://github.com/GeorgeLyon/Shwift
 // Shwift has clearly been around the block, but has heavier dependencies (all of SwiftNIO) that
