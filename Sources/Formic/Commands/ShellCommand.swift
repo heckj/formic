@@ -34,7 +34,7 @@ public struct ShellCommand: Command {
     public init(
         _ argString: String, env: [String: String]? = nil, chdir: String? = nil,
         ignoreFailure: Bool = false,
-        retry: Backoff = .never, executionTimeout: Duration = .seconds(30)
+        retry: Backoff = .never, executionTimeout: Duration = .seconds(120)
     ) {
         self.commandString = argString
         self.env = env
