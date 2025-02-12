@@ -155,13 +155,13 @@ struct CitadelCommandInvoker: CommandInvoker {
             throw CommandError.noOutputToParse(msg: "No identity file provided for SSH connection")
         }
 
-        let key: Curve25519.Signing.PrivateKey = try Curve25519.Signing.PrivateKey(
-            rawRepresentation: Data(contentsOf: URL(fileURLWithPath: identityFile)))
+        let urlForData = URL(fileURLWithPath: identityFile)
+        let dataFromURL = try Data(contentsOf: urlForData)  // 411 bytes
+        let key: Curve25519.Signing.PrivateKey = try Curve25519.Signing.PrivateKey(sshEd25519: dataFromURL)
 
         let client = try await SSHClient.connect(
             host: host,
             authenticationMethod: .ed25519(username: "docker-user", privateKey: key),
-            //.passwordBased(username: "joannis", password: "s3cr3t"),
             hostKeyValidator: .acceptAnything(),
             // ^ Please use another validator if at all possible, this is insecure
             reconnect: .never
@@ -169,10 +169,10 @@ struct CitadelCommandInvoker: CommandInvoker {
 
         var stdoutData: Data = Data()
         var stderrData: Data = Data()
-        
+
         do {
             let streams = try await client.executeCommandStream(cmd, inShell: true)
-            
+
             for try await event in streams {
                 switch event {
                 case .stdout(let stdout):
@@ -187,11 +187,12 @@ struct CitadelCommandInvoker: CommandInvoker {
             let results: CommandOutput = CommandOutput(returnCode: 0, stdOut: stdoutData, stdErr: stderrData)
             return results
         } catch let error as SSHClient.CommandFailed {
-            let results: CommandOutput = CommandOutput(returnCode: Int32(error.exitCode), stdOut: stdoutData, stdErr: stderrData)
+            let results: CommandOutput = CommandOutput(
+                returnCode: Int32(error.exitCode), stdOut: stdoutData, stdErr: stderrData)
             return results
         } catch {
             throw error
         }
-            
+
     }
 }
