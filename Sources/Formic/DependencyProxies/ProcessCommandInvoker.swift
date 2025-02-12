@@ -50,11 +50,12 @@ struct ProcessCommandInvoker: CommandInvoker {
 
         // *NOTE*: this doesn't seem to be propagating the termination signals when shelling down
         // and invoking `ssh` locally...
+
         // Attach this process to our process group so that Ctrl-C and other signals work
-        let pgid = tcgetpgrp(STDOUT_FILENO)
-        if pgid != -1 {
-            tcsetpgrp(STDOUT_FILENO, task.processIdentifier)
-        }
+        //        let pgid = tcgetpgrp(STDOUT_FILENO)
+        //        if pgid != -1 {
+        //            tcsetpgrp(STDOUT_FILENO, task.processIdentifier)
+        //        }
 
         // appears to be hang location for https://github.com/heckj/formic/issues/76
         task.waitUntilExit()
