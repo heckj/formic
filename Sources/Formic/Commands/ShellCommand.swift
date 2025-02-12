@@ -30,7 +30,6 @@ public struct ShellCommand: Command {
     ///   - ignoreFailure: A Boolean value that indicates whether a failing command should fail a playbook.
     ///   - retry: The retry settings for the command.
     ///   - executionTimeout: The maximum duration to allow for the command.
-    ///   - debug: An optional Boolean value the presents additional debug output on execution.
     public init(
         _ argString: String, env: [String: String]? = nil, chdir: String? = nil,
         ignoreFailure: Bool = false,
