@@ -26,7 +26,7 @@ struct ProcessCommandInvoker: CommandInvoker {
         cmd: [String], stdIn: Pipe? = nil, env: [String: String]? = nil, chdir: String? = nil, logger: Logger? = nil
     ) async throws -> CommandOutput {
         let task = Process()
-        task.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        task.executableURL = URL(fileURLWithPath: "/bin/sh")
 
         if let env = env {
             task.environment = env
@@ -35,7 +35,9 @@ struct ProcessCommandInvoker: CommandInvoker {
         if let chdir = chdir {
             task.currentDirectoryURL = URL(fileURLWithPath: chdir)
         }
-        task.arguments = cmd
+
+        let cmdString = "\"\(cmd.joined(separator: " "))\""
+        task.arguments = ["-c", cmdString]
 
         let stdOutPipe = Pipe()
         let stdErrPipe = Pipe()
@@ -47,15 +49,6 @@ struct ProcessCommandInvoker: CommandInvoker {
         }
 
         try task.run()
-
-        // *NOTE*: this doesn't seem to be propagating the termination signals when shelling down
-        // and invoking `ssh` locally...
-
-        // Attach this process to our process group so that Ctrl-C and other signals work
-        //        let pgid = tcgetpgrp(STDOUT_FILENO)
-        //        if pgid != -1 {
-        //            tcsetpgrp(STDOUT_FILENO, task.processIdentifier)
-        //        }
 
         // appears to be hang location for https://github.com/heckj/formic/issues/76
         task.waitUntilExit()
