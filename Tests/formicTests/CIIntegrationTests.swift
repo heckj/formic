@@ -38,7 +38,7 @@ func invokeBasicCommandOverSSH() async throws {
     // export CI=true
     //
     // Verifying SSH access on CLI:
-    //   `ssh fred@localhost -p 2222 -i Tests/formicTests/Fixtures/id_ed25519`
+    //   `ssh fred@localhost -p 2222 -i Tests/formicTests/Fixtures/id_ed25519 uname -a`
     //
     // swift test --filter FormicTests.invokeBasicCommandOverSSH
     //
@@ -73,17 +73,17 @@ func invokeBasicCommandOverSSH() async throws {
     let output: CommandOutput = try await withDependencies { dependencyValues in
         dependencyValues.commandInvoker = ProcessCommandInvoker()
     } operation: {
-        try await ShellCommand("uname").run(host: explicitHost, logger: logger)
+        try await ShellCommand("uname -a").run(host: explicitHost, logger: logger)
     }
 
-    //    print("===TEST DEBUGGING===")
-    //    print("\(explicitHost.debugDescription)")
-    //    print("rc: \(output.returnCode)")
-    //    print("out: \(output.stdoutString ?? "nil")")
-    //    print("err: \(output.stderrString ?? "nil")")
-    //    print("log container messages:")
-    //    container.print()
-    //    print("===TEST DEBUGGING===")
+    print("===TEST DEBUGGING===")
+    print("host: \(explicitHost.debugDescription)")
+    print("rc: \(output.returnCode)")
+    print("out: \(output.stdoutString ?? "nil")")
+    print("err: \(output.stderrString ?? "nil")")
+    print("log container messages:")
+    container.print()
+    print("===TEST DEBUGGING===")
 
     // results expected on a Linux host only
     #expect(output.returnCode == 0)

@@ -39,6 +39,9 @@ struct ProcessCommandInvoker: CommandInvoker {
         let cmdString = "\"\(cmd.joined(separator: " "))\""
         task.arguments = ["-c", cmdString]
 
+        logger?.trace("RAW LOCAL COMMAND:")
+        logger?.trace("/bin/sh -c \(cmdString)")
+
         let stdOutPipe = Pipe()
         let stdErrPipe = Pipe()
         task.standardOutput = stdOutPipe
@@ -86,7 +89,7 @@ struct ProcessCommandInvoker: CommandInvoker {
         remotePath: String,
         logger: Logger?
     ) async throws -> CommandOutput {
-        var args: [String] = ["scp"]
+        var args: [String] = ["/usr/bin/scp"]
 
         args.append("-o")
         args.append("BatchMode=yes")
@@ -138,59 +141,94 @@ struct ProcessCommandInvoker: CommandInvoker {
         env: [String: String]? = nil,
         logger: Logger?
     ) async throws -> CommandOutput {
-        var args: [String] = ["ssh"]
 
-        args.append("-o")
-        args.append("BatchMode=yes")
-        args.append("-o")
-        args.append("StrictHostKeyChecking=\(strictHostKeyChecking ? "yes" : "no")")
-        args.append("-o")
-        args.append("UpdateHostKeys=\(strictHostKeyChecking ? "yes" : "no")")
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/bin/sh")
+
+        if let env = env {
+            task.environment = env
+        }
+
+        if let chdir = chdir {
+            task.currentDirectoryURL = URL(fileURLWithPath: chdir)
+        }
+
+        var args: [String] = []
+
+        args.append("-c")
+
+        var sshCmdAssembly: String = "ssh"
+
+        //        sshCmdAssembly.append(" -o")
+        //        sshCmdAssembly.append(" BatchMode=yes")
+        sshCmdAssembly.append(" -o")
+        sshCmdAssembly.append(" StrictHostKeyChecking=\(strictHostKeyChecking ? "yes" : "no")")
+        sshCmdAssembly.append(" -o")
+        sshCmdAssembly.append(" UpdateHostKeys=\(strictHostKeyChecking ? "yes" : "no")")
 
         if let identityFile {
-            args.append("-i")
-            args.append("\(identityFile)")
+            sshCmdAssembly.append(" -i")
+            sshCmdAssembly.append(" \(identityFile)")
         }
         if let port {
-            args.append("-p")
-            args.append("\(port)")
+            sshCmdAssembly.append(" -p")
+            sshCmdAssembly.append(" \(port)")
         }
 
         // assert/request no TTY needed: -T
         // request a pseudo tty: -t
-        args.append("-t")
+        // sshCmdAssembly.append(" -t")
 
         // refs:
         // https://stackoverflow.com/questions/7085429/terminating-ssh-session-executed-by-bash-script
         // https://stackoverflow.com/questions/7114990/pseudo-terminal-will-not-be-allocated-because-stdin-is-not-a-terminal
         // https://www.baeldung.com/linux/ssh-pseudo-terminal-allocation
 
-        args.append("\(user)@\(host)")
+        sshCmdAssembly.append(" \(user)@\(host)")
 
-        var cmdString = ""
+        var remoteCmdString = ""
         // first change directory, if applied
         if let chdir = chdir {
-            cmdString.append("cd \(chdir);")
+            remoteCmdString.append("cd \(chdir);")
         }
         // set up any set ENV variables PRIOR to command
         if let env = env {
             for (key, value) in env {
-                cmdString.append("\(key)=\(value) ")
+                remoteCmdString.append("\(key)=\(value) ")
             }
         }
         // and the command
-        cmdString.append("\(cmd)")
+        remoteCmdString.append("\(cmd)")
         // Apply this as a single string argument to pass down
-        args.append(cmdString)
+        sshCmdAssembly.append(" '\(remoteCmdString)'")
 
-        logger?.trace("invoking local shell with: \(args)")
+        args.append(sshCmdAssembly)
+        task.arguments = args
+
+        logger?.trace("RAW LOCAL COMMAND:")
+        logger?.trace("\(String(describing: args))")
+        let combined = args.joined(separator: " ")
+        logger?.trace("\(combined)")
+
+        let stdOutPipe = Pipe()
+        let stdErrPipe = Pipe()
+        task.standardOutput = stdOutPipe
+        task.standardError = stdErrPipe
+
+        try task.run()
+
+        // appears to be hang location for https://github.com/heckj/formic/issues/76
+        task.waitUntilExit()
+
+        let stdOutData = try stdOutPipe.fileHandleForReading.readToEnd()
+        let stdErrData = try stdErrPipe.fileHandleForReading.readToEnd()
+
+        return CommandOutput(returnCode: task.terminationStatus, stdOut: stdOutData, stdErr: stdErrData)
 
         // NOTE(heckj): Ansible's SSH capability
         // (https://github.com/ansible/ansible/blob/devel/lib/ansible/plugins/connection/ssh.py)
         // does this with significantly more finesse. It checks the output as it's returned and
         // provides a password through that uses sshpass to authenticate, or escalates commands
         // with sudo and a password, before the core command is invoked.
-        let rcAndPipe = try await localShell(cmd: args, env: nil, logger: logger)
-        return rcAndPipe
     }
 }
