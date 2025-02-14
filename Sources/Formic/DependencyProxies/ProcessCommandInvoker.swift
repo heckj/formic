@@ -36,7 +36,7 @@ struct ProcessCommandInvoker: CommandInvoker {
             task.currentDirectoryURL = URL(fileURLWithPath: chdir)
         }
 
-        let cmdString = "\"\(cmd.joined(separator: " "))\""
+        let cmdString = "'\(cmd.joined(separator: " "))'"
         task.arguments = ["-c", cmdString]
 
         logger?.trace("RAW LOCAL COMMAND:")
@@ -89,31 +89,45 @@ struct ProcessCommandInvoker: CommandInvoker {
         remotePath: String,
         logger: Logger?
     ) async throws -> CommandOutput {
-        var args: [String] = ["/usr/bin/scp"]
 
-        args.append("-o")
-        args.append("BatchMode=yes")
-        args.append("-o")
-        args.append("StrictHostKeyChecking=\(strictHostKeyChecking ? "yes" : "no")")
-        args.append("-o")
-        args.append("UpdateHostKeys=\(strictHostKeyChecking ? "yes" : "no")")
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/bin/sh")
+
+        var scpCmdString = "scp"
+        scpCmdString.append(" -o StrictHostKeyChecking=\(strictHostKeyChecking ? "yes" : "no")")
+        scpCmdString.append(" -o UpdateHostKeys=\(strictHostKeyChecking ? "yes" : "no")")
 
         if let identityFile {
-            args.append("-i")
-            args.append(identityFile)
+            scpCmdString.append(" -i \(identityFile)")
         }
         if let port {
-            args.append("-P")  // yes, it's supposed to be capital `P` for scp
-            args.append("\(port)")
+            scpCmdString.append(" -P \(port)")  // yes, it's supposed to be capital `P` for scp
         }
 
-        args.append(localPath)
-        args.append("\(user)@\(host):\(remotePath)")
+        scpCmdString.append(" \(localPath)")
+        scpCmdString.append(" \(user)@\(host):\(remotePath)")
 
-        // loose form:
-        // scp -o StrictHostKeyChecking=no get-docker.sh "docker-user@${IP_ADDRESS}:get-docker.sh"
-        let rcAndPipe = try await localShell(cmd: args, logger: logger)
-        return rcAndPipe
+        task.arguments = ["-c", scpCmdString]
+
+        // logger?.trace("RAW ARGUMENTS:")
+        // logger?.trace("\(String(describing: task.arguments))")
+        let combined = task.arguments?.joined(separator: " ") ?? "--nil--"
+        logger?.trace("RAW ASSEMBLED COMMAND:")
+        logger?.trace("/bin/sh \(combined)")
+
+        let stdOutPipe = Pipe()
+        let stdErrPipe = Pipe()
+        task.standardOutput = stdOutPipe
+        task.standardError = stdErrPipe
+
+        try task.run()
+
+        task.waitUntilExit()
+
+        let stdOutData = try stdOutPipe.fileHandleForReading.readToEnd()
+        let stdErrData = try stdErrPipe.fileHandleForReading.readToEnd()
+
+        return CommandOutput(returnCode: task.terminationStatus, stdOut: stdOutData, stdErr: stdErrData)
     }
 
     /// Invoke a command over SSH on a remote host.
@@ -153,14 +167,8 @@ struct ProcessCommandInvoker: CommandInvoker {
             task.currentDirectoryURL = URL(fileURLWithPath: chdir)
         }
 
-        var args: [String] = []
-
-        args.append("-c")
-
         var sshCmdAssembly: String = "ssh"
 
-        //        sshCmdAssembly.append(" -o")
-        //        sshCmdAssembly.append(" BatchMode=yes")
         sshCmdAssembly.append(" -o")
         sshCmdAssembly.append(" StrictHostKeyChecking=\(strictHostKeyChecking ? "yes" : "no")")
         sshCmdAssembly.append(" -o")
@@ -199,16 +207,15 @@ struct ProcessCommandInvoker: CommandInvoker {
         }
         // and the command
         remoteCmdString.append("\(cmd)")
-        // Apply this as a single string argument to pass down
+        // Apply this as a single string argument to pass down, explicitly marked out
+        // within ' marks to prevent escaping the shell and running "locally" accidentally -
+        // the "remoteCmdString" is intended to run on the remote host, not the local one.
         sshCmdAssembly.append(" '\(remoteCmdString)'")
 
-        args.append(sshCmdAssembly)
-        task.arguments = args
+        task.arguments = ["-c", "\(sshCmdAssembly)"]
 
-        logger?.trace("RAW LOCAL COMMAND:")
-        logger?.trace("\(String(describing: args))")
-        let combined = args.joined(separator: " ")
-        logger?.trace("\(combined)")
+        logger?.trace("RAW ASSEMBLED COMMAND:")
+        logger?.trace("/bin/sh -c \(sshCmdAssembly)")
 
         let stdOutPipe = Pipe()
         let stdErrPipe = Pipe()
@@ -217,7 +224,6 @@ struct ProcessCommandInvoker: CommandInvoker {
 
         try task.run()
 
-        // appears to be hang location for https://github.com/heckj/formic/issues/76
         task.waitUntilExit()
 
         let stdOutData = try stdOutPipe.fileHandleForReading.readToEnd()
