@@ -15,7 +15,6 @@ struct ProcessCommandInvoker: CommandInvoker {
     ///   - env: A dictionary of shell environment variables to apply.
     ///   - cmd: The command to invoke, as a list of strings
     ///   - debugPrint: A Boolean value that indicates if the invoker prints the raw command before running it.
-    ///   - chdir: An optional directory to change to before running the command.
     /// - Returns: The command output.
     /// - Throws: any errors from invoking the shell process.
     ///
@@ -23,17 +22,13 @@ struct ProcessCommandInvoker: CommandInvoker {
     /// followed by attempting to read the Pipe() outputs (fileHandleForReading.readToEnd()).
     /// The types of errors thrown from those locations aren't undocumented.
     func localShell(
-        cmd: [String], stdIn: Pipe? = nil, env: [String: String]? = nil, chdir: String? = nil, logger: Logger? = nil
+        cmd: [String], stdIn: Pipe? = nil, env: [String: String]? = nil, logger: Logger? = nil
     ) async throws -> CommandOutput {
         let task = Process()
         task.executableURL = URL(fileURLWithPath: "/bin/sh")
 
         if let env = env {
             task.environment = env
-        }
-
-        if let chdir = chdir {
-            task.currentDirectoryURL = URL(fileURLWithPath: chdir)
         }
 
         let cmdString = "'\(cmd.joined(separator: " "))'"
@@ -139,7 +134,6 @@ struct ProcessCommandInvoker: CommandInvoker {
     ///   - port: The port to use for SSH to the remote host.
     ///   - strictHostKeyChecking: A Boolean value that indicates whether to enable strict host checking, defaults to `false`.
     ///   - cmd: A list of strings that make up the command and any arguments.
-    ///   - chdir: An optional directory to change to before running the command.
     ///   - env: A dictionary of shell environment variables to apply.
     ///   - debugPrint: A Boolean value that indicates if the invoker prints the raw command before running it.
     /// - Returns: the command output.
@@ -150,7 +144,6 @@ struct ProcessCommandInvoker: CommandInvoker {
         identityFile: String? = nil,
         port: Int? = nil,
         strictHostKeyChecking: Bool = false,
-        chdir: String?,
         cmd: String,
         env: [String: String]? = nil,
         logger: Logger?
@@ -161,10 +154,6 @@ struct ProcessCommandInvoker: CommandInvoker {
 
         if let env = env {
             task.environment = env
-        }
-
-        if let chdir = chdir {
-            task.currentDirectoryURL = URL(fileURLWithPath: chdir)
         }
 
         var sshCmdAssembly: String = "ssh"
@@ -195,10 +184,7 @@ struct ProcessCommandInvoker: CommandInvoker {
         sshCmdAssembly.append(" \(user)@\(host)")
 
         var remoteCmdString = ""
-        // first change directory, if applied
-        if let chdir = chdir {
-            remoteCmdString.append("cd \(chdir);")
-        }
+
         // set up any set ENV variables PRIOR to command
         if let env = env {
             for (key, value) in env {
