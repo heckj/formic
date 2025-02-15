@@ -7,7 +7,7 @@ import Testing
 @testable import Formic
 
 @Test(
-    "invoking a command over SSH",
+    "CI INTEGRATION: Invoking a command over SSH",
     .enabled(if: ProcessInfo.processInfo.environment.keys.contains("CI")),
     .timeLimit(.minutes(1)),
     .tags(.integrationTest))
@@ -92,7 +92,7 @@ func invokeBasicCommandOverSSH() async throws {
 }
 
 @Test(
-    "invoking a command over Citadel SSH",
+    "CI INTEGRATION: Invoking a command using Citadel SSH",
     .enabled(if: ProcessInfo.processInfo.environment.keys.contains("CI")),
     .timeLimit(.minutes(1)),
     .tags(.integrationTest))
