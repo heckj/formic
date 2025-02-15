@@ -1,9 +1,8 @@
+import Citadel
+import CryptoKit  // for loading a private key to use with Citadel for authentication
 import Dependencies
 import Foundation
 import Logging
-
-import Citadel
-import CryptoKit  // for loading a private key to use with Citadel for authentication
 import NIOCore  // to interact with ByteBuffer - otherwise it's opaquely buried in Citadel's API response
 
 #if canImport(FoundationNetworking)  // Required for Linux
@@ -74,20 +73,20 @@ public struct SSHCommand: Command {
             throw CommandError.localUnsupported(msg: "Host \(host) is not remote.")
         }
     }
-    
+
     // IMPLEMENTATION NOTE(heckj):
     // This is a more direct usage of Citadel SSHClient, not abstracted through a protocol (such as
     // CommandInvoker) in order to just "try it out". This means it's not really amenable to use
     // and test in api's which use this functionality to make requests and get data.
-    
+
     // Citadel *also* supports setting up a connecting _once_, and then executing multiple commands,
     // which wasn't something you could do with forking commands through Process. I'm not trying to
     // take advantage of that capability here.
-    
+
     // Finally, Citadel is particular about the KIND of key you're using - and this iteration is only
     // written to handle Ed25519 keys. To make this "real", we'd want to work in how to support RSA
     // and DSA keys for SSH authentication as well. Maybe even password authentication.
-    
+
     /// Invoke a command using SSH on a remote host.
     ///
     /// - Parameters:
@@ -142,7 +141,7 @@ public struct SSHCommand: Command {
                     stderrData.append(Data(buffer: stderr))
                 }
             }
-            
+
             // Citadel API appears to provide a return code on failure, but not on success.
 
             let results: CommandOutput = CommandOutput(returnCode: 0, stdOut: stdoutData, stdErr: stderrData)

@@ -19,7 +19,7 @@ public enum CommandError: LocalizedError {
 
     /// Failure due to using a remote command with a local host.
     case localUnsupported(msg: String)
-    
+
     /// The localized description.
     public var errorDescription: String? {
         switch self {
@@ -37,7 +37,7 @@ public enum CommandError: LocalizedError {
             "Timeout exceeded for command: \(command)"
         case .noOutputFromCommand(let cmd):
             "No output received from command: \(cmd)"
-        case .localUnsupported(msg: let msg):
+        case .localUnsupported(let msg):
             "Local host does not support remote commands: \(msg)"
         }
     }
