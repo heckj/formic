@@ -51,13 +51,12 @@ public struct VerifyAccess: Command {
                 identityFile: sshCreds.identityFile,
                 port: host.sshPort,
                 strictHostKeyChecking: false,
-                chdir: nil,
                 cmd: command,
                 env: nil,
                 logger: logger)
         } else {
             answer = try await invoker.localShell(
-                cmd: ["echo", "'hello'"], stdIn: nil, env: nil, chdir: nil, logger: logger)
+                cmd: ["echo", "'hello'"], stdIn: nil, env: nil, logger: logger)
         }
 
         if let answerString = answer.stdoutString, answerString.contains("hello") {

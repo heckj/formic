@@ -73,7 +73,7 @@ public struct CopyFrom: Command {
                 logger: logger)
         } else {
             return try await invoker.localShell(
-                cmd: ["cp", tempFile.path, destinationPath], stdIn: nil, env: nil, chdir: nil, logger: logger)
+                cmd: ["cp", tempFile.path, destinationPath], stdIn: nil, env: nil, logger: logger)
         }
     }
 }

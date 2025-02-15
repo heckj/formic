@@ -11,8 +11,6 @@ public struct ShellCommand: Command {
     public let commandString: String
     /// An optional dictionary of environment variables the system sets when it runs the command.
     public let env: [String: String]?
-    /// An optional directory to change to before running the command.
-    public let chdir: String?
     /// A Boolean value that indicates whether a failing command should fail a playbook.
     public let ignoreFailure: Bool
     /// The retry settings for the command.
@@ -40,7 +38,6 @@ public struct ShellCommand: Command {
         self.retry = retry
         self.ignoreFailure = ignoreFailure
         self.executionTimeout = executionTimeout
-        self.chdir = chdir
         id = UUID()
     }
 
@@ -61,7 +58,6 @@ public struct ShellCommand: Command {
                 identityFile: sshCreds.identityFile,
                 port: host.sshPort,
                 strictHostKeyChecking: host.strictHostKeyChecking,
-                chdir: chdir,
                 cmd: commandString,
                 env: env,
                 logger: logger
@@ -69,7 +65,7 @@ public struct ShellCommand: Command {
         } else {
             let parsedArgsBySpace: [String] = commandString.split(separator: .whitespace).map(String.init)
             return try await invoker.localShell(
-                cmd: parsedArgsBySpace, stdIn: nil, env: env, chdir: chdir, logger: logger)
+                cmd: parsedArgsBySpace, stdIn: nil, env: env, logger: logger)
         }
     }
 }

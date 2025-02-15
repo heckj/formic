@@ -36,7 +36,6 @@ protocol CommandInvoker: Sendable {
         identityFile: String?,
         port: Int?,
         strictHostKeyChecking: Bool,
-        chdir: String?,
         cmd: String,
         env: [String: String]?,
         logger: Logger?
@@ -59,7 +58,6 @@ protocol CommandInvoker: Sendable {
         cmd: [String],
         stdIn: Pipe?,
         env: [String: String]?,
-        chdir: String?,
         logger: Logger?
     ) async throws -> CommandOutput
 }
