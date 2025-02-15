@@ -12,3 +12,5 @@ Instead, I'm assembling these pieces to support building my own custom playbooks
 
 - [API Documentation](https://swiftpackageindex.com/heckj/formic/main/documentation/formic)
 
+I've included a hard-coded example of using this library from an argument-parser based CLI tool.
+Look through the content in [updateExample](examples/updateExample) to get a sense of using it in practice.
