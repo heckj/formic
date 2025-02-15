@@ -93,7 +93,7 @@ func invokeBasicCommandOverSSH() async throws {
 
 @Test(
     "invoking a command over Citadel SSH",
-    //    .enabled(if: ProcessInfo.processInfo.environment.keys.contains("CI")),
+    .enabled(if: ProcessInfo.processInfo.environment.keys.contains("CI")),
     .timeLimit(.minutes(1)),
     .tags(.integrationTest))
 func invokeBasicCommandOverCitadelSSH() async throws {
@@ -156,11 +156,7 @@ func invokeBasicCommandOverCitadelSSH() async throws {
     }
     let explicitHost: Formic.Host = try #require(host)
 
-    let output: CommandOutput = try await withDependencies { dependencyValues in
-        dependencyValues.commandInvoker = CitadelCommandInvoker()
-    } operation: {
-        try await ShellCommand("uname").run(host: explicitHost, logger: logger)
-    }
+    let output: CommandOutput = try await SSHCommand("uname").run(host: explicitHost, logger: logger)
 
     print("===TEST DEBUGGING===")
     print("\(explicitHost.debugDescription)")

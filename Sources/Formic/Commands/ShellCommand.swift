@@ -5,7 +5,9 @@ import Logging
 /// A command to run on a local or remote host.
 ///
 /// This command uses SSH through a local process to invoke commands on a remote host.
+///
 /// Do not use shell control or redirect operators in the command string.
+/// Execution timeouts are not respected for these commands.
 public struct ShellCommand: Command {
     /// The command and arguments to run.
     public let commandString: String
