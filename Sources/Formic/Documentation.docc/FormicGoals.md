@@ -13,7 +13,22 @@ Extending from that, API for a declarative that uses the basic "operator" patter
 - Swift 6 language mode (full concurrency safety)
 - macOS and Linux support
 
-### High Level Architecture
+### Engine Architecture
+
+``Engine`` is a Swift actor - a reference type that maintains some internal state. Its intentionally _not_ a public actor, for the purpose of allowing more than one to exist on a system.
+The idea is that an instance `Engine` is embedded into your CLI app, and it gives you the primary interface to run commands.
+
+Output from commands are exposed via a logger, with the return values being structured data from the command invocations reporting success, failure, or exceptions. 
+The general idea being that in your code, you'll assemble a list of commands, and hand that to the engine to do the work.
+If any command throws an exception, the playbook (list of commands) you've submitted will terminate.
+Commands conform to the ``Command`` protocol, and have a number of options to control how they react - including ignoring a failure or retrying on failure with a ``Backoff`` and ``Backoff/Strategy-swift.enum``.
+
+The `Command` protocol is set up to allow anyone to create their own commands, and use them with this general framework.
+
+Beyond the imperative command setup, I'd like to reach for declarative resources and systems that can manage themselves as much as possible. 
+Those are defined through the ``Resource`` protocol, and variations that include stateful, singular, and collections of resources.
+
+### High Level Architecture - Declarative Software Infrastructure
 
 I want to do this with a declarative structure that has an idea of state, using a single-pass following the operator pattern:
 
