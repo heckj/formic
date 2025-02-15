@@ -39,7 +39,7 @@ struct TestCommandInvoker: CommandInvoker {
     }
 
     func remoteShell(
-        host: String, user: String, identityFile: String?, port: Int?, strictHostKeyChecking: Bool, chdir: String?,
+        host: String, user: String, identityFile: String?, port: Int?, strictHostKeyChecking: Bool,
         cmd: String, env: [String: String]?, logger: Logger?
     ) async throws -> Formic.CommandOutput {
         if let errorToThrow = proxyErrors[cmd] {
@@ -53,7 +53,7 @@ struct TestCommandInvoker: CommandInvoker {
         return CommandOutput(returnCode: 0, stdOut: "".data(using: .utf8), stdErr: nil)
     }
 
-    func localShell(cmd: [String], stdIn: Pipe?, env: [String: String]?, chdir: String?, logger: Logger?) async throws
+    func localShell(cmd: [String], stdIn: Pipe?, env: [String: String]?, logger: Logger?) async throws
         -> Formic.CommandOutput
     {
         let hashKey = cmd.joined(separator: " ")
