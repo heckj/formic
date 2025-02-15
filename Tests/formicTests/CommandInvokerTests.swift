@@ -26,26 +26,13 @@ func invokeBasicCommandLocally() async throws {
 }
 
 @Test(
-    "invoking a local command w/ chdir",
-    .enabled(if: ProcessInfo.processInfo.environment.keys.contains("INTEGRATION_ENABLED")),
-    .timeLimit(.minutes(1)),
-    .tags(.integrationTest))
-func invokeBasicCommandLocallyWithChdir() async throws {
-    let shellResult = try await ProcessCommandInvoker().localShell(cmd: ["pwd"], stdIn: nil, env: nil, chdir: "..")
-
-    print("rc: \(shellResult.returnCode)")
-    print("out: \(shellResult.stdoutString ?? "nil")")
-    print("err: \(shellResult.stderrString ?? "nil")")
-}
-
-@Test(
     "invoking a remote command",
     .enabled(if: ProcessInfo.processInfo.environment.keys.contains("INTEGRATION_ENABLED")),
     .timeLimit(.minutes(1)),
     .tags(.integrationTest))
 func invokeRemoteCommand() async throws {
     let shellResult = try await ProcessCommandInvoker().remoteShell(
-        host: "127.0.0.1", user: "heckj", identityFile: "~/.orbstack/ssh/id_ed25519", port: 32222, chdir: nil,
+        host: "127.0.0.1", user: "heckj", identityFile: "~/.orbstack/ssh/id_ed25519", port: 32222,
         cmd: "ls -al", env: nil, logger: nil)
     print("rc: \(shellResult.returnCode)")
     print("out: \(shellResult.stdoutString ?? "nil")")
@@ -59,22 +46,8 @@ func invokeRemoteCommand() async throws {
     .tags(.integrationTest))
 func invokeRemoteCommandWithEnv() async throws {
     let shellResult = try await ProcessCommandInvoker().remoteShell(
-        host: "127.0.0.1", user: "heckj", identityFile: "~/.orbstack/ssh/id_ed25519", port: 32222, chdir: nil,
+        host: "127.0.0.1", user: "heckj", identityFile: "~/.orbstack/ssh/id_ed25519", port: 32222,
         cmd: "echo ${FIDDLY}", env: ["FIDDLY": "FADDLY"], logger: nil)
-    print("rc: \(shellResult.returnCode)")
-    print("out: \(shellResult.stdoutString ?? "nil")")
-    print("err: \(shellResult.stderrString ?? "nil")")
-}
-
-@Test(
-    "invoking a remote command w/ chdir",
-    .enabled(if: ProcessInfo.processInfo.environment.keys.contains("INTEGRATION_ENABLED")),
-    .timeLimit(.minutes(1)),
-    .tags(.integrationTest))
-func invokeRemoteCommandWithChdir() async throws {
-    let shellResult = try await ProcessCommandInvoker().remoteShell(
-        host: "127.0.0.1", user: "heckj", identityFile: "~/.orbstack/ssh/id_ed25519", port: 32222, chdir: "..",
-        cmd: "ls -al", env: nil, logger: nil)
     print("rc: \(shellResult.returnCode)")
     print("out: \(shellResult.stdoutString ?? "nil")")
     print("err: \(shellResult.stderrString ?? "nil")")
@@ -86,11 +59,8 @@ func invokeRemoteCommandWithChdir() async throws {
     .timeLimit(.minutes(1)),
     .tags(.integrationTest))
 func invokeRemoteCommandWithTilde() async throws {
-    //    let shellResult = try await ProcessCommandInvoker().remoteShell(
-    //        host: "127.0.0.1", user: "heckj", identityFile: "~/.orbstack/ssh/id_ed25519", port: 32222, chdir: "..",
-    //        cmd: "mkdir ~/.ssh", env: nil)
     let shellResult = try await ProcessCommandInvoker().remoteShell(
-        host: "172.190.172.6", user: "docker-user", identityFile: "~/.ssh/bastion_id_ed25519", chdir: nil,
+        host: "172.190.172.6", user: "docker-user", identityFile: "~/.ssh/bastion_id_ed25519",
         cmd: "mkdir -p ~/.ssh", env: nil, logger: nil)
     print("rc: \(shellResult.returnCode)")
     print("out: \(shellResult.stdoutString ?? "nil")")
