@@ -6,7 +6,7 @@ import Logging
 typealias Host = Formic.Host
 
 // example:
-// swift run updateExample -v 172.191.22.226 /Users/heckj/.ssh/bastion_id_ed25519
+// swift run updateExample -v 172.174.57.17 /Users/heckj/.ssh/bastion_id_ed25519
 
 @main
 struct configureBastion: AsyncParsableCommand {
@@ -36,7 +36,10 @@ struct configureBastion: AsyncParsableCommand {
         try await engine.run(
             host: bastionHost, displayProgress: true, verbosity: verbosity,
             commands: [
-                ShellCommand("mkdir -p ~/.ssh"),
+                SSHCommand("uname -a"),  // uses CitadelSSH
+                SSHCommand("ls -altr"),
+
+                ShellCommand("mkdir -p ~/.ssh"),  // uses Process and forked 'ssh' locally
                 ShellCommand("chmod 0700 ~/.ssh"),
                 CopyInto(location: "~/.ssh/\(keyName)", from: privateKeyLocation),
                 CopyInto(location: "~/.ssh/\(keyName).pub", from: "\(privateKeyLocation).pub"),
