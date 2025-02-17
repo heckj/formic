@@ -38,11 +38,9 @@ Extend the existing ones or add your own as needed to support testing.
 
 The CI system with this package sends coverage data to CodeCov:
 
-- [CodeCov entry for formic](https://app.codecov.io/gh/heckj/formic)
-
 [![codecov](https://codecov.io/gh/heckj/formic/graph/badge.svg?token=BGzZDLrdjQ)](https://codecov.io/gh/heckj/formic)
 
-[![code coverag sunburst diagram](https://codecov.io/gh/heckj/formic/graphs/sunburst.svg?token=BGzZDLrdjQ)]
+[![code coverag sunburst diagram](https://codecov.io/gh/heckj/formic/graphs/sunburst.svg?token=BGzZDLrdjQ)](https://app.codecov.io/gh/heckj/formic)
 
 ## Documentation
 
