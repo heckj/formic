@@ -2,6 +2,18 @@ import Dependencies
 import Foundation
 
 extension Host {
+
+    // This loosely represents a username and credentials, built for pass through to a command
+    // line version of `ssh` to invoke remote commands. Citadel SSH provides an API that requires
+    // a bit more detail about credentials, as it wants (needs) to know the specific kind of key
+    // (rsa vs dsa vs ed25519, etc) and loads the key into memory in order to pass it to the remote
+    // SSH server for authentication.
+
+    // If we want to leverage (or base more of the interactions) using Citadel SSH, this API
+    // probably needs to get updated to encapsulate the kind of key that was loaded by
+    // default. Currently, it tries to match how `ssh` on the CLI automatically looks for keys
+    // in the .ssh directory).
+
     /// SSH Credentials for accessing a remote host.
     public struct SSHAccessCredentials: Sendable {
         public let username: String

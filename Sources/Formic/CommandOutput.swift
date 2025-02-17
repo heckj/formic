@@ -1,6 +1,17 @@
 import Foundation
 
-/// The raw output of a shell command.
+/// The structured output of a shell command.
+///
+/// The API for invoking a process typically exposes a return code as well as potentially separate
+/// streams of data for standard output and standard error. CommandOutput captures those separately
+/// as raw data in order to pass it across concurrency isolation boundaries, store, or use the content
+/// of the output.
+///
+/// The standard output and standard error are stored as `Data`, with convenience properties to access
+/// them as `String` values, encoded using `UTF-8`.
+///
+/// To mimicking commands that aren't shell commands, use the convenience initializers:
+/// ``empty``, ``generalSuccess(msg:)``, ``generalFailure(msg:)``, and ``exceptionFailure()``.
 public struct CommandOutput: Sendable {
     /// The return code.
     public let returnCode: Int32

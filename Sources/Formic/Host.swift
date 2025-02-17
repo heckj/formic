@@ -1,6 +1,13 @@
 import ArgumentParser
 import Foundation
 
+// NOTE: this API is annoying named, as it conflicts with the Foundation type `Host`. I didn't
+// anticipate that when it was created, and I suspect the whole Host & credentials portion of this
+// API could really be refactored into a different structure that's more useful.
+
+// Most importantly, I wanted to keep the commands and the host they're acted upon, separate in the API
+// in order to allow the same set of commands to be run in parallel on multiple hosts.
+
 /// A local or remote host.
 public struct Host: Sendable {
     let remote: Bool

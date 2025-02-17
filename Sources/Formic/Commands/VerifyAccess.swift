@@ -3,6 +3,12 @@ import Foundation
 import Logging
 
 /// A command to verify access to a host.
+///
+/// This command attempts to SSH to the remote host and invoke a simple command to verify access.
+/// By default, this command will repeated with a backoff strategy if it fails, to provide time
+/// for a remote host to reboot or otherwise become accessible.
+///
+/// To verify a remote host is immediately access, set the `retry` parameter to `.never` when defining the command.
 public struct VerifyAccess: Command {
     /// A Boolean value that indicates whether a failing command should fail a playbook.
     public let ignoreFailure: Bool

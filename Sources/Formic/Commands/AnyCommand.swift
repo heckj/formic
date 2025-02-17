@@ -2,6 +2,10 @@ import Foundation
 import Logging
 
 /// A general command that is run against a host.
+///
+/// This allows you to provide an throwing closure that will be run as the execution logic for a command.
+/// The closure is provided a tuple of the `Host` and an optional `Logger` for recording output.
+/// The closure must return a `CommandOutput` object to indicate success or failure.
 public struct AnyCommand: Command {
     /// A Boolean value that indicates whether a failing command should fail a playbook.
     public let ignoreFailure: Bool
