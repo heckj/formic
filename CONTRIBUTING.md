@@ -9,7 +9,8 @@
   - discuss larger features or efforts in an [issue](https://github.com/heckj/formic/issues) first.
   - linting should pass before review.
   - all checks must pass before merging.
-  
+
+The library is developed with the following expectations:
 - Swift 6 language mode
 - macOS and Linux support
 - [swift-testing](https://developer.apple.com/documentation/testing/)
