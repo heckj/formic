@@ -11,7 +11,7 @@ import NIOCore  // to interact with ByteBuffer - otherwise it's opaquely buried 
 
 /// A command to run on a remote host.
 ///
-/// This command uses SSH to connect to a remote host and invoke a command on it.
+/// This (experimental) command uses the Citadel SSH library to connect to a remote host and invoke a command on it.
 /// Do not use shell control or redirect operators in the command string.
 public struct SSHCommand: Command {
     /// The command and arguments to run.

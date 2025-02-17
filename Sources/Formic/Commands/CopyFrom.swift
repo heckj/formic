@@ -4,8 +4,8 @@ import Logging
 
 /// A command to transfer a file from a remote URL into the host.
 ///
-/// This command requests the contents of the URL from where the playbook is executing.
-/// Once received, it transfers the file to the remote host using scp through a local shell.
+/// This command requests the contents of the URL, storing it temporarily on the local file system, before sending it to the host.
+/// Once the file is received locally, it is sent to the remote host using scp through a local shell.
 public struct CopyFrom: Command {
     /// The URL from which to copy the file.
     public let from: URL

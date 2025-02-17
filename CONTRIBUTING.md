@@ -36,6 +36,14 @@ That said, there's enough abstraction in the API (and I want to keep it so), tha
 There are a couple of internal code structures that are explicitly to support dependency injection. 
 Extend the existing ones or add your own as needed to support testing.
 
+The CI system with this package sends coverage data to CodeCov:
+
+- [CodeCov entry for formic](https://app.codecov.io/gh/heckj/formic)
+
+[![codecov](https://codecov.io/gh/heckj/formic/graph/badge.svg?token=BGzZDLrdjQ)](https://codecov.io/gh/heckj/formic)
+
+[![code coverag sunburst diagram](https://codecov.io/gh/heckj/formic/graphs/sunburst.svg?token=BGzZDLrdjQ)]
+
 ## Documentation
 
 As mentioned above, the `.swift-format` configuration is picky about ensuring documentation exists for public types and APIs, and that's verified on continuous integration.

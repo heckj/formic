@@ -6,6 +6,13 @@ import Logging
     import FoundationNetworking
 #endif
 
+// The "live" version for Dependency Injection (using Dependencies) implementing the CommandInvoker protocol.
+//
+// Dependency injection docs:
+// https://swiftpackageindex.com/pointfreeco/swift-dependencies/main/documentation/dependencies
+//
+// This is the code that directly works Foundation.Process() to run commands on the local machine.
+
 struct ProcessCommandInvoker: CommandInvoker {
     /// Invoke a local command.
     ///

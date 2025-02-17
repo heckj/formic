@@ -1,4 +1,4 @@
-/// The level of console output.
+/// The level and contents of output exposed.
 public enum Verbosity: Sendable, Hashable {
     /// Reports only failures
     case silent(emoji: Bool = false)

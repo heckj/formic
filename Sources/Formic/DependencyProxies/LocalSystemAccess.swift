@@ -2,6 +2,9 @@ import AsyncDNSResolver
 import Dependencies
 import Foundation
 
+// The "live" version for Dependency Injection (using Dependencies) accessing closures
+// that interact with a local system. The stuff **not** included in the CommandInvoker protocol.
+//
 // Dependency injection docs:
 // https://swiftpackageindex.com/pointfreeco/swift-dependencies/main/documentation/dependencies
 
