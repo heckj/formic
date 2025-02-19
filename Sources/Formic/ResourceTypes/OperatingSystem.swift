@@ -41,7 +41,7 @@ public struct OperatingSystem: SingularResource {
 
     /// Returns the state of the resource from the output of the shell command.
     /// - Parameter output: The string output of the shell command.
-    public static func parse(_ output: Data) -> Optional<OperatingSystem> {
+    public static func parse(_ output: Data) -> OperatingSystem? {
         do {
             guard let stringFromData: String = String(data: output, encoding: .utf8) else {
                 return Self(.unknown)

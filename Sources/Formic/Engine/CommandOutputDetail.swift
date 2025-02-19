@@ -1,4 +1,4 @@
-/// The level and contents of output exposed.
+/// The level and contents of output exposed for a command execution result.
 public enum CommandOutputDetail: Sendable, Hashable {
     /// Reports only failures
     case silent(emoji: Bool = false)

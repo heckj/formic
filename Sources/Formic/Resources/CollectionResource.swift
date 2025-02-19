@@ -49,7 +49,7 @@ extension CollectionResource {
     /// - Parameter name: The name of the resource to find.
     /// - Parameter host: The host to inspect for the resource.
     /// - Parameter logger: An optional logger to record the command output or errors.
-    static func query(_ name: String, from host: Host, logger: Logger?) async throws -> (Optional<Self>, Date) {
+    static func query(_ name: String, from host: Host, logger: Logger?) async throws -> (Self?, Date) {
         // default implementation:
 
         @Dependency(\.date.now) var date
