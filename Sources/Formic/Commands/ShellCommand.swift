@@ -49,26 +49,21 @@ public struct ShellCommand: Command {
     ///   - logger: An optional logger to record the command output or errors.
     /// - Returns: The combined output from the command execution.
     @discardableResult
-    public func run(host: Host, logger: Logger?) async throws -> CommandOutput {
+    public func run(host: RemoteHost, logger: Logger?) async throws -> CommandOutput {
         @Dependency(\.commandInvoker) var invoker: any CommandInvoker
-        if host.remote {
-            let sshCreds = host.sshAccessCredentials
-            let targetHostName = host.networkAddress.dnsName ?? host.networkAddress.address.description
-            return try await invoker.remoteShell(
-                host: targetHostName,
-                user: sshCreds.username,
-                identityFile: sshCreds.identityFile,
-                port: host.sshPort,
-                strictHostKeyChecking: host.strictHostKeyChecking,
-                cmd: commandString,
-                env: env,
-                logger: logger
-            )
-        } else {
-            let parsedArgsBySpace: [String] = commandString.split(separator: .whitespace).map(String.init)
-            return try await invoker.localShell(
-                cmd: parsedArgsBySpace, stdIn: nil, env: env, logger: logger)
-        }
+
+        let sshCreds = host.sshAccessCredentials
+        let targetHostName = host.networkAddress.dnsName ?? host.networkAddress.address.description
+        return try await invoker.remoteShell(
+            host: targetHostName,
+            user: sshCreds.username,
+            identityFile: sshCreds.identityFile,
+            port: host.sshPort,
+            strictHostKeyChecking: host.strictHostKeyChecking,
+            cmd: commandString,
+            env: env,
+            logger: logger
+        )
     }
 }
 

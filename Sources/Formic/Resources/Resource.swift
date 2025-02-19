@@ -13,7 +13,7 @@ public protocol Resource: Hashable, Sendable {
     /// - Parameter from: The host to inspect.
     /// - Parameter logger: An optional logger to record the command output or errors.
     /// - Returns: The resource, if it exists, and a timestamp at which is was checked.
-    func query(from: Host, logger: Logger?) async throws -> (Self?, Date)
+    func query(from: RemoteHost, logger: Logger?) async throws -> (Self?, Date)
 
 }
 
@@ -59,7 +59,7 @@ extension ParsedResource {
     /// - Parameter host: The host to inspect.
     /// - Parameter logger: An optional logger to record the command output or errors.
     /// - Returns: The the resource, if it exists, and the timestamp that it was last checked.
-    public func query(from host: Host, logger: Logger?) async throws -> (Self?, Date) {
+    public func query(from host: RemoteHost, logger: Logger?) async throws -> (Self?, Date) {
         // default implementation to get updated details from an _instance_ of a resource
 
         @Dependency(\.date.now) var date

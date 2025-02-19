@@ -1,6 +1,8 @@
-import Formic
+import Dependencies
 import Foundation
 import Testing
+
+@testable import Formic
 
 @Test("initializing a generic AnyCommand")
 func anyCommandInit() async throws {
@@ -13,7 +15,13 @@ func anyCommandInit() async throws {
     #expect(command.retry == .never)
     #expect(command.description == "myName")
 
-    let output = try await command.run(host: .localhost, logger: nil)
+    let localhost: RemoteHost = try withDependencies {
+        $0.localSystemAccess = TestFileSystemAccess()
+    } operation: {
+        try RemoteHost(RemoteHost.NetworkAddress.localhost)
+    }
+
+    let output = try await command.run(host: localhost, logger: nil)
     #expect(output.returnCode == 0)
     #expect(output.stdoutString == "done")
 }

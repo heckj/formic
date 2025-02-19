@@ -37,7 +37,7 @@ func testInvokingCopyIntoCommand() async throws {
         dependencyValues.localSystemAccess = TestFileSystemAccess(
             dnsName: "somewhere.com", ipAddressesToUse: ["8.8.8.8"])
     } operation: {
-        try await Host.resolve("somewhere.com")
+        try await RemoteHost.resolve("somewhere.com")
     }
 
     let cmdOut = try await withDependencies {

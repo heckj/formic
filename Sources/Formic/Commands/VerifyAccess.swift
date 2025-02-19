@@ -43,27 +43,21 @@ public struct VerifyAccess: Command {
     ///   - logger: An optional logger to record the command output or errors.
     /// - Returns: The combined output from the command execution.
     @discardableResult
-    public func run(host: Host, logger: Logger?) async throws -> CommandOutput {
+    public func run(host: RemoteHost, logger: Logger?) async throws -> CommandOutput {
         @Dependency(\.commandInvoker) var invoker: any CommandInvoker
         let command = "echo 'hello'"
 
-        let answer: CommandOutput
-        if host.remote {
-            let sshCreds = host.sshAccessCredentials
-            let targetHostName = host.networkAddress.dnsName ?? host.networkAddress.address.description
-            answer = try await invoker.remoteShell(
-                host: targetHostName,
-                user: sshCreds.username,
-                identityFile: sshCreds.identityFile,
-                port: host.sshPort,
-                strictHostKeyChecking: false,
-                cmd: command,
-                env: nil,
-                logger: logger)
-        } else {
-            answer = try await invoker.localShell(
-                cmd: ["echo", "'hello'"], stdIn: nil, env: nil, logger: logger)
-        }
+        let sshCreds = host.sshAccessCredentials
+        let targetHostName = host.networkAddress.dnsName ?? host.networkAddress.address.description
+        let answer = try await invoker.remoteShell(
+            host: targetHostName,
+            user: sshCreds.username,
+            identityFile: sshCreds.identityFile,
+            port: host.sshPort,
+            strictHostKeyChecking: false,
+            cmd: command,
+            env: nil,
+            logger: logger)
 
         if let answerString = answer.stdoutString, answerString.contains("hello") {
             return CommandOutput(returnCode: 0, stdOut: "hello".data(using: .utf8), stdErr: nil)

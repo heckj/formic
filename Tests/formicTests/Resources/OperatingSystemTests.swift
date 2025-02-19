@@ -29,11 +29,18 @@ func testOSStringInitializer() async throws {
 
 @Test("verify the OperatingSystem.singularInquiry(_:String) function")
 func testOperatingSystemSingularInquiry() async throws {
+
+    let localhost: RemoteHost = try withDependencies {
+        $0.localSystemAccess = TestFileSystemAccess()
+    } operation: {
+        try RemoteHost(RemoteHost.NetworkAddress.localhost)
+    }
+
     let shellResult: CommandOutput = try await withDependencies {
         $0.commandInvoker = TestCommandInvoker()
             .addSuccess(command: "uname", presentOutput: "Linux\n")
     } operation: {
-        try await OperatingSystem.inquiry.run(host: .localhost, logger: nil)
+        try await OperatingSystem.inquiry.run(host: localhost, logger: nil)
     }
 
     // results proxied for a linux host
@@ -51,13 +58,19 @@ func testOperatingSystemParse() async throws {
 @Test("test singular findResource for operating system")
 func testOperatingSystemQuery() async throws {
 
+    let localhost: RemoteHost = try withDependencies {
+        $0.localSystemAccess = TestFileSystemAccess()
+    } operation: {
+        try RemoteHost(RemoteHost.NetworkAddress.localhost)
+    }
+
     let (parsedOS, _) = try await withDependencies {
         $0.commandInvoker = TestCommandInvoker()
             .addSuccess(command: "uname", presentOutput: "Linux\n")
 
         $0.date.now = Date(timeIntervalSince1970: 1_234_567_890)
     } operation: {
-        try await OperatingSystem.query(from: .localhost, logger: nil)
+        try await OperatingSystem.query(from: localhost, logger: nil)
     }
 
     let os = try #require(parsedOS)
@@ -69,12 +82,18 @@ func testOperatingSystemInstanceQuery() async throws {
 
     let instance = OperatingSystem(.macOS)
 
+    let localhost: RemoteHost = try withDependencies {
+        $0.localSystemAccess = TestFileSystemAccess()
+    } operation: {
+        try RemoteHost(RemoteHost.NetworkAddress.localhost)
+    }
+
     let (parsedOS, _) = try await withDependencies {
         $0.commandInvoker = TestCommandInvoker()
             .addSuccess(command: "uname", presentOutput: "Linux\n")
         $0.date.now = Date(timeIntervalSince1970: 1_234_567_890)
     } operation: {
-        try await instance.query(from: .localhost, logger: nil)
+        try await instance.query(from: localhost, logger: nil)
     }
 
     let os = try #require(parsedOS)

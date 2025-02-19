@@ -94,7 +94,7 @@ public struct Dpkg: Sendable, Hashable, Resource {
         public var ignoreFailure: Bool
         public var retry: Backoff
         public var executionTimeout: Duration
-        public func run(host: Host, logger: Logger?) async throws -> CommandOutput {
+        public func run(host: RemoteHost, logger: Logger?) async throws -> CommandOutput {
             if try await Dpkg.resolve(state: self, on: host, logger: logger) {
                 return .generalSuccess(msg: "Resolved")
             } else {
@@ -160,7 +160,7 @@ extension Dpkg: StatefulResource {
     ///   - host: The host on which to find the resource.
     ///   - logger: An optional logger to record the command output or errors.
     /// - Returns: A tuple of the resource state and a timestamp for the state.
-    public static func query(state: DebianPackageDeclaration, from host: Host, logger: Logger?) async throws -> (
+    public static func query(state: DebianPackageDeclaration, from host: RemoteHost, logger: Logger?) async throws -> (
         Dpkg?, Date
     ) {
         return try await Dpkg.query(state.name, from: host, logger: logger)
@@ -172,7 +172,9 @@ extension Dpkg: StatefulResource {
     ///   - host: The host on which to resolve the resource.
     ///   - logger: An optional logger to record the command output or errors.
     /// - Returns: A tuple of the resource state and a timestamp for the state.
-    public static func resolve(state: DebianPackageDeclaration, on host: Host, logger: Logger?) async throws -> Bool {
+    public static func resolve(state: DebianPackageDeclaration, on host: RemoteHost, logger: Logger?) async throws
+        -> Bool
+    {
         let (currentState, _) = try await Dpkg.query(state.name, from: host, logger: logger)
         switch state.declaredState {
         case .present:

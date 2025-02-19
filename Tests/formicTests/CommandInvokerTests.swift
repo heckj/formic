@@ -74,9 +74,8 @@ func invokeRemoteCommandWithTilde() async throws {
     .tags(.integrationTest))
 func invokeVerifyAccess() async throws {
     let engine = Engine()
-    let orbStackAddress = try #require(Formic.Host.NetworkAddress("127.0.0.1"))
-    let orbStackHost = Formic.Host(
-        remote: true,
+    let orbStackAddress = try #require(Formic.RemoteHost.NetworkAddress("127.0.0.1"))
+    let orbStackHost = Formic.RemoteHost(
         address: orbStackAddress,
         sshPort: 32222,
         sshAccessCredentials: .init(

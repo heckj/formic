@@ -1,7 +1,7 @@
 import Dependencies
 import Foundation
 
-extension Host {
+extension RemoteHost {
 
     // This loosely represents a username and credentials, built for pass through to a command
     // line version of `ssh` to invoke remote commands. Citadel SSH provides an API that requires
@@ -69,5 +69,5 @@ extension Host {
     }
 }
 
-extension Host.SSHAccessCredentials: Hashable {}
-extension Host.SSHAccessCredentials: Codable {}
+extension RemoteHost.SSHAccessCredentials: Hashable {}
+extension RemoteHost.SSHAccessCredentials: Codable {}

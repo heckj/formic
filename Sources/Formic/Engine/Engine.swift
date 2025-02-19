@@ -28,7 +28,7 @@ public actor Engine {
     /// - Returns: A list of the results of the command executions.
     @discardableResult
     public func run(
-        host: Host,
+        host: RemoteHost,
         displayProgress: Bool,
         detailLevel: CommandOutputDetail = .silent(emoji: true),
         commands: [(any Command)]
@@ -61,14 +61,14 @@ public actor Engine {
     /// - Throws: Any exceptions that occur while running the commands.
     @discardableResult
     public func run(
-        hosts: [Host],
+        hosts: [RemoteHost],
         displayProgress: Bool,
         detailLevel: CommandOutputDetail = .silent(emoji: true),
         commands: [(any Command)]
     ) async throws
-        -> [Host: [CommandExecutionResult]]
+        -> [RemoteHost: [CommandExecutionResult]]
     {
-        var hostResults: [Host: [CommandExecutionResult]] = [:]
+        var hostResults: [RemoteHost: [CommandExecutionResult]] = [:]
 
         for host in hosts {
             async let resultsOfSingleHost = self.run(
@@ -85,7 +85,7 @@ public actor Engine {
     ///   - command: The command to run.
     /// - Returns: The result of the command execution.
     /// - Throws: exceptions from Task.sleep delay while retrying.
-    public nonisolated func run(host: Host, command: (any Command)) async throws
+    public nonisolated func run(host: RemoteHost, command: (any Command)) async throws
         -> CommandExecutionResult
     {
         // `nonisolated` + `async` means run on a cooperative thread pool and return the result
