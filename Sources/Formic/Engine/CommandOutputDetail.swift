@@ -1,5 +1,5 @@
 /// The level and contents of output exposed.
-public enum Verbosity: Sendable, Hashable {
+public enum CommandOutputDetail: Sendable, Hashable {
     /// Reports only failures
     case silent(emoji: Bool = false)
     /// Reports host and command with an indication of command success or failure.

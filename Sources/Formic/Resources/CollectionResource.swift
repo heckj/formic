@@ -22,7 +22,7 @@ extension CollectionResource {
     /// Queries the state of the resource from the given host.
     /// - Parameter host: The host to inspect.
     /// - Parameter logger: An optional logger to record the command output or errors.
-    /// - Returns: The state of the resource and the time that it was last updated.
+    /// - Returns: A list of the resources found, and the timestamp when it was checked.
     public static func queryCollection(from host: Host, logger: Logger?) async throws -> ([Self], Date) {
         // default implementation:
 
@@ -45,11 +45,11 @@ extension CollectionResource {
         }
     }
 
-    /// Returns the individual resource from a collection for the host you provide.
+    /// Returns the individual resource, if it exists, and the timestamp of the check from a resource collection and host that you provide.
     /// - Parameter name: The name of the resource to find.
     /// - Parameter host: The host to inspect for the resource.
     /// - Parameter logger: An optional logger to record the command output or errors.
-    static func query(_ name: String, from host: Host, logger: Logger?) async throws -> (Self, Date) {
+    static func query(_ name: String, from host: Host, logger: Logger?) async throws -> (Optional<Self>, Date) {
         // default implementation:
 
         @Dependency(\.date.now) var date

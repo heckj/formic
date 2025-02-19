@@ -42,12 +42,12 @@ public struct CommandExecutionResult: Sendable {
 extension CommandExecutionResult {
     /// Returns a possibly multi-line string representation of the command execution result.
     /// - Parameter verbosity: The verbosity level of the output.
-    public func consoleOutput(verbosity: Verbosity) -> String {
+    public func consoleOutput(detailLevel: CommandOutputDetail) -> String {
         let style = Duration.TimeFormatStyle(pattern: .hourMinuteSecond(padHourToLength: 2))
         let formattedDuration = duration.formatted(style)  // "00:00:02".
 
         var stringOutput = ""
-        switch verbosity {
+        switch detailLevel {
         case .silent(emoji: let includeEmoji):
             if includeEmoji {
                 stringOutput.append(emojiString())

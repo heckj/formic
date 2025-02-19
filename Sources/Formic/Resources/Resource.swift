@@ -12,29 +12,30 @@ public protocol Resource: Hashable, Sendable {
     /// Queries the state of the resource from the given host.
     /// - Parameter from: The host to inspect.
     /// - Parameter logger: An optional logger to record the command output or errors.
-    /// - Returns: The state of the resource.
-    func query(from: Host, logger: Logger?) async throws -> (Self, Date)
+    /// - Returns: The resource, if it exists, and a timestamp at which is was checked.
+    func query(from: Host, logger: Logger?) async throws -> (Optional<Self>, Date)
+    
 }
 
 /// A resource that provides an inquiry command and parser to return the state of the resource.
 public protocol ParsedResource: Resource {
     /// The command to use to get the state for this resource.
     var inquiry: (any Command) { get }
-    /// Returns the state of the resource from the output of the shell command.
+    /// Returns the resource, if it exists, from the output of the shell command, otherwise nil.
     /// - Parameter output: The string output of the shell command.
     /// - Throws: Any errors parsing the output.
-    static func parse(_ output: Data) throws -> Self
+    static func parse(_ output: Data) throws -> Optional<Self>
 }
 
 // IMPLEMENTATION NOTE:
 // Requirement 0 - persist-able and comparable
-//    - `Codable`, `Hashable`
+//    - `Hashable` - maybe `Codable` down the road.
 // (I want to be able to persist a "last known state" - or the information needed to determine
 // its state - and be able to read it back in again in another "run".) Right now, I'm only requiring
 // Hashable and Sendable while I work out how to use them in a larger scope, and where I might want
 // to apply persistence (Codable) down the road (expected in the "Operator" use case).
 
-// 1 - a way query the current state - the fundamental aspect of a resource.
+// Requirement 1 - a way query the current state, the fundamental aspect of a resource.
 //    - It's starting off with an expected pattern of a command (run on a host).
 //      The command returns an output that can be parsed into the resource type.
 //      Implementations should be able to provide a command to run, and a parser to do the
@@ -57,8 +58,8 @@ extension ParsedResource {
     /// Queries the state of the resource from the given host.
     /// - Parameter host: The host to inspect.
     /// - Parameter logger: An optional logger to record the command output or errors.
-    /// - Returns: The state of the resource and the time that it was last updated.
-    public func query(from host: Host, logger: Logger?) async throws -> (Self, Date) {
+    /// - Returns: The the resource, if it exists, and the timestamp that it was last checked.
+    public func query(from host: Host, logger: Logger?) async throws -> (Optional<Self>, Date) {
         // default implementation to get updated details from an _instance_ of a resource
 
         @Dependency(\.date.now) var date
