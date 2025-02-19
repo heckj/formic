@@ -23,12 +23,11 @@ public struct Dpkg: Sendable, Hashable, Resource {
     public static func namedInquiry(_ name: String) -> (any Command) {
         ShellCommand("dpkg -l \(name)")
     }
-    
+
     // this example works for when a package exists, but not when it doesn't... it'll (I think)
     // lean on throwing an exception.
     // ex: heckj@ubuntu:~$ dpkg -l fredbird
     // dpkg-query: no packages found matching fredbird
-
 
     /// The command to use to get the state for this resource.
     public var inquiry: (any Command) {
@@ -38,7 +37,7 @@ public struct Dpkg: Sendable, Hashable, Resource {
     /// Returns the state of the resource from the output of the shell command.
     /// - Parameter output: The string output of the shell command.
     /// - Throws: Any errors parsing the output.
-    public static func parse(_ output: Data) throws -> Optional<Dpkg> {
+    public static func parse(_ output: Data) throws -> Dpkg? {
         guard let stringFromData: String = String(data: output, encoding: .utf8) else {
             throw ResourceError.notAString
         }
@@ -137,7 +136,7 @@ public struct Dpkg: Sendable, Hashable, Resource {
 }
 
 extension Dpkg: CollectionResource {
-    
+
     /// The shell command to use to get the state for this resource.
     public static var collectionInquiry: (any Command) {
         ShellCommand("dpkg -l")
@@ -162,7 +161,7 @@ extension Dpkg: StatefulResource {
     ///   - logger: An optional logger to record the command output or errors.
     /// - Returns: A tuple of the resource state and a timestamp for the state.
     public static func query(state: DebianPackageDeclaration, from host: Host, logger: Logger?) async throws -> (
-        Optional<Dpkg>, Date
+        Dpkg?, Date
     ) {
         return try await Dpkg.query(state.name, from: host, logger: logger)
     }
@@ -206,9 +205,9 @@ extension Dpkg: StatefulResource {
                     return false
                 }
             }
-            // The 'absent' case works for removing an existing package, but if a package never existed
-            // then there's no concept of 'absent' vs 'unknown' in the dpkg system, so it'll attempt
-            // to invoke the `apt-get remove` regardless of it being missing.
+        // The 'absent' case works for removing an existing package, but if a package never existed
+        // then there's no concept of 'absent' vs 'unknown' in the dpkg system, so it'll attempt
+        // to invoke the `apt-get remove` regardless of it being missing.
         }
     }
 }

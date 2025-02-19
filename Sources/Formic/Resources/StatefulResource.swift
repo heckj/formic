@@ -42,8 +42,8 @@ public protocol StatefulResource<DeclarativeStateType>: Resource {
     ///   - host: The host on which to find the resource.
     ///   - logger: An optional logger to record the command output or errors.
     /// - Returns: A tuple of the resource, if it exists, and a timestamp of the check.
-    static func query(state: DeclarativeStateType, from host: Host, logger: Logger?) async throws -> (Optional<Self>, Date)
-    
+    static func query(state: DeclarativeStateType, from host: Host, logger: Logger?) async throws -> (Self?, Date)
+
     /// Queries and attempts to resolve the update to the desired state you provide.
     /// - Parameters:
     ///   - state: The declaration that identifies the resource and its desired state.
