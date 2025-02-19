@@ -30,7 +30,7 @@ public actor Engine {
     public func run(
         host: Host,
         displayProgress: Bool,
-        verbosity: Verbosity = .silent(emoji: true),
+        detailLevel: CommandOutputDetail = .silent(emoji: true),
         commands: [(any Command)]
     ) async throws -> [CommandExecutionResult] {
         var results: [CommandExecutionResult] = []
@@ -40,7 +40,7 @@ public actor Engine {
             let result = try await run(host: host, command: command)
             results.append(result)
             if displayProgress {
-                logger?.info("\(result.consoleOutput(verbosity: verbosity))")
+                logger?.info("\(result.consoleOutput(detailLevel: detailLevel))")
             }
             if result.representsFailure() {
                 logger?.debug("result: \(result) represents failure - breaking")
@@ -63,7 +63,7 @@ public actor Engine {
     public func run(
         hosts: [Host],
         displayProgress: Bool,
-        verbosity: Verbosity = .silent(emoji: true),
+        detailLevel: CommandOutputDetail = .silent(emoji: true),
         commands: [(any Command)]
     ) async throws
         -> [Host: [CommandExecutionResult]]
@@ -72,7 +72,7 @@ public actor Engine {
 
         for host in hosts {
             async let resultsOfSingleHost = self.run(
-                host: host, displayProgress: displayProgress, verbosity: verbosity, commands: commands)
+                host: host, displayProgress: displayProgress, detailLevel: detailLevel, commands: commands)
             hostResults[host] = try await resultsOfSingleHost
         }
 

@@ -85,5 +85,5 @@ func invokeVerifyAccess() async throws {
         strictHostKeyChecking: false)
 
     let result = try await engine.run(host: orbStackHost, command: VerifyAccess())
-    print(result.consoleOutput(verbosity: .verbose(emoji: true)))
+    print(result.consoleOutput(detailLevel: .verbose(emoji: true)))
 }

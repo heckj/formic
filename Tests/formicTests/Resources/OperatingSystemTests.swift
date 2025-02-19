@@ -45,7 +45,7 @@ func testOperatingSystemSingularInquiry() async throws {
 @Test("verify the OperatingSystem.parse(_:String) function")
 func testOperatingSystemParse() async throws {
     let dataToParse: Data = try #require("Linux\n".data(using: .utf8))
-    #expect(OperatingSystem.parse(dataToParse).name == .linux)
+    #expect(OperatingSystem.parse(dataToParse)?.name == .linux)
 }
 
 @Test("test singular findResource for operating system")
@@ -60,7 +60,8 @@ func testOperatingSystemQuery() async throws {
         try await OperatingSystem.query(from: .localhost, logger: nil)
     }
 
-    #expect(parsedOS.name == .linux)
+    let os = try #require(parsedOS)
+    #expect(os.name == .linux)
 }
 
 @Test("test instance queryResource for operating system")
@@ -76,5 +77,6 @@ func testOperatingSystemInstanceQuery() async throws {
         try await instance.query(from: .localhost, logger: nil)
     }
 
-    #expect(parsedOS.name == .linux)
+    let os = try #require(parsedOS)
+    #expect(os.name == .linux)
 }
