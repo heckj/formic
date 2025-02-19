@@ -25,8 +25,6 @@ public struct RemoteHost: Sendable {
     /// Creates a new host without attempting DNS resolution.
     ///
     /// The initializer may return nil if the name isn't a valid network address.
-    /// Use the name `localhost` to ensure all commands are run locally.
-    /// Use the name `127.0.0.1` to access a remote host through a port forwarding setup.
     ///
     /// - Parameters:
     ///   - name: The network address of the host.
@@ -39,19 +37,12 @@ public struct RemoteHost: Sendable {
         strictHostKeyChecking: Bool = false
     ) throws {
         let creds = try SSHAccessCredentials(username: sshUser, identityFile: sshIdentityFile)
-        if let address = NetworkAddress(name) {
-            if name == "localhost" {
-                self.init(
-                    address: address, sshPort: sshPort, sshAccessCredentials: creds,
-                    strictHostKeyChecking: strictHostKeyChecking)
-            } else {
-                self.init(
-                    address: address, sshPort: sshPort, sshAccessCredentials: creds,
-                    strictHostKeyChecking: strictHostKeyChecking)
-            }
-        } else {
+        guard let address = NetworkAddress(name) else {
             return nil
         }
+        self.init(
+            address: address, sshPort: sshPort, sshAccessCredentials: creds,
+            strictHostKeyChecking: strictHostKeyChecking)
     }
 
     /// Creates a new host using the NetworkAddress you provide.
@@ -73,15 +64,9 @@ public struct RemoteHost: Sendable {
         strictHostKeyChecking: Bool = false
     ) throws {
         let creds = try SSHAccessCredentials(username: sshUser, identityFile: sshIdentityFile)
-        if networkAddress.dnsName == "localhost" {
-            self.init(
-                address: networkAddress, sshPort: sshPort, sshAccessCredentials: creds,
-                strictHostKeyChecking: strictHostKeyChecking)
-        } else {
-            self.init(
-                address: networkAddress, sshPort: sshPort, sshAccessCredentials: creds,
-                strictHostKeyChecking: strictHostKeyChecking)
-        }
+        self.init(
+            address: networkAddress, sshPort: sshPort, sshAccessCredentials: creds,
+            strictHostKeyChecking: strictHostKeyChecking)
     }
 
     /// Creates a new host using DNS name resolution.
