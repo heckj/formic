@@ -7,7 +7,7 @@ import Testing
 
 @Test("initializing asserted network credentials")
 func validSSHCredentials() async throws {
-    let assertedCredentials = Host.SSHAccessCredentials(username: "docker-user", identityFile: "~/.ssh/id_rsa")
+    let assertedCredentials = RemoteHost.SSHAccessCredentials(username: "docker-user", identityFile: "~/.ssh/id_rsa")
 
     #expect(assertedCredentials.username == "docker-user")
     #expect(assertedCredentials.identityFile == "~/.ssh/id_rsa")
@@ -17,10 +17,10 @@ func validSSHCredentials() async throws {
 func homeDirDependencyOverride() async throws {
     // Dependency injection docs:
     // https://swiftpackageindex.com/pointfreeco/swift-dependencies/main/documentation/dependencies
-    let testCredentials: Formic.Host.SSHAccessCredentials = try withDependencies { dependencyValues in
+    let testCredentials: Formic.RemoteHost.SSHAccessCredentials = try withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess(sshIdMatch: .rsa)
     } operation: {
-        try Host.SSHAccessCredentials()
+        try RemoteHost.SSHAccessCredentials()
     }
 
     try #require(testCredentials != nil)
@@ -31,10 +31,10 @@ func homeDirDependencyOverride() async throws {
 @Test("default home directory w/ dsa id")
 func homeDirDependencyOverrideDSA() async throws {
 
-    let testCredentials: Formic.Host.SSHAccessCredentials? = try withDependencies { dependencyValues in
+    let testCredentials: Formic.RemoteHost.SSHAccessCredentials? = try withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess(sshIdMatch: .dsa)
     } operation: {
-        try Host.SSHAccessCredentials()
+        try RemoteHost.SSHAccessCredentials()
     }
 
     try #require(testCredentials != nil)
@@ -46,10 +46,10 @@ func homeDirDependencyOverrideDSA() async throws {
 func homeDirDependencyOverrideED25519() async throws {
     // Dependency injection docs:
     // https://swiftpackageindex.com/pointfreeco/swift-dependencies/main/documentation/dependencies
-    let testCredentials: Formic.Host.SSHAccessCredentials = try withDependencies { dependencyValues in
+    let testCredentials: Formic.RemoteHost.SSHAccessCredentials = try withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess(sshIdMatch: .ed25519)
     } operation: {
-        try Host.SSHAccessCredentials()
+        try RemoteHost.SSHAccessCredentials()
     }
 
     try #require(testCredentials != nil)

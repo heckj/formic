@@ -12,7 +12,7 @@ public protocol CollectionResource: ParsedResource {
     /// Returns a list of resources for the host you provide.
     /// - Parameter from: The host to inspect.
     /// - Parameter logger: An optional logger to record the command output or errors.
-    static func queryCollection(from: Host, logger: Logger?) async throws -> ([Self], Date)
+    static func queryCollection(from: RemoteHost, logger: Logger?) async throws -> ([Self], Date)
     /// Returns an inquiry command that retrieves the output to parse into a resource.
     /// - Parameter name: The name of the resource to find.
     static func namedInquiry(_ name: String) -> (any Command)
@@ -23,7 +23,7 @@ extension CollectionResource {
     /// - Parameter host: The host to inspect.
     /// - Parameter logger: An optional logger to record the command output or errors.
     /// - Returns: A list of the resources found, and the timestamp when it was checked.
-    public static func queryCollection(from host: Host, logger: Logger?) async throws -> ([Self], Date) {
+    public static func queryCollection(from host: RemoteHost, logger: Logger?) async throws -> ([Self], Date) {
         // default implementation:
 
         @Dependency(\.date.now) var date
@@ -49,7 +49,7 @@ extension CollectionResource {
     /// - Parameter name: The name of the resource to find.
     /// - Parameter host: The host to inspect for the resource.
     /// - Parameter logger: An optional logger to record the command output or errors.
-    static func query(_ name: String, from host: Host, logger: Logger?) async throws -> (Self?, Date) {
+    static func query(_ name: String, from host: RemoteHost, logger: Logger?) async throws -> (Self?, Date) {
         // default implementation:
 
         @Dependency(\.date.now) var date

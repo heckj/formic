@@ -3,7 +3,7 @@ public struct CommandExecutionResult: Sendable {
     /// The command.
     public let command: any Command
     /// The host for the command.
-    public let host: Host
+    public let host: RemoteHost
     /// The output from the command.
     public let output: CommandOutput
     /// The duration of execution of the command.
@@ -22,7 +22,7 @@ public struct CommandExecutionResult: Sendable {
     ///   - retries: The number of retries needed for the command.
     ///   - exception: The description of the exception thrown while invoking the command, if any.
     public init(
-        command: any Command, host: Host, output: CommandOutput, duration: Duration,
+        command: any Command, host: RemoteHost, output: CommandOutput, duration: Duration,
         retries: Int, exception: (any Error)?
     ) {
         self.command = command

@@ -1,3 +1,4 @@
+import Dependencies
 import Testing
 
 @testable import Formic
@@ -10,24 +11,30 @@ func testEmojiForExecutionOuput() async throws {
     let successOutput = CommandOutput(returnCode: 0, stdOut: "Darwin\n".data(using: .utf8), stdErr: nil)
     let failureOutput = CommandOutput(returnCode: -1, stdOut: nil, stdErr: "I'm not telling you!\n".data(using: .utf8))
 
+    let localhost: RemoteHost = try withDependencies {
+        $0.localSystemAccess = TestFileSystemAccess()
+    } operation: {
+        try RemoteHost(RemoteHost.NetworkAddress.localhost)
+    }
+
     #expect(
         CommandExecutionResult(
-            command: cmd, host: .localhost, output: successOutput, duration: .milliseconds(1),
+            command: cmd, host: localhost, output: successOutput, duration: .milliseconds(1),
             retries: 0, exception: nil
         ).emojiString() == "✅")
     #expect(
         CommandExecutionResult(
-            command: cmdIgnoreFailure, host: .localhost, output: failureOutput,
+            command: cmdIgnoreFailure, host: localhost, output: failureOutput,
             duration: .milliseconds(1), retries: 0, exception: nil
         ).emojiString() == "⚠️")
     #expect(
         CommandExecutionResult(
-            command: cmd, host: .localhost, output: failureOutput, duration: .milliseconds(1),
+            command: cmd, host: localhost, output: failureOutput, duration: .milliseconds(1),
             retries: 0, exception: nil
         ).emojiString() == "❌")
     #expect(
         CommandExecutionResult(
-            command: cmd, host: .localhost, output: failureOutput, duration: .milliseconds(1),
+            command: cmd, host: localhost, output: failureOutput, duration: .milliseconds(1),
             retries: 0, exception: TestError.unknown(msg: "Error desc")
 
         ).emojiString() == "🚫")
@@ -39,23 +46,29 @@ func testConsoleOutputForExecutionOuput() async throws {
     let cmd = ShellCommand("uname")
     let cmdIgnoreFailure = ShellCommand("uname", ignoreFailure: true)
 
+    let localhost: RemoteHost = try withDependencies {
+        $0.localSystemAccess = TestFileSystemAccess()
+    } operation: {
+        try RemoteHost(RemoteHost.NetworkAddress.localhost)
+    }
+
     let successOutput = CommandOutput(returnCode: 0, stdOut: "Darwin\n".data(using: .utf8), stdErr: nil)
     let failureOutput = CommandOutput(returnCode: -1, stdOut: nil, stdErr: "I'm not telling you!\n".data(using: .utf8))
 
     let successResult = CommandExecutionResult(
-        command: cmd, host: .localhost, output: successOutput, duration: .milliseconds(1), retries: 0,
+        command: cmd, host: localhost, output: successOutput, duration: .milliseconds(1), retries: 0,
         exception: nil)
 
     let failureResult = CommandExecutionResult(
-        command: cmd, host: .localhost, output: failureOutput, duration: .milliseconds(1), retries: 0,
+        command: cmd, host: localhost, output: failureOutput, duration: .milliseconds(1), retries: 0,
         exception: nil)
 
     let ignoreFailureResult = CommandExecutionResult(
-        command: cmdIgnoreFailure, host: .localhost, output: failureOutput, duration: .milliseconds(1),
+        command: cmdIgnoreFailure, host: localhost, output: failureOutput, duration: .milliseconds(1),
         retries: 0, exception: nil)
 
     let exceptionResult = CommandExecutionResult(
-        command: cmd, host: .localhost, output: failureOutput, duration: .milliseconds(1), retries: 0,
+        command: cmd, host: localhost, output: failureOutput, duration: .milliseconds(1), retries: 0,
         exception: TestError.unknown(msg: "exception reported"))
 
     //TODO: This is probably more sanely refactored into parameterized tests

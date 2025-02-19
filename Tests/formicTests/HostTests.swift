@@ -10,7 +10,7 @@ func initHost() async throws {
     let host = try withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess()
     } operation: {
-        try Host("localhost")
+        try RemoteHost("localhost")
     }
 
     #expect(host != nil)
@@ -27,10 +27,9 @@ func initHostWithLocalHostName() async throws {
     let host = try withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess()
     } operation: {
-        try Host("localhost")
+        try RemoteHost("localhost")
     }
     #expect(host != nil)
-    #expect(host?.remote == false)
 }
 
 @Test("Host initializer using localhost address should be marked remote")
@@ -38,8 +37,7 @@ func initHostWithLocalHostAddress() async throws {
     let host = try withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = TestFileSystemAccess()
     } operation: {
-        try Host("127.0.0.1")
+        try RemoteHost("127.0.0.1")
     }
     #expect(host != nil)
-    #expect(host?.remote == true)
 }

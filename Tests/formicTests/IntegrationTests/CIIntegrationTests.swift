@@ -61,14 +61,14 @@ func invokeBasicCommandOverSSH() async throws {
         throw CITestError.general(msg: "MISSING ENVIRONMENT VARIABLE - SSH_USERNAME")
     }
 
-    let host: Formic.Host? = try await withDependencies { dependencyValues in
+    let host: Formic.RemoteHost? = try await withDependencies { dependencyValues in
         dependencyValues.localSystemAccess = LiveLocalSystemAccess()
     } operation: {
-        try await Formic.Host.resolve(
+        try await Formic.RemoteHost.resolve(
             hostname, sshPort: port, sshUser: username, sshIdentityFile: "Tests/formicTests/Fixtures/id_ed25519",
             strictHostKeyChecking: false)
     }
-    let explicitHost: Formic.Host = try #require(host)
+    let explicitHost: Formic.RemoteHost = try #require(host)
 
     let output: CommandOutput = try await withDependencies { dependencyValues in
         dependencyValues.commandInvoker = ProcessCommandInvoker()

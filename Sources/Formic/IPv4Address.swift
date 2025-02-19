@@ -1,7 +1,7 @@
 import ArgumentParser
 import RegexBuilder
 
-extension Host {
+extension RemoteHost {
 
     /// An IPv4 address.
     public struct IPv4Address: LosslessStringConvertible, Sendable {
@@ -77,9 +77,9 @@ extension Host {
     }
 }
 
-extension Host.IPv4Address: ExpressibleByArgument {}
+extension RemoteHost.IPv4Address: ExpressibleByArgument {}
 
-extension Host.IPv4Address: Hashable {
+extension RemoteHost.IPv4Address: Hashable {
     /// Returns a Boolean value that indicates whether two IPv4 addresses are equal.
     /// - Parameters:
     ///   - lhs: the first address to compare.
@@ -98,7 +98,7 @@ extension Host.IPv4Address: Hashable {
     }
 }
 
-extension Host.IPv4Address: Codable {
+extension RemoteHost.IPv4Address: Codable {
     /// Creates an IPv4 address from a decoder.
     /// - Parameter decoder: The decoder to read data from.
     public init(from decoder: Decoder) throws {

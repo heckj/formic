@@ -1,17 +1,8 @@
 import ArgumentParser
 import Foundation
 
-// NOTE: this API is annoying named, as it conflicts with the Foundation type `Host`. I didn't
-// anticipate that when it was created, and I suspect the whole Host & credentials portion of this
-// API could really be refactored into a different structure that's more useful.
-
-// Most importantly, I wanted to keep the commands and the host they're acted upon, separate in the API
-// in order to allow the same set of commands to be run in parallel on multiple hosts.
-
 /// A local or remote host.
-public struct Host: Sendable {
-    let remote: Bool
-
+public struct RemoteHost: Sendable {
     /// The network address.
     public let networkAddress: NetworkAddress
     /// The port to use for SSH access.
@@ -21,16 +12,10 @@ public struct Host: Sendable {
     /// A Boolean value that indicates whether to enable strict host checking during SSH connections.
     public let strictHostKeyChecking: Bool
 
-    /// A host reference to localhost.
-    public static let localhost = Host(
-        remote: false, address: .localhost, sshPort: 22,
-        sshAccessCredentials: SSHAccessCredentials(username: "", identityFile: ""), strictHostKeyChecking: false)
-
     init(
-        remote: Bool, address: NetworkAddress, sshPort: Int, sshAccessCredentials: SSHAccessCredentials,
+        address: NetworkAddress, sshPort: Int, sshAccessCredentials: SSHAccessCredentials,
         strictHostKeyChecking: Bool
     ) {
-        self.remote = remote
         self.networkAddress = address
         self.sshPort = sshPort
         self.sshAccessCredentials = sshAccessCredentials
@@ -57,11 +42,11 @@ public struct Host: Sendable {
         if let address = NetworkAddress(name) {
             if name == "localhost" {
                 self.init(
-                    remote: false, address: address, sshPort: sshPort, sshAccessCredentials: creds,
+                    address: address, sshPort: sshPort, sshAccessCredentials: creds,
                     strictHostKeyChecking: strictHostKeyChecking)
             } else {
                 self.init(
-                    remote: true, address: address, sshPort: sshPort, sshAccessCredentials: creds,
+                    address: address, sshPort: sshPort, sshAccessCredentials: creds,
                     strictHostKeyChecking: strictHostKeyChecking)
             }
         } else {
@@ -90,19 +75,16 @@ public struct Host: Sendable {
         let creds = try SSHAccessCredentials(username: sshUser, identityFile: sshIdentityFile)
         if networkAddress.dnsName == "localhost" {
             self.init(
-                remote: false, address: networkAddress, sshPort: sshPort, sshAccessCredentials: creds,
+                address: networkAddress, sshPort: sshPort, sshAccessCredentials: creds,
                 strictHostKeyChecking: strictHostKeyChecking)
         } else {
             self.init(
-                remote: true, address: networkAddress, sshPort: sshPort, sshAccessCredentials: creds,
+                address: networkAddress, sshPort: sshPort, sshAccessCredentials: creds,
                 strictHostKeyChecking: strictHostKeyChecking)
         }
     }
 
     /// Creates a new host using DNS name resolution.
-    ///
-    /// Use the name `localhost` to ensure all commands are run locally.
-    /// Use the name `127.0.0.1` to access a remote host through port forwarding.
     ///
     /// - Parameters:
     ///   - name: The DNS name or network address of the host.
@@ -116,15 +98,11 @@ public struct Host: Sendable {
         sshUser: String? = nil,
         sshIdentityFile: String? = nil,
         strictHostKeyChecking: Bool = false
-    ) async throws -> Host {
+    ) async throws -> RemoteHost {
         let creds = try SSHAccessCredentials(username: sshUser, identityFile: sshIdentityFile)
-        if name == "localhost" {
-            return Host(
-                remote: false, address: .localhost, sshPort: sshPort, sshAccessCredentials: creds,
-                strictHostKeyChecking: strictHostKeyChecking)
-        } else if let address = await NetworkAddress.resolve(name) {
-            return Host(
-                remote: true, address: address, sshPort: sshPort, sshAccessCredentials: creds,
+        if let address = await NetworkAddress.resolve(name) {
+            return RemoteHost(
+                address: address, sshPort: sshPort, sshAccessCredentials: creds,
                 strictHostKeyChecking: strictHostKeyChecking)
         } else {
             throw CommandError.failedToResolveHost(name: name)
@@ -132,25 +110,21 @@ public struct Host: Sendable {
     }
 }
 
-extension Host: CustomDebugStringConvertible {
+extension RemoteHost: CustomDebugStringConvertible {
     /// The debug description of the host.
     public var debugDescription: String {
-        "\(remote ? "remote": "local") host \(networkAddress)@\(sshPort), user: \(sshAccessCredentials), \(strictHostKeyChecking ? "strict key checking": "disabled key checking")"
+        "host \(networkAddress)@\(sshPort), user: \(sshAccessCredentials), \(strictHostKeyChecking ? "strict key checking": "disabled key checking")"
     }
 }
 
-extension Host: CustomStringConvertible {
+extension RemoteHost: CustomStringConvertible {
     /// The description of the host.
     public var description: String {
-        if remote {
-            return "\(self.sshAccessCredentials.username)@\(networkAddress)"
-        } else {
-            return "localhost"
-        }
+        return "\(self.sshAccessCredentials.username)@\(networkAddress)"
     }
 }
 
-extension Host: ExpressibleByArgument {
+extension RemoteHost: ExpressibleByArgument {
     /// Creates a new host from a string.
     /// - Parameter argument: The argument to parse as a host.
     public init?(argument: String) {
@@ -158,5 +132,5 @@ extension Host: ExpressibleByArgument {
     }
 }
 
-extension Host: Hashable {}
-extension Host: Codable {}
+extension RemoteHost: Hashable {}
+extension RemoteHost: Codable {}

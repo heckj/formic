@@ -49,7 +49,7 @@ public struct CopyFrom: Command {
     ///   - logger: An optional logger to record the command output or errors.
     /// - Returns: The combined output from the command execution.
     @discardableResult
-    public func run(host: Host, logger: Logger?) async throws -> CommandOutput {
+    public func run(host: RemoteHost, logger: Logger?) async throws -> CommandOutput {
         @Dependency(\.commandInvoker) var invoker: any CommandInvoker
         let tempFile = FileManager.default.temporaryDirectory.appendingPathComponent(from.lastPathComponent)
         do {
@@ -59,22 +59,17 @@ public struct CopyFrom: Command {
             return CommandOutput(
                 returnCode: -1, stdOut: nil, stdErr: "Unable to retrieve file: \(error)".data(using: .utf8))
         }
-        if host.remote {
-            let sshCreds = host.sshAccessCredentials
-            let targetHostName = host.networkAddress.dnsName ?? host.networkAddress.address.description
-            return try await invoker.remoteCopy(
-                host: targetHostName,
-                user: sshCreds.username,
-                identityFile: sshCreds.identityFile,
-                port: host.sshPort,
-                strictHostKeyChecking: false,
-                localPath: tempFile.path,
-                remotePath: destinationPath,
-                logger: logger)
-        } else {
-            return try await invoker.localShell(
-                cmd: ["cp", tempFile.path, destinationPath], stdIn: nil, env: nil, logger: logger)
-        }
+        let sshCreds = host.sshAccessCredentials
+        let targetHostName = host.networkAddress.dnsName ?? host.networkAddress.address.description
+        return try await invoker.remoteCopy(
+            host: targetHostName,
+            user: sshCreds.username,
+            identityFile: sshCreds.identityFile,
+            port: host.sshPort,
+            strictHostKeyChecking: false,
+            localPath: tempFile.path,
+            remotePath: destinationPath,
+            logger: logger)
     }
 }
 

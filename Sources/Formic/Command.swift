@@ -18,5 +18,5 @@ public protocol Command: Sendable, Identifiable, Hashable {
     ///   - host: The host on which the command is run.
     ///   - logger: An optional logger to record the command output or errors.
     /// - Returns: The combined output from the command execution.
-    func run(host: Host, logger: Logger?) async throws -> CommandOutput
+    func run(host: RemoteHost, logger: Logger?) async throws -> CommandOutput
 }

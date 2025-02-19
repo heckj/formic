@@ -16,7 +16,7 @@ public struct AnyCommand: Command {
     /// The ID of the command.
     public let id: UUID
     let name: String
-    let commandClosure: @Sendable (Host, Logger?) async throws -> CommandOutput
+    let commandClosure: @Sendable (RemoteHost, Logger?) async throws -> CommandOutput
 
     /// Invokes a command on the host to verify access.
     /// - Parameters:
@@ -30,7 +30,7 @@ public struct AnyCommand: Command {
         ignoreFailure: Bool,
         retry: Backoff,
         executionTimeout: Duration,
-        commandClosure: @escaping @Sendable (Host, Logger?) async throws -> CommandOutput
+        commandClosure: @escaping @Sendable (RemoteHost, Logger?) async throws -> CommandOutput
     ) {
         self.retry = retry
         self.ignoreFailure = ignoreFailure
@@ -46,7 +46,7 @@ public struct AnyCommand: Command {
     ///   - logger: An optional logger to record the command output or errors.
     /// - Returns: The combined output from the command execution.
     @discardableResult
-    public func run(host: Host, logger: Logger?) async throws -> CommandOutput {
+    public func run(host: RemoteHost, logger: Logger?) async throws -> CommandOutput {
         try await commandClosure(host, logger)
     }
 }

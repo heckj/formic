@@ -16,7 +16,7 @@ import Dependencies
 // often representing either a CDN or a load balancer somewhere, while the thing I want to reach into
 // and configure is available as an IP address, sometimes only available through another bastion host.
 
-extension Host {
+extension RemoteHost {
     /// A network address, either an IP address or a DNS name.
     public struct NetworkAddress: Sendable {
         public let address: IPv4Address
@@ -83,7 +83,7 @@ extension Host {
     }
 }
 
-extension Host.NetworkAddress: ExpressibleByArgument {
+extension RemoteHost.NetworkAddress: ExpressibleByArgument {
     /// Creates a new network address from a string.
     /// - Parameter argument: The argument to parse as a network address.
     public init?(argument: String) {
@@ -91,5 +91,5 @@ extension Host.NetworkAddress: ExpressibleByArgument {
     }
 }
 
-extension Host.NetworkAddress: Codable {}
-extension Host.NetworkAddress: Hashable {}
+extension RemoteHost.NetworkAddress: Codable {}
+extension RemoteHost.NetworkAddress: Hashable {}
