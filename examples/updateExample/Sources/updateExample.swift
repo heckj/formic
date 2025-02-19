@@ -3,8 +3,6 @@ import Formic
 import Foundation
 import Logging
 
-typealias Host = Formic.Host
-
 // example:
 // swift run updateExample -v 172.174.57.17 /Users/heckj/.ssh/bastion_id_ed25519
 
@@ -25,16 +23,16 @@ struct configureBastion: AsyncParsableCommand {
         // per https://wiki.debian.org/Multistrap/Environment
         let debUnattended = ["DEBIAN_FRONTEND": "noninteractive", "DEBCONF_NONINTERACTIVE_SEEN": "true"]
 
-        guard let hostAddress = Host.NetworkAddress(hostname) else {
+        guard let hostAddress = RemoteHost.NetworkAddress(hostname) else {
             fatalError("Unable to parse the provided host address: \(hostname)")
         }
 
         let keyName = URL(fileURLWithPath: privateKeyLocation).lastPathComponent
-        let bastionHost: Host = try Host(hostAddress, sshPort: port, sshUser: user, sshIdentityFile: privateKeyLocation)
-        let verbosity: Verbosity = verbose ? .debug(emoji: true) : .normal(emoji: true)
+        let bastionHost: RemoteHost = try RemoteHost(hostAddress, sshPort: port, sshUser: user, sshIdentityFile: privateKeyLocation)
+        let detailLevel: CommandOutputDetail = verbose ? .debug(emoji: true) : .normal(emoji: true)
 
         try await engine.run(
-            host: bastionHost, displayProgress: true, verbosity: verbosity,
+            host: bastionHost, displayProgress: true, detailLevel: detailLevel,
             commands: [
                 SSHCommand("uname -a"),  // uses CitadelSSH
                 SSHCommand("ls -altr"),

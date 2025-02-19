@@ -2,7 +2,6 @@ import ArgumentParser
 import RegexBuilder
 
 extension RemoteHost {
-
     /// An IPv4 address.
     public struct IPv4Address: LosslessStringConvertible, Sendable {
         // It would be great if this were in a standard library built into the swift toolchain (aka Foundation)
