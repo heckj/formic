@@ -82,7 +82,7 @@ extension CommandExecutionResult {
                 stringOutput.append("exception: \(exception)")
             } else if output.returnCode != 0 {
                 stringOutput.append("command: \(command), rc=\(output.returnCode), retries=\(retries)")
-                stringOutput.append("[\(formattedDuration)] ")
+                stringOutput.append(" δt=[\(formattedDuration)] ")
                 if let errorOutput = output.stderrString {
                     stringOutput.append("\nSTDERR: \(errorOutput)")
                 } else {
@@ -90,7 +90,7 @@ extension CommandExecutionResult {
                 }
             } else {
                 stringOutput.append("command: \(command), rc=\(output.returnCode), retries=\(retries)")
-                stringOutput.append("[\(formattedDuration)] ")
+                stringOutput.append(" δt=[\(formattedDuration)] ")
             }
         case .verbose(emoji: let includeEmoji):
             // Reports host, command, duration, the result code, and stdout on success, or stderr on failure.
@@ -101,10 +101,10 @@ extension CommandExecutionResult {
                 if includeEmoji {
                     stringOutput.append(" ")
                 }
-                stringOutput.append("[\(formattedDuration)] ")
+                stringOutput.append(" δt=[\(formattedDuration)] ")
                 stringOutput.append("exception: \(exception)")
             } else if output.returnCode != 0 {
-                stringOutput.append("[\(formattedDuration)] ")
+                stringOutput.append(" δt=[\(formattedDuration)] ")
                 stringOutput.append("command: \(command), rc=\(output.returnCode), retries=\(retries)")
                 if let errorOutput = output.stderrString {
                     stringOutput.append("\nSTDERR: \(errorOutput)")
@@ -112,7 +112,7 @@ extension CommandExecutionResult {
                     stringOutput.append(" No STDERR output.")
                 }
             } else {
-                stringOutput.append("[\(formattedDuration)] ")
+                stringOutput.append(" δt=[\(formattedDuration)] ")
                 stringOutput.append("command: \(command), rc=\(output.returnCode), retries=\(retries)")
                 if let stdoutOutput = output.stdoutString {
                     stringOutput.append("\nSTDOUT: \(stdoutOutput)")
@@ -129,10 +129,10 @@ extension CommandExecutionResult {
                 if includeEmoji {
                     stringOutput.append(" ")
                 }
-                stringOutput.append("[\(formattedDuration)] ")
+                stringOutput.append(" δt=[\(formattedDuration)] ")
                 stringOutput.append("exception: \(exception)")
             } else {
-                stringOutput.append("[\(formattedDuration)] ")
+                stringOutput.append(" δt=[\(formattedDuration)] ")
                 stringOutput.append("command: \(command), rc=\(output.returnCode), retries=\(retries)")
                 if let errorOutput = output.stderrString {
                     stringOutput.append("\nSTDERR: \(errorOutput)")
