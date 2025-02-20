@@ -24,8 +24,8 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.0.0"),
         .package(url: "https://github.com/swiftlang/swift-format.git",
             .upToNextMajor(from: "600.0.0")),
-        .package(url: "https://github.com/orlandos-nl/Citadel/", from: "0.9.0"),
-        .package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "2.1.0"),
+        //.package(url: "https://github.com/orlandos-nl/Citadel/", from: "0.9.0"),
+        //.package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "2.1.0"),
         .package(url: "https://github.com/neallester/swift-log-testing.git", from: "0.0.1"),
     ],
     targets: [
@@ -38,9 +38,9 @@ let package = Package(
                 .product(name: "Parsing", package: "swift-parsing"),
                 .product(name: "Dependencies", package: "swift-dependencies"),
                 .product(name: "Logging", package: "swift-log"),
-                .product(name: "Citadel", package: "Citadel"),
-                .product(name: "Crypto", package: "swift-crypto"),
-                .product(name: "_CryptoExtras", package: "swift-crypto"),
+                //.product(name: "Citadel", package: "Citadel"),
+                //.product(name: "Crypto", package: "swift-crypto"),
+                //.product(name: "_CryptoExtras", package: "swift-crypto"),
             ]
         ),
         .testTarget(

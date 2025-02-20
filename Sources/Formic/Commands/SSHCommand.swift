@@ -1,3 +1,5 @@
+#if canImport(Citadel)
+    
 import Citadel
 import Crypto  // for loading a private key to use with Citadel for authentication
 import Dependencies
@@ -161,3 +163,5 @@ extension SSHCommand: CustomStringConvertible {
         return commandString
     }
 }
+
+#endif
