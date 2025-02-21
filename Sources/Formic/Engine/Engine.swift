@@ -35,7 +35,7 @@ public actor Engine {
     ) async throws -> [CommandExecutionResult] {
         var results: [CommandExecutionResult] = []
         for command in commands {
-            logger?.debug("running command: \(command)")
+            logger?.debug("\(host) running command: \(command)")
 
             let result = try await run(host: host, command: command)
             results.append(result)
@@ -47,7 +47,7 @@ public actor Engine {
                 break
             }
         }
-        logger?.debug("returning \(results.count) CEResults")
+        logger?.trace("returning \(results.count) CEResults")
         return results
     }
 
@@ -144,7 +144,7 @@ public actor Engine {
             // otherwise, prep for possible retry
             if command.retry.retryOnFailure && numberOfRetries < command.retry.maxRetries {
                 let delay = command.retry.strategy.delay(for: numberOfRetries, withJitter: true)
-                logger?.trace("delaying for \(delay) due to failure before retrying command: \(command)")
+                logger?.trace("\(host) delaying for \(delay) (due to failure) before retrying: \(command)")
                 try await Task.sleep(for: delay)
             }
         } while command.retry.retryOnFailure && numberOfRetries < command.retry.maxRetries

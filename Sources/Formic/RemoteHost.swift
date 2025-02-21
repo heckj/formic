@@ -105,7 +105,7 @@ extension RemoteHost: CustomDebugStringConvertible {
 extension RemoteHost: CustomStringConvertible {
     /// The description of the host.
     public var description: String {
-        return "\(self.sshAccessCredentials.username)@\(networkAddress)"
+        return "\(self.sshAccessCredentials.username)@\(networkAddress.address)"
     }
 }
 
