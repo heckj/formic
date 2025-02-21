@@ -100,7 +100,6 @@ public actor Engine {
             numberOfRetries += 1
             let start = clock.now
             do {
-                logger?.debug("running command \(command) against \(host)")
                 outputOfLastAttempt = try await command.run(host: host, logger: logger)
                 // - DISABLED execution timeout checking because it's hanging when
                 // the process that invokes the commands is Foundation.process, which is all

@@ -41,8 +41,7 @@ struct ProcessCommandInvoker: CommandInvoker {
         let cmdString = "'\(cmd.joined(separator: " "))'"
         task.arguments = ["-c", cmdString]
 
-        logger?.trace("RAW LOCAL COMMAND:")
-        logger?.trace("/bin/sh -c \(cmdString)")
+        logger?.trace("FORKED PROCESS: /bin/sh -c \(cmdString)")
 
         let stdOutPipe = Pipe()
         let stdErrPipe = Pipe()
