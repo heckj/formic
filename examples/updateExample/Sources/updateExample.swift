@@ -34,14 +34,12 @@ struct configureBastion: AsyncParsableCommand {
         try await engine.run(
             host: bastionHost, displayProgress: true, detailLevel: detailLevel,
             commands: [
-                SSHCommand("uname -a"),  // uses CitadelSSH
-                SSHCommand("ls -altr"),
-
                 ShellCommand("mkdir -p ~/.ssh"),  // uses Process and forked 'ssh' locally
                 ShellCommand("chmod 0700 ~/.ssh"),
                 CopyInto(location: "~/.ssh/\(keyName)", from: privateKeyLocation),
                 CopyInto(location: "~/.ssh/\(keyName).pub", from: "\(privateKeyLocation).pub"),
                 ShellCommand("chmod 0600 ~/.ssh/\(keyName)"),
+                
                 // CopyFrom(into: "swiftly-install.sh", from: URL(string: "https://swiftlang.github.io/swiftly/swiftly-install.sh")!),
                 // ShellCommand("chmod 0755 swiftly-install.sh"),
                 // released version (0.3.0) doesn't support Ubuntu 24.04 - that's pending in 0.4.0...
@@ -54,10 +52,10 @@ struct configureBastion: AsyncParsableCommand {
                 ShellCommand("sudo apt-get update -q", env: debUnattended),
                 ShellCommand("sudo apt-get upgrade -y -qq", env: debUnattended),
 
-                // latest upgrade looks like it _doesn't_ require a reboot to complete its work.
-                //            ShellCommand("sudo reboot"),
-                //            VerifyAccess(ignoreFailure: false,
-                //                        retry: Backoff(maxRetries: 10, strategy: .fibonacci(maxDelay: .seconds(10)))),
+                // A reboot and "wait for it" to resume setup:
+                //    ShellCommand("sudo reboot"),
+                //    VerifyAccess(ignoreFailure: false,
+                //                retry: Backoff(maxRetries: 10, strategy: .fibonacci(maxDelay: .seconds(10)))),
 
                 // "manual install" of Swift
                 // from https://www.swift.org/install/linux/tarball/ for Ubuntu 24.04
@@ -82,18 +80,14 @@ struct configureBastion: AsyncParsableCommand {
                 // restart the unattended upgrades
                 ShellCommand("sudo systemctl start unattended-upgrades.service"),
 
-                // yes, I know about Swiftly, but when I'm creating this it wasn't available
-                // on swift.org and the released version wasn't yet supporting Ubuntu 24.04.
-
                 ShellCommand(
                     "wget -nv  https://download.swift.org/swift-6.0.3-release/ubuntu2404/swift-6.0.3-RELEASE/swift-6.0.3-RELEASE-ubuntu24.04.tar.gz"
                 ),
-                // ~17 seconds
+                
                 ShellCommand("tar xzf swift-6.0.3-RELEASE-ubuntu24.04.tar.gz"),
-                // ~43 seconds
+                
                 ShellCommand("swift-6.0.3-RELEASE-ubuntu24.04/usr/bin/swift -version"),
 
-                // reboot to full apply pending updates
                 ShellCommand("sudo reboot"),
             ])
     }
